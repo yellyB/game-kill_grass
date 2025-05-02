@@ -147,7 +147,7 @@ func _on_upgrade_pressed() -> void:
 
 func _on_quit_pressed() -> void:
   GameManager.play_button_click()
-  quit_confirm_dialog.show_dialog("게임을 종료할까요?")
+  quit_confirm_dialog.show_dialog("게임을 종료할까요?", "확인", "취소", true)
 
 func _on_panel_opened() -> void:
   play_btn.disabled = true
@@ -705,6 +705,15 @@ func _show_strengthen_dialog(world: int) -> void:
   # Buttons
   var btn_row = HBoxContainer.new()
   btn_row.add_theme_constant_override("separation", 20)
+  var cancel_btn = Button.new()
+  cancel_btn.text = "취소"
+  cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  cancel_btn.custom_minimum_size = Vector2(0, 80)
+  cancel_btn.add_theme_font_size_override("font_size", 28)
+  GameManager.style_button(cancel_btn, "muted")
+  cancel_btn.pressed.connect(_on_strengthen_cancelled)
+  btn_row.add_child(cancel_btn)
+
   var confirm_btn = Button.new()
   confirm_btn.text = "초월하기"
   confirm_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -714,15 +723,6 @@ func _show_strengthen_dialog(world: int) -> void:
   GameManager.style_button(confirm_btn, "main" if can_afford else "muted")
   confirm_btn.pressed.connect(_on_strengthen_confirmed.bind(world))
   btn_row.add_child(confirm_btn)
-
-  var cancel_btn = Button.new()
-  cancel_btn.text = "취소"
-  cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  cancel_btn.custom_minimum_size = Vector2(0, 80)
-  cancel_btn.add_theme_font_size_override("font_size", 28)
-  GameManager.style_button(cancel_btn, "muted")
-  cancel_btn.pressed.connect(_on_strengthen_cancelled)
-  btn_row.add_child(cancel_btn)
 
   vbox.add_child(btn_row)
 

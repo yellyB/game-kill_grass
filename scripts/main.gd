@@ -466,7 +466,7 @@ func _on_session_ready() -> void:
 
 func _on_back_to_menu_pressed() -> void:
   GameManager.play_button_click()
-  confirm_dialog.show_dialog("첫 화면으로 돌아갈까요?", "처음으로", "게임 계속하기")
+  confirm_dialog.show_dialog("첫 화면으로 돌아갈까요?", "처음으로", "게임 계속하기", true)
   get_tree().paused = true
 
 func _on_confirm_back_to_menu() -> void:
