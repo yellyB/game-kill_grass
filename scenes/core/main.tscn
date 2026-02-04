@@ -1,0 +1,151 @@
+[gd_scene load_steps=16 format=3 uid="uid://cmain123"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/world_root.gd" id="2_world"]
+[ext_resource type="Script" path="res://scripts/grass_spawner.gd" id="3_spawner"]
+[ext_resource type="PackedScene" uid="uid://cgrass123" path="res://scenes/world/grass.tscn" id="4_grass"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="5_player"]
+[ext_resource type="Script" path="res://scripts/game_camera.gd" id="6_camera"]
+[ext_resource type="PackedScene" uid="uid://chud123" path="res://scenes/ui/hud.tscn" id="7_hud"]
+[ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="8_upgrade"]
+[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="9_pause"]
+[ext_resource type="PackedScene" uid="uid://cjoystick123" path="res://scenes/ui/virtual_joystick.tscn" id="10_joystick"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 30.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_attack"]
+radius = 80.0
+
+[sub_resource type="Gradient" id="Gradient_player"]
+colors = PackedColorArray(0.29, 0.56, 0.85, 1, 0.42, 0.7, 0.94, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_player"]
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+gradient = SubResource("Gradient_player")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.1, 0.15, 0.95)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="WorldRoot" type="Node2D" parent="."]
+script = ExtResource("2_world")
+
+[node name="Background" type="ColorRect" parent="WorldRoot"]
+offset_left = -3000.0
+offset_top = -3000.0
+offset_right = 3000.0
+offset_bottom = 3000.0
+color = Color(0.18, 0.35, 0.18, 1)
+
+[node name="GrassSpawner" type="Node2D" parent="WorldRoot"]
+script = ExtResource("3_spawner")
+grass_scene = ExtResource("4_grass")
+spawn_radius = 1500.0
+grass_count = 120
+
+[node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
+collision_layer = 1
+collision_mask = 2
+script = ExtResource("5_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player"]
+texture = SubResource("GradientTexture2D_player")
+
+[node name="AttackArea" type="Area2D" parent="Player"]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/AttackArea"]
+shape = SubResource("CircleShape2D_attack")
+
+[node name="AttackTimer" type="Timer" parent="Player"]
+wait_time = 0.2
+one_shot = true
+
+[node name="GameCamera" type="Camera2D" parent="Player"]
+script = ExtResource("6_camera")
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+
+[node name="UpgradePanel" parent="." instance=ExtResource("8_upgrade")]
+
+[node name="VirtualJoystick" parent="." instance=ExtResource("10_joystick")]
+
+[node name="PauseMenu" type="Control" parent="."]
+process_mode = 2
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("9_pause")
+
+[node name="PauseBtn" type="Button" parent="PauseMenu"]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 32
+text = "||"
+
+[node name="Panel" type="Panel" parent="PauseMenu"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="TitleLabel" type="Label" parent="PauseMenu/Panel"]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 380.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "PAUSED"
+horizontal_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/Panel"]
+layout_mode = 1
+offset_left = 40.0
+offset_top = 80.0
+offset_right = 360.0
+offset_bottom = 280.0
+theme_override_constants/separation = 20
+
+[node name="ResumeBtn" type="Button" parent="PauseMenu/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "RESUME"
+
+[node name="SaveQuitBtn" type="Button" parent="PauseMenu/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SAVE & QUIT"

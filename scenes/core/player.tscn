@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3 uid="uid://bxpqvj8kcvyns"]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 30.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_attack"]
+radius = 80.0
+
+[sub_resource type="Gradient" id="Gradient_player"]
+colors = PackedColorArray(0.29, 0.56, 0.85, 1, 0.42, 0.7, 0.94, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_player"]
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+gradient = SubResource("Gradient_player")
+
+[node name="Player" type="CharacterBody2D" groups=["player"]]
+collision_layer = 1
+collision_mask = 2
+script = ExtResource("1_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("GradientTexture2D_player")
+
+[node name="AttackArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea"]
+shape = SubResource("CircleShape2D_attack")
+
+[node name="AttackTimer" type="Timer" parent="."]
+wait_time = 0.2
+one_shot = true

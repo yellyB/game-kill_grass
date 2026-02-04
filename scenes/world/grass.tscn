@@ -1,0 +1,60 @@
+[gd_scene load_steps=6 format=3 uid="uid://cgrass123"]
+
+[ext_resource type="Script" path="res://scripts/grass.gd" id="1_grass"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_grass"]
+size = Vector2(40, 60)
+
+[sub_resource type="Gradient" id="Gradient_grass"]
+colors = PackedColorArray(0.3, 0.6, 0.2, 1, 0.4, 0.8, 0.3, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_grass"]
+width = 40
+height = 60
+gradient = SubResource("Gradient_grass")
+fill = 0
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="Gradient_particle"]
+colors = PackedColorArray(0.4, 0.8, 0.3, 1, 0.2, 0.5, 0.1, 0)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_cut"]
+emission_shape = 1
+emission_sphere_radius = 10.0
+direction = Vector3(0, -1, 0)
+spread = 60.0
+initial_velocity_min = 50.0
+initial_velocity_max = 150.0
+gravity = Vector3(0, 300, 0)
+scale_min = 2.0
+scale_max = 5.0
+color_ramp = SubResource("Gradient_particle")
+
+[node name="Grass" type="Area2D" groups=["grass"]]
+collision_layer = 2
+collision_mask = 0
+monitorable = true
+script = ExtResource("1_grass")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.3, 0.7, 0.3, 1)
+position = Vector2(0, -20)
+texture = SubResource("GradientTexture2D_grass")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -20)
+shape = SubResource("RectangleShape2D_grass")
+
+[node name="RegenTimer" type="Timer" parent="."]
+wait_time = 5.0
+one_shot = true
+
+[node name="CutParticles" type="GPUParticles2D" parent="."]
+position = Vector2(0, -20)
+emitting = false
+amount = 8
+process_material = SubResource("ParticleProcessMaterial_cut")
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.9
