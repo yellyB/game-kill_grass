@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cmain123"]
+[gd_scene load_steps=14 format=3 uid="uid://cmain123"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/world_root.gd" id="2_world"]
@@ -17,28 +17,6 @@ radius = 30.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_attack"]
 radius = 80.0
-
-[sub_resource type="Gradient" id="Gradient_blade"]
-offsets = PackedFloat32Array(0, 0.3, 1)
-colors = PackedColorArray(0.6, 0.6, 0.65, 1, 0.8, 0.8, 0.85, 1, 0.95, 0.95, 1, 0.8)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_blade"]
-width = 16
-height = 80
-gradient = SubResource("Gradient_blade")
-fill = 0
-fill_from = Vector2(0.5, 1)
-fill_to = Vector2(0.5, 0)
-
-[sub_resource type="Gradient" id="Gradient_player"]
-colors = PackedColorArray(0.29, 0.56, 0.85, 1, 0.42, 0.7, 0.94, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_player"]
-width = 64
-height = 64
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-gradient = SubResource("Gradient_player")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -139,10 +117,6 @@ one_shot = true
 
 [node name="WeaponPivot" type="Node2D" parent="Player"]
 position = Vector2(0, 0)
-
-[node name="Blade" type="Sprite2D" parent="Player/WeaponPivot"]
-position = Vector2(0, -50)
-texture = SubResource("GradientTexture2D_blade")
 
 [node name="GameCamera" type="Camera2D" parent="Player"]
 script = ExtResource("6_camera")
