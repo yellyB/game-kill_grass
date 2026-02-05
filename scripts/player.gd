@@ -22,7 +22,9 @@ func _ready() -> void:
 	attack_area.area_exited.connect(_on_grass_exited)
 	attack_timer.timeout.connect(_on_attack_timer_timeout)
 	update_attack_range()
+	update_weapon_visuals()
 	GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
+	WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
 func _process(delta: float) -> void:
 	input_direction = get_input_direction()
@@ -65,11 +67,28 @@ func try_attack() -> void:
 		return
 
 	can_attack = false
-	var attack_speed = GameManager.get_attack_speed()
-	attack_timer.wait_time = 0.2 / attack_speed
+	var base_speed = GameManager.get_attack_speed()
+	var weapon_speed = WeaponManager.get_weapon_speed()
+	attack_timer.wait_time = 0.2 / (base_speed * weapon_speed)
 	attack_timer.start()
 
-	# Attack the closest grass
+	var attack_type = WeaponManager.get_attack_type()
+
+	match attack_type:
+		"double":
+			# Attack two closest grasses
+			attack_multiple_grass(2)
+		"spin", "aura", "flame", "world":
+			# Attack all grass in range
+			attack_all_grass()
+		"screen":
+			# Attack all grass in range with screen effect
+			attack_all_grass()
+		_:
+			# Single target attack
+			attack_closest_grass()
+
+func attack_closest_grass() -> void:
 	var closest_grass: Node2D = null
 	var closest_distance: float = INF
 
@@ -81,9 +100,35 @@ func try_attack() -> void:
 				closest_grass = grass
 
 	if closest_grass:
-		# Swing weapon towards the grass
 		swing_weapon(closest_grass.global_position)
 		closest_grass.take_damage(1)
+
+func attack_multiple_grass(count: int) -> void:
+	var valid_grasses: Array = []
+
+	for grass in grasses_in_range:
+		if is_instance_valid(grass) and grass.has_method("take_damage"):
+			valid_grasses.append(grass)
+
+	# Sort by distance
+	valid_grasses.sort_custom(func(a, b):
+		return global_position.distance_to(a.global_position) < global_position.distance_to(b.global_position)
+	)
+
+	# Attack up to 'count' grasses
+	for i in min(count, valid_grasses.size()):
+		if i == 0:
+			swing_weapon(valid_grasses[i].global_position)
+		valid_grasses[i].take_damage(1)
+
+func attack_all_grass() -> void:
+	var attacked = false
+	for grass in grasses_in_range:
+		if is_instance_valid(grass) and grass.has_method("take_damage"):
+			if not attacked:
+				swing_weapon(grass.global_position)
+				attacked = true
+			grass.take_damage(1)
 
 func swing_weapon(target_pos: Vector2) -> void:
 	is_swinging = true
@@ -111,9 +156,19 @@ func swing_weapon(target_pos: Vector2) -> void:
 	is_swinging = false
 
 func update_attack_range() -> void:
-	var range_size = GameManager.get_attack_range()
+	var base_range = GameManager.get_attack_range()
+	var weapon_range = WeaponManager.get_weapon_range()
+	var final_range = base_range * weapon_range
 	if attack_shape and attack_shape.shape is CircleShape2D:
-		attack_shape.shape.radius = range_size
+		attack_shape.shape.radius = final_range
+
+func update_weapon_visuals() -> void:
+	var weapon_color = WeaponManager.get_weapon_color()
+	blade.modulate = weapon_color
+
+	# Scale blade based on weapon level
+	var weapon_range = WeaponManager.get_weapon_range()
+	blade.scale = Vector2(1.0, weapon_range)
 
 func _on_grass_entered(area: Area2D) -> void:
 	if area.is_in_group("grass"):
@@ -128,6 +183,10 @@ func _on_attack_timer_timeout() -> void:
 func _on_upgrade_purchased(upgrade_type: String, _level: int) -> void:
 	if upgrade_type == "attack_range":
 		update_attack_range()
+
+func _on_weapon_changed(_level: int) -> void:
+	update_attack_range()
+	update_weapon_visuals()
 
 # Mobile touch input support
 var touch_start_pos: Vector2 = Vector2.ZERO
