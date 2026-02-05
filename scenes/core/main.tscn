@@ -41,8 +41,9 @@ color = Color(0.18, 0.35, 0.18, 1)
 [node name="GrassSpawner" type="Node2D" parent="WorldRoot"]
 script = ExtResource("3_spawner")
 grass_scene = ExtResource("4_grass")
-spawn_radius = 1500.0
-grass_count = 120
+chunk_size = 400.0
+render_distance = 4
+grass_per_chunk = 10
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
 collision_layer = 1

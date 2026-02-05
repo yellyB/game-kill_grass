@@ -4,6 +4,8 @@ signal grass_cut(grass: Node2D, value: int)
 
 @export var grass_data: GrassData
 
+const CoinScene = preload("res://scenes/world/coin.tscn")
+
 @onready var grass_visual: Node2D = $GrassVisual
 @onready var collision: CollisionShape2D = $CollisionShape2D
 @onready var regen_timer: Timer = $RegenTimer
@@ -69,7 +71,7 @@ func cut() -> void:
 
 	var drop_value = calculate_drop()
 	if drop_value > 0:
-		GameManager.add_money(drop_value)
+		spawn_coin(drop_value)
 
 	GameManager.add_combo()
 	apply_hitstop()
@@ -104,6 +106,16 @@ func calculate_drop() -> int:
 		if randf() > 0.8:
 			return 0
 		return int(randi_range(1, 5) * drop_multiplier)
+
+func spawn_coin(value: int) -> void:
+	var coin = CoinScene.instantiate()
+	# Store spawn position before adding to tree
+	var spawn_pos = position + get_parent().position  # grass position + GrassSpawner position
+	coin.position = spawn_pos
+	coin.set_value(value)
+	# Add to WorldRoot so it moves with the world
+	var world_root = get_parent().get_parent()  # GrassSpawner -> WorldRoot
+	world_root.add_child(coin)
 
 func play_cut_effect() -> void:
 	if particles:

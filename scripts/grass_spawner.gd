@@ -1,18 +1,137 @@
 extends Node2D
 
 @export var grass_scene: PackedScene
-@export var spawn_radius: float = 1500.0
-@export var grass_count: int = 100
-@export var min_spacing: float = 80.0
+@export var chunk_size: float = 400.0  # Size of each chunk
+@export var render_distance: int = 3    # How many chunks to render around player
+@export var grass_per_chunk: int = 8    # Grass count per chunk
+@export var min_spacing: float = 60.0
 
 var grass_data_list: Array[GrassData] = []
+var loaded_chunks: Dictionary = {}  # Key: Vector2i (chunk coord), Value: Array of grass nodes
+var player: Node2D = null
 
 func _ready() -> void:
 	load_grass_data()
-	spawn_initial_grass()
+	# Find player after scene is ready
+	call_deferred("find_player")
+
+func find_player() -> void:
+	player = get_tree().get_first_node_in_group("player")
+	if player:
+		update_chunks()
+
+func _process(_delta: float) -> void:
+	if player:
+		update_chunks()
+
+func get_chunk_coord(world_pos: Vector2) -> Vector2i:
+	return Vector2i(
+		floori(world_pos.x / chunk_size),
+		floori(world_pos.y / chunk_size)
+	)
+
+func update_chunks() -> void:
+	if not player:
+		return
+
+	var player_chunk = get_chunk_coord(player.global_position)
+	var chunks_to_load: Array[Vector2i] = []
+	var chunks_to_keep: Dictionary = {}
+
+	# Determine which chunks should be loaded
+	for x in range(-render_distance, render_distance + 1):
+		for y in range(-render_distance, render_distance + 1):
+			var chunk_coord = Vector2i(player_chunk.x + x, player_chunk.y + y)
+			chunks_to_keep[chunk_coord] = true
+			if not loaded_chunks.has(chunk_coord):
+				chunks_to_load.append(chunk_coord)
+
+	# Unload distant chunks
+	var chunks_to_unload: Array[Vector2i] = []
+	for chunk_coord in loaded_chunks.keys():
+		if not chunks_to_keep.has(chunk_coord):
+			chunks_to_unload.append(chunk_coord)
+
+	for chunk_coord in chunks_to_unload:
+		unload_chunk(chunk_coord)
+
+	# Load new chunks
+	for chunk_coord in chunks_to_load:
+		load_chunk(chunk_coord)
+
+func load_chunk(chunk_coord: Vector2i) -> void:
+	if loaded_chunks.has(chunk_coord):
+		return
+
+	var grass_list: Array[Node] = []
+	var chunk_origin = Vector2(chunk_coord.x * chunk_size, chunk_coord.y * chunk_size)
+	var spawned_positions: Array[Vector2] = []
+
+	# Use chunk coordinate as seed for consistent generation
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash(chunk_coord)
+
+	for i in grass_per_chunk:
+		var pos = get_random_position_in_chunk(chunk_origin, spawned_positions, rng)
+		if pos != Vector2.INF:
+			var grass = spawn_grass_at(pos, rng)
+			if grass:
+				grass_list.append(grass)
+				spawned_positions.append(pos)
+
+	loaded_chunks[chunk_coord] = grass_list
+
+func unload_chunk(chunk_coord: Vector2i) -> void:
+	if not loaded_chunks.has(chunk_coord):
+		return
+
+	var grass_list = loaded_chunks[chunk_coord]
+	for grass in grass_list:
+		if is_instance_valid(grass):
+			grass.queue_free()
+
+	loaded_chunks.erase(chunk_coord)
+
+func get_random_position_in_chunk(chunk_origin: Vector2, existing: Array[Vector2], rng: RandomNumberGenerator) -> Vector2:
+	var max_attempts = 20
+
+	for _attempt in max_attempts:
+		var pos = Vector2(
+			chunk_origin.x + rng.randf() * chunk_size,
+			chunk_origin.y + rng.randf() * chunk_size
+		)
+
+		var valid = true
+		for existing_pos in existing:
+			if pos.distance_to(existing_pos) < min_spacing:
+				valid = false
+				break
+
+		if valid:
+			return pos
+
+	return Vector2.INF
+
+func spawn_grass_at(pos: Vector2, rng: RandomNumberGenerator) -> Node:
+	if not grass_scene:
+		return null
+
+	var grass = grass_scene.instantiate()
+	grass.position = pos
+
+	# Assign random grass type with weighted probability
+	var roll = rng.randf()
+	if roll < 0.7:  # 70% normal
+		grass.grass_data = grass_data_list[0]
+	elif roll < 0.95:  # 25% tough
+		grass.grass_data = grass_data_list[1]
+	else:  # 5% golden
+		grass.grass_data = grass_data_list[2]
+
+	add_child(grass)
+	return grass
 
 func load_grass_data() -> void:
-	# Create grass types programmatically for MVP
 	var normal_grass = GrassData.new()
 	normal_grass.grass_name = "Normal Grass"
 	normal_grass.max_health = 1
@@ -46,50 +165,3 @@ func load_grass_data() -> void:
 	grass_data_list.append(normal_grass)
 	grass_data_list.append(tough_grass)
 	grass_data_list.append(golden_grass)
-
-func spawn_initial_grass() -> void:
-	if not grass_scene:
-		push_error("Grass scene not assigned!")
-		return
-
-	var spawned_positions: Array[Vector2] = []
-
-	for i in grass_count:
-		var pos = get_random_position(spawned_positions)
-		if pos != Vector2.INF:
-			spawn_grass_at(pos)
-			spawned_positions.append(pos)
-
-func get_random_position(existing: Array[Vector2]) -> Vector2:
-	var max_attempts = 30
-
-	for _attempt in max_attempts:
-		var angle = randf() * TAU
-		var distance = randf_range(100, spawn_radius)
-		var pos = Vector2(cos(angle), sin(angle)) * distance
-
-		var valid = true
-		for existing_pos in existing:
-			if pos.distance_to(existing_pos) < min_spacing:
-				valid = false
-				break
-
-		if valid:
-			return pos
-
-	return Vector2.INF
-
-func spawn_grass_at(pos: Vector2) -> void:
-	var grass = grass_scene.instantiate()
-	grass.position = pos
-
-	# Assign random grass type with weighted probability
-	var roll = randf()
-	if roll < 0.7:  # 70% normal
-		grass.grass_data = grass_data_list[0]
-	elif roll < 0.95:  # 25% tough
-		grass.grass_data = grass_data_list[1]
-	else:  # 5% golden
-		grass.grass_data = grass_data_list[2]
-
-	add_child(grass)
