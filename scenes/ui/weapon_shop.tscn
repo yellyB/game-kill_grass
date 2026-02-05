@@ -2,30 +2,33 @@
 
 [ext_resource type="Script" path="res://scripts/weapon_shop.gd" id="1_shop"]
 
-[node name="WeaponShop" type="Control"]
+[node name="WeaponShop" type="CanvasLayer"]
+
+[node name="Control" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_shop")
 
-[node name="ToggleBtn" type="Button" parent="."]
+[node name="ToggleBtn" type="Button" parent="Control"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -180.0
-offset_right = 140.0
-offset_bottom = -80.0
+offset_left = 10.0
+offset_top = -90.0
+offset_right = 120.0
+offset_bottom = -10.0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "무기
 Lv.1"
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="Control"]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -40,7 +43,7 @@ offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TitleLabel" type="Label" parent="Panel"]
+[node name="TitleLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 20.0
@@ -51,7 +54,7 @@ theme_override_font_sizes/font_size = 32
 text = "무기 상점"
 horizontal_alignment = 1
 
-[node name="CloseBtn" type="Button" parent="Panel"]
+[node name="CloseBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 380.0
 offset_top = 10.0
@@ -60,7 +63,7 @@ offset_bottom = 50.0
 theme_override_font_sizes/font_size = 24
 text = "X"
 
-[node name="WeaponIcon" type="ColorRect" parent="Panel"]
+[node name="WeaponIcon" type="ColorRect" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 170.0
 offset_top = 80.0
@@ -69,7 +72,7 @@ offset_bottom = 200.0
 pivot_offset = Vector2(50, 60)
 color = Color(0.6, 0.5, 0.4, 1)
 
-[node name="WeaponNameLabel" type="Label" parent="Panel"]
+[node name="WeaponNameLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 220.0
@@ -80,7 +83,7 @@ theme_override_font_sizes/font_size = 36
 text = "낡은 낫"
 horizontal_alignment = 1
 
-[node name="WeaponDescLabel" type="Label" parent="Panel"]
+[node name="WeaponDescLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 270.0
@@ -91,7 +94,7 @@ theme_override_font_sizes/font_size = 24
 text = "기본 무기"
 horizontal_alignment = 1
 
-[node name="StatsLabel" type="Label" parent="Panel"]
+[node name="StatsLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 320.0
@@ -102,7 +105,7 @@ theme_override_font_sizes/font_size = 22
 text = "범위: x1.0 | 속도: x1.0"
 horizontal_alignment = 1
 
-[node name="NextWeaponLabel" type="Label" parent="Panel"]
+[node name="NextWeaponLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 400.0
@@ -113,7 +116,7 @@ theme_override_font_sizes/font_size = 24
 text = "다음: 날 선 낫"
 horizontal_alignment = 1
 
-[node name="UpgradeBtn" type="Button" parent="Panel"]
+[node name="UpgradeBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 100.0
 offset_top = 460.0

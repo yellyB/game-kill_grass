@@ -2,29 +2,32 @@
 
 [ext_resource type="Script" path="res://scripts/info_panel.gd" id="1_info"]
 
-[node name="InfoPanel" type="Control"]
+[node name="InfoPanel" type="CanvasLayer"]
+
+[node name="Control" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_info")
 
-[node name="ToggleBtn" type="Button" parent="."]
+[node name="ToggleBtn" type="Button" parent="Control"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 160.0
-offset_top = -180.0
-offset_right = 280.0
-offset_bottom = -80.0
+offset_left = 130.0
+offset_top = -90.0
+offset_right = 240.0
+offset_bottom = -10.0
 grow_vertical = 0
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "정보"
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="Control"]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -39,7 +42,7 @@ offset_bottom = 350.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TitleLabel" type="Label" parent="Panel"]
+[node name="TitleLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 15.0
@@ -50,7 +53,7 @@ theme_override_font_sizes/font_size = 32
 text = "상태 정보"
 horizontal_alignment = 1
 
-[node name="CloseBtn" type="Button" parent="Panel"]
+[node name="CloseBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 420.0
 offset_top = 10.0
@@ -59,7 +62,7 @@ offset_bottom = 50.0
 theme_override_font_sizes/font_size = 24
 text = "X"
 
-[node name="WeaponSection" type="VBoxContainer" parent="Panel"]
+[node name="WeaponSection" type="VBoxContainer" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 70.0
@@ -67,37 +70,37 @@ offset_right = 460.0
 offset_bottom = 200.0
 theme_override_constants/separation = 8
 
-[node name="SectionTitle" type="Label" parent="Panel/WeaponSection"]
+[node name="SectionTitle" type="Label" parent="Control/Panel/WeaponSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "[ 장착 무기 ]"
 
-[node name="WeaponContainer" type="HBoxContainer" parent="Panel/WeaponSection"]
+[node name="WeaponContainer" type="HBoxContainer" parent="Control/Panel/WeaponSection"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="WeaponIcon" type="ColorRect" parent="Panel/WeaponSection/WeaponContainer"]
+[node name="WeaponIcon" type="ColorRect" parent="Control/Panel/WeaponSection/WeaponContainer"]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 color = Color(0.6, 0.5, 0.4, 1)
 
-[node name="WeaponInfo" type="VBoxContainer" parent="Panel/WeaponSection/WeaponContainer"]
+[node name="WeaponInfo" type="VBoxContainer" parent="Control/Panel/WeaponSection/WeaponContainer"]
 layout_mode = 2
 
-[node name="WeaponNameLabel" type="Label" parent="Panel/WeaponSection/WeaponContainer/WeaponInfo"]
+[node name="WeaponNameLabel" type="Label" parent="Control/Panel/WeaponSection/WeaponContainer/WeaponInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 26
 text = "낡은 낫 (Lv.1)"
 
-[node name="WeaponTypeLabel" type="Label" parent="Panel/WeaponSection/WeaponContainer/WeaponInfo"]
+[node name="WeaponTypeLabel" type="Label" parent="Control/Panel/WeaponSection/WeaponContainer/WeaponInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 20
 text = "단일 공격"
 
-[node name="StatsSection" type="VBoxContainer" parent="Panel"]
+[node name="StatsSection" type="VBoxContainer" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 210.0
@@ -105,52 +108,52 @@ offset_right = 460.0
 offset_bottom = 480.0
 theme_override_constants/separation = 10
 
-[node name="SectionTitle" type="Label" parent="Panel/StatsSection"]
+[node name="SectionTitle" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "[ 스탯 ]"
 
-[node name="AttackSpeedLabel" type="Label" parent="Panel/StatsSection"]
+[node name="AttackSpeedLabel" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0.5, 1)
 theme_override_font_sizes/font_size = 22
 text = "공격 속도: x1.00 (Lv.1)"
 
-[node name="AttackRangeLabel" type="Label" parent="Panel/StatsSection"]
+[node name="AttackRangeLabel" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 1, 0.8, 1)
 theme_override_font_sizes/font_size = 22
 text = "공격 범위: 80 (Lv.1)"
 
-[node name="DropRateLabel" type="Label" parent="Panel/StatsSection"]
+[node name="DropRateLabel" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 22
 text = "드롭률: x1.00 (Lv.1)"
 
-[node name="Separator" type="HSeparator" parent="Panel/StatsSection"]
+[node name="Separator" type="HSeparator" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 
-[node name="FinalTitle" type="Label" parent="Panel/StatsSection"]
+[node name="FinalTitle" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 20
 text = "무기 적용 후:"
 
-[node name="FinalSpeedLabel" type="Label" parent="Panel/StatsSection"]
+[node name="FinalSpeedLabel" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.6, 0.3, 1)
 theme_override_font_sizes/font_size = 22
 text = "최종 속도: x1.00"
 
-[node name="FinalRangeLabel" type="Label" parent="Panel/StatsSection"]
+[node name="FinalRangeLabel" type="Label" parent="Control/Panel/StatsSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
 theme_override_font_sizes/font_size = 22
 text = "최종 범위: 80"
 
-[node name="ProgressSection" type="VBoxContainer" parent="Panel"]
+[node name="ProgressSection" type="VBoxContainer" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 530.0
@@ -158,19 +161,19 @@ offset_right = 460.0
 offset_bottom = 680.0
 theme_override_constants/separation = 10
 
-[node name="SectionTitle" type="Label" parent="Panel/ProgressSection"]
+[node name="SectionTitle" type="Label" parent="Control/Panel/ProgressSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "[ 현재 상태 ]"
 
-[node name="TotalMoneyLabel" type="Label" parent="Panel/ProgressSection"]
+[node name="TotalMoneyLabel" type="Label" parent="Control/Panel/ProgressSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_font_sizes/font_size = 22
 text = "보유 골드: $0"
 
-[node name="ComboLabel" type="Label" parent="Panel/ProgressSection"]
+[node name="ComboLabel" type="Label" parent="Control/Panel/ProgressSection"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
 theme_override_font_sizes/font_size = 22

@@ -9,29 +9,35 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[node name="UpgradePanel" type="Control"]
+[node name="UpgradePanel" type="CanvasLayer"]
+
+[node name="Control" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_upgrade")
 
-[node name="ToggleBtn" type="Button" parent="."]
+[node name="ToggleBtn" type="Button" parent="Control"]
 layout_mode = 1
-anchors_preset = 1
+anchors_preset = 3
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = -120.0
-offset_top = 100.0
-offset_right = -20.0
-offset_bottom = 180.0
+offset_top = -90.0
+offset_right = -10.0
+offset_bottom = -10.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 24
-text = "Upgrade"
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = "강화"
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="Control"]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -47,7 +53,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="TitleLabel" type="Label" parent="Panel"]
+[node name="TitleLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 20.0
@@ -55,10 +61,10 @@ offset_right = 380.0
 offset_bottom = 60.0
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_font_sizes/font_size = 32
-text = "UPGRADES"
+text = "강화"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 80.0
@@ -66,28 +72,28 @@ offset_right = 380.0
 offset_bottom = 400.0
 theme_override_constants/separation = 20
 
-[node name="AttackSpeedBtn" type="Button" parent="Panel/VBoxContainer"]
+[node name="AttackSpeedBtn" type="Button" parent="Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Attack Speed Lv.1
+text = "공격 속도 Lv.1
 $100"
 
-[node name="AttackRangeBtn" type="Button" parent="Panel/VBoxContainer"]
+[node name="AttackRangeBtn" type="Button" parent="Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Attack Range Lv.1
+text = "공격 범위 Lv.1
 $100"
 
-[node name="DropRateBtn" type="Button" parent="Panel/VBoxContainer"]
+[node name="DropRateBtn" type="Button" parent="Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Drop Rate Lv.1
+text = "드롭률 Lv.1
 $100"
 
-[node name="CloseBtn" type="Button" parent="Panel"]
+[node name="CloseBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 340.0
 offset_top = 10.0
