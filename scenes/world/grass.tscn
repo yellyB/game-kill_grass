@@ -1,20 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cgrass123"]
+[gd_scene load_steps=4 format=3 uid="uid://cgrass123"]
 
 [ext_resource type="Script" path="res://scripts/grass.gd" id="1_grass"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_grass"]
-size = Vector2(40, 60)
-
-[sub_resource type="Gradient" id="Gradient_grass"]
-colors = PackedColorArray(0.3, 0.6, 0.2, 1, 0.4, 0.8, 0.3, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_grass"]
-width = 40
-height = 60
-gradient = SubResource("Gradient_grass")
-fill = 0
-fill_from = Vector2(0.5, 1)
-fill_to = Vector2(0.5, 0)
+size = Vector2(30, 50)
 
 [sub_resource type="Gradient" id="Gradient_particle"]
 colors = PackedColorArray(0.4, 0.8, 0.3, 1, 0.2, 0.5, 0.1, 0)
@@ -37,13 +26,40 @@ collision_mask = 0
 monitorable = true
 script = ExtResource("1_grass")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.3, 0.7, 0.3, 1)
-position = Vector2(0, -20)
-texture = SubResource("GradientTexture2D_grass")
+[node name="GrassVisual" type="Node2D" parent="."]
+position = Vector2(0, 0)
+
+[node name="Blade1" type="Polygon2D" parent="GrassVisual"]
+position = Vector2(-8, 0)
+rotation = -0.15
+color = Color(0.25, 0.55, 0.2, 1)
+polygon = PackedVector2Array(0, 0, -4, -45, 0, -55, 4, -45)
+
+[node name="Blade2" type="Polygon2D" parent="GrassVisual"]
+position = Vector2(0, 0)
+color = Color(0.3, 0.65, 0.25, 1)
+polygon = PackedVector2Array(0, 0, -5, -55, 0, -70, 5, -55)
+
+[node name="Blade3" type="Polygon2D" parent="GrassVisual"]
+position = Vector2(8, 0)
+rotation = 0.15
+color = Color(0.28, 0.6, 0.22, 1)
+polygon = PackedVector2Array(0, 0, -4, -40, 0, -50, 4, -40)
+
+[node name="Blade4" type="Polygon2D" parent="GrassVisual"]
+position = Vector2(-4, 0)
+rotation = -0.08
+color = Color(0.22, 0.5, 0.18, 1)
+polygon = PackedVector2Array(0, 0, -3, -35, 0, -42, 3, -35)
+
+[node name="Blade5" type="Polygon2D" parent="GrassVisual"]
+position = Vector2(5, 0)
+rotation = 0.1
+color = Color(0.32, 0.68, 0.28, 1)
+polygon = PackedVector2Array(0, 0, -3, -38, 0, -48, 3, -38)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -20)
+position = Vector2(0, -25)
 shape = SubResource("RectangleShape2D_grass")
 
 [node name="RegenTimer" type="Timer" parent="."]
@@ -51,9 +67,9 @@ wait_time = 5.0
 one_shot = true
 
 [node name="CutParticles" type="GPUParticles2D" parent="."]
-position = Vector2(0, -20)
+position = Vector2(0, -30)
 emitting = false
-amount = 8
+amount = 12
 process_material = SubResource("ParticleProcessMaterial_cut")
 lifetime = 0.5
 one_shot = true
