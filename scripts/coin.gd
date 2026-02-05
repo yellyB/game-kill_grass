@@ -1,5 +1,7 @@
 extends Area2D
 
+const FloatingTextScene = preload("res://scenes/ui/floating_text.tscn")
+
 @export var value: int = 1
 @export var magnet_speed: float = 600.0
 @export var pickup_delay: float = 0.3
@@ -7,6 +9,7 @@ extends Area2D
 var player: Node2D = null
 var can_pickup: bool = false
 var is_being_collected: bool = false
+var is_collected: bool = false
 var velocity: Vector2 = Vector2.ZERO
 
 @onready var visual: Node2D = $Visual
@@ -32,7 +35,7 @@ func _process(delta: float) -> void:
 	# Convert player position to local coordinate space (WorldRoot)
 	var player_local_pos = get_parent().to_local(player.global_position)
 	var distance_to_player = position.distance_to(player_local_pos)
-	var magnet_range = 150.0  # Range at which coins are attracted
+	var magnet_range = 150.0 # Range at which coins are attracted
 
 	if distance_to_player < magnet_range or is_being_collected:
 		is_being_collected = true
@@ -74,7 +77,15 @@ func spawn_animation() -> void:
 		tween2.tween_property(visual, "scale", Vector2(1.0, 1.0), 0.1)
 
 func collect() -> void:
-	GameManager.add_money(value)
+	# Prevent multiple collections
+	if is_collected:
+		return
+	is_collected = true
+
+	var breakdown = GameManager.add_money_with_breakdown(value)
+
+	# Spawn floating text at coin position
+	spawn_floating_text(breakdown.base, breakdown.combo_bonus)
 
 	# Collect effect
 	if visual:
@@ -85,6 +96,14 @@ func collect() -> void:
 		await tween.finished
 
 	queue_free()
+
+func spawn_floating_text(base_amount: int, combo_bonus: int) -> void:
+	var floating_text = FloatingTextScene.instantiate()
+	floating_text.position = position
+	floating_text.setup(base_amount, combo_bonus)
+
+	# Add to same parent (WorldRoot) so it stays at world position
+	get_parent().add_child(floating_text)
 
 func set_value(new_value: int) -> void:
 	value = new_value
@@ -97,11 +116,11 @@ func update_visual() -> void:
 	# Color based on value
 	var coin_color: Color
 	if value >= 15:
-		coin_color = Color(1.0, 0.85, 0.0)  # Gold
+		coin_color = Color(1.0, 0.85, 0.0) # Gold
 	elif value >= 5:
-		coin_color = Color(0.75, 0.75, 0.8)  # Silver
+		coin_color = Color(0.75, 0.75, 0.8) # Silver
 	else:
-		coin_color = Color(0.8, 0.5, 0.2)  # Bronze
+		coin_color = Color(0.8, 0.5, 0.2) # Bronze
 
 	for child in visual.get_children():
 		if child is Polygon2D:

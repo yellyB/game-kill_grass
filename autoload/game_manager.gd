@@ -41,6 +41,18 @@ func add_money(amount: int) -> void:
 	money += final_amount
 	money_changed.emit(money)
 
+func add_money_with_breakdown(amount: int) -> Dictionary:
+	var combo_multiplier = combo * 0.1  # 10% per combo
+	var combo_bonus = int(amount * combo_multiplier)
+	var total = amount + combo_bonus
+	money += total
+	money_changed.emit(money)
+	return {
+		"base": amount,
+		"combo_bonus": combo_bonus,
+		"total": total
+	}
+
 func add_combo() -> void:
 	combo += 1
 	combo_timer = COMBO_TIMEOUT
