@@ -137,9 +137,9 @@ func load_grass_data() -> void:
 	normal_grass.max_health = 1
 	normal_grass.regen_time = 5.0
 	normal_grass.min_drop_value = 1
-	normal_grass.max_drop_value = 3
-	normal_grass.drop_chance = 0.9
-	normal_grass.color = Color(0.3, 0.7, 0.3)
+	normal_grass.max_drop_value = 1
+	normal_grass.drop_chance = 1.0
+	normal_grass.color = Color(0.3, 0.7, 0.3)  # 밝은 초록
 	normal_grass.cut_color = Color(0.5, 0.4, 0.2)
 
 	var tough_grass = GrassData.new()
@@ -147,19 +147,19 @@ func load_grass_data() -> void:
 	tough_grass.max_health = 3
 	tough_grass.regen_time = 8.0
 	tough_grass.min_drop_value = 5
-	tough_grass.max_drop_value = 10
-	tough_grass.drop_chance = 0.95
-	tough_grass.color = Color(0.2, 0.5, 0.2)
-	tough_grass.cut_color = Color(0.4, 0.35, 0.15)
+	tough_grass.max_drop_value = 5
+	tough_grass.drop_chance = 1.0
+	tough_grass.color = Color(0.15, 0.4, 0.35)  # 청록색 (구분용)
+	tough_grass.cut_color = Color(0.3, 0.35, 0.25)
 
 	var golden_grass = GrassData.new()
 	golden_grass.grass_name = "Golden Grass"
 	golden_grass.max_health = 2
 	golden_grass.regen_time = 15.0
-	golden_grass.min_drop_value = 15
-	golden_grass.max_drop_value = 30
+	golden_grass.min_drop_value = 10
+	golden_grass.max_drop_value = 10
 	golden_grass.drop_chance = 1.0
-	golden_grass.color = Color(0.9, 0.8, 0.2)
+	golden_grass.color = Color(0.9, 0.8, 0.2)  # 황금색
 	golden_grass.cut_color = Color(0.6, 0.5, 0.1)
 
 	grass_data_list.append(normal_grass)

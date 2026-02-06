@@ -36,13 +36,15 @@ func _process(delta: float) -> void:
 			end_combo()
 
 func add_money(amount: int) -> void:
-	var bonus = 1.0 + (combo * 0.1)  # 10% bonus per combo
+	var bonus = 1.0 + (combo * 0.03)  # 3% bonus per combo
 	var final_amount = int(amount * bonus)
 	money += final_amount
 	money_changed.emit(money)
 
-func add_money_with_breakdown(amount: int) -> Dictionary:
-	var combo_multiplier = combo * 0.1  # 10% per combo
+func add_money_with_breakdown(amount: int, use_combo: int = -1) -> Dictionary:
+	# Use provided combo or current combo
+	var effective_combo = use_combo if use_combo >= 0 else combo
+	var combo_multiplier = effective_combo * 0.03  # 3% per combo
 	var combo_bonus = int(amount * combo_multiplier)
 	var total = amount + combo_bonus
 	money += total
