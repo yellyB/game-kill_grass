@@ -4,6 +4,7 @@ extends Control
 @onready var attack_speed_btn: Button = $Panel/VBoxContainer/AttackSpeedBtn
 @onready var attack_range_btn: Button = $Panel/VBoxContainer/AttackRangeBtn
 @onready var drop_rate_btn: Button = $Panel/VBoxContainer/DropRateBtn
+@onready var magnet_range_btn: Button = $Panel/VBoxContainer/MagnetRangeBtn
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var toggle_btn: Button = $ToggleBtn
 
@@ -16,6 +17,7 @@ func _ready() -> void:
 	attack_speed_btn.pressed.connect(_on_attack_speed_pressed)
 	attack_range_btn.pressed.connect(_on_attack_range_pressed)
 	drop_rate_btn.pressed.connect(_on_drop_rate_pressed)
+	magnet_range_btn.pressed.connect(_on_magnet_range_pressed)
 
 	GameManager.money_changed.connect(_on_money_changed)
 	GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
@@ -41,6 +43,9 @@ func _on_attack_range_pressed() -> void:
 func _on_drop_rate_pressed() -> void:
 	GameManager.purchase_upgrade("drop_rate")
 
+func _on_magnet_range_pressed() -> void:
+	GameManager.purchase_upgrade("magnet_range")
+
 func _on_money_changed(_amount: int) -> void:
 	if is_open:
 		update_button_texts()
@@ -52,11 +57,14 @@ func update_button_texts() -> void:
 	var speed_cost = GameManager.get_upgrade_cost(GameManager.upgrade_attack_speed)
 	var range_cost = GameManager.get_upgrade_cost(GameManager.upgrade_attack_range)
 	var drop_cost = GameManager.get_upgrade_cost(GameManager.upgrade_drop_rate)
+	var magnet_cost = GameManager.get_upgrade_cost(GameManager.upgrade_magnet_range)
 
-	attack_speed_btn.text = "Attack Speed Lv.%d\n$%d" % [GameManager.upgrade_attack_speed + 1, speed_cost]
-	attack_range_btn.text = "Attack Range Lv.%d\n$%d" % [GameManager.upgrade_attack_range + 1, range_cost]
-	drop_rate_btn.text = "Drop Rate Lv.%d\n$%d" % [GameManager.upgrade_drop_rate + 1, drop_cost]
+	attack_speed_btn.text = "공격 속도 Lv.%d\n$%d" % [GameManager.upgrade_attack_speed + 1, speed_cost]
+	attack_range_btn.text = "공격 범위 Lv.%d\n$%d" % [GameManager.upgrade_attack_range + 1, range_cost]
+	drop_rate_btn.text = "드롭률 Lv.%d\n$%d" % [GameManager.upgrade_drop_rate + 1, drop_cost]
+	magnet_range_btn.text = "수집 범위 Lv.%d\n$%d" % [GameManager.upgrade_magnet_range + 1, magnet_cost]
 
 	attack_speed_btn.disabled = GameManager.money < speed_cost
 	attack_range_btn.disabled = GameManager.money < range_cost
 	drop_rate_btn.disabled = GameManager.money < drop_cost
+	magnet_range_btn.disabled = GameManager.money < magnet_cost

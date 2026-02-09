@@ -4,6 +4,9 @@ signal input_direction_changed(direction: Vector2)
 
 @export var move_speed: float = 300.0
 
+# Debug settings
+const DEBUG_SHOW_RANGES: bool = true
+
 @onready var attack_area: Area2D = $AttackArea
 @onready var attack_shape: CollisionShape2D = $AttackArea/CollisionShape2D
 @onready var player_visual: Node2D = $PlayerVisual
@@ -39,6 +42,7 @@ func _ready() -> void:
 	create_weapon_visual()
 	GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
 	WeaponManager.weapon_changed.connect(_on_weapon_changed)
+	queue_redraw()  # For debug drawing
 
 func _process(delta: float) -> void:
 	input_direction = get_input_direction()
@@ -623,10 +627,15 @@ func _on_attack_timer_timeout() -> void:
 func _on_upgrade_purchased(upgrade_type: String, _level: int) -> void:
 	if upgrade_type == "attack_range":
 		update_attack_range()
+	elif upgrade_type == "magnet_range":
+		queue_redraw()  # Update debug circle
 
 func _on_weapon_changed(_level: int) -> void:
 	update_attack_range()
 	create_weapon_visual()
+
+func _on_magnet_range_changed() -> void:
+	queue_redraw()
 
 # Mobile touch input support
 var touch_start_pos: Vector2 = Vector2.ZERO
@@ -646,3 +655,11 @@ func _input(event: InputEvent) -> void:
 			var drag_vector = event.position - touch_start_pos
 			if drag_vector.length() > 20:  # Dead zone
 				input_direction = drag_vector.normalized()
+
+func _draw() -> void:
+	if not DEBUG_SHOW_RANGES:
+		return
+
+	# Draw coin magnet range (blue)
+	var magnet_range = GameManager.get_magnet_range()
+	draw_arc(Vector2.ZERO, magnet_range, 0, TAU, 32, Color(0.3, 0.5, 1.0, 0.5), 2.0)

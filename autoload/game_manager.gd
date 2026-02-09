@@ -10,6 +10,7 @@ const COMBO_TIMEOUT: float = 1.5
 var upgrade_attack_speed: int = 0
 var upgrade_attack_range: int = 0
 var upgrade_drop_rate: int = 0
+var upgrade_magnet_range: int = 0
 
 # Upgrade costs (increases each level)
 const BASE_UPGRADE_COST: int = 100
@@ -19,6 +20,7 @@ const UPGRADE_COST_MULTIPLIER: float = 1.5
 var base_attack_speed: float = 1.0
 var base_attack_range: float = 80.0
 var base_drop_rate: float = 1.0
+var base_magnet_range: float = 75.0  # Half of original 150
 
 # Signals
 signal money_changed(new_amount: int)
@@ -74,6 +76,9 @@ func get_attack_range() -> float:
 func get_drop_multiplier() -> float:
 	return base_drop_rate * (1.0 + upgrade_drop_rate * 0.25)
 
+func get_magnet_range() -> float:
+	return base_magnet_range * (1.0 + upgrade_magnet_range * 0.3)  # 30% increase per level
+
 func get_upgrade_cost(current_level: int) -> int:
 	return int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
 
@@ -86,6 +91,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 			current_level = upgrade_attack_range
 		"drop_rate":
 			current_level = upgrade_drop_rate
+		"magnet_range":
+			current_level = upgrade_magnet_range
 		_:
 			return false
 
@@ -103,6 +110,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 			upgrade_attack_range += 1
 		"drop_rate":
 			upgrade_drop_rate += 1
+		"magnet_range":
+			upgrade_magnet_range += 1
 
 	upgrade_purchased.emit(upgrade_type, current_level + 1)
 	return true
@@ -112,7 +121,8 @@ func get_save_data() -> Dictionary:
 		"money": money,
 		"upgrade_attack_speed": upgrade_attack_speed,
 		"upgrade_attack_range": upgrade_attack_range,
-		"upgrade_drop_rate": upgrade_drop_rate
+		"upgrade_drop_rate": upgrade_drop_rate,
+		"upgrade_magnet_range": upgrade_magnet_range
 	}
 
 func load_save_data(data: Dictionary) -> void:
@@ -120,6 +130,7 @@ func load_save_data(data: Dictionary) -> void:
 	upgrade_attack_speed = data.get("upgrade_attack_speed", 0)
 	upgrade_attack_range = data.get("upgrade_attack_range", 0)
 	upgrade_drop_rate = data.get("upgrade_drop_rate", 0)
+	upgrade_magnet_range = data.get("upgrade_magnet_range", 0)
 	money_changed.emit(money)
 
 func reset_session_data() -> void:

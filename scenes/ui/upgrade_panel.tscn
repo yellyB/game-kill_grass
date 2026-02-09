@@ -93,6 +93,13 @@ theme_override_font_sizes/font_size = 20
 text = "드롭률 Lv.1
 $100"
 
+[node name="MagnetRangeBtn" type="Button" parent="Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "수집 범위 Lv.1
+$100"
+
 [node name="CloseBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
 offset_left = 340.0

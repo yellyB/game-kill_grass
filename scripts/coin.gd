@@ -36,7 +36,7 @@ func _process(delta: float) -> void:
 	# Convert player position to local coordinate space (WorldRoot)
 	var player_local_pos = get_parent().to_local(player.global_position)
 	var distance_to_player = position.distance_to(player_local_pos)
-	var magnet_range = 150.0 # Range at which coins are attracted
+	var magnet_range = GameManager.get_magnet_range()
 
 	if distance_to_player < magnet_range or is_being_collected:
 		is_being_collected = true
