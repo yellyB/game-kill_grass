@@ -4,6 +4,13 @@ extends CanvasLayer
 @onready var combo_label: Label = $ComboContainer/ComboLabel
 @onready var combo_container: Control = $ComboContainer
 
+# Stats labels
+@onready var weapon_label: Label = $StatsContainer/WeaponLabel
+@onready var attack_speed_label: Label = $StatsContainer/AttackSpeedLabel
+@onready var attack_range_label: Label = $StatsContainer/AttackRangeLabel
+@onready var drop_rate_label: Label = $StatsContainer/DropRateLabel
+@onready var magnet_range_label: Label = $StatsContainer/MagnetRangeLabel
+
 var displayed_money: int = 0
 var target_money: int = 0
 
@@ -11,11 +18,14 @@ func _ready() -> void:
   GameManager.money_changed.connect(_on_money_changed)
   GameManager.combo_changed.connect(_on_combo_changed)
   GameManager.combo_ended.connect(_on_combo_ended)
+  GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
+  WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
   # Initialize display
   displayed_money = GameManager.money
   target_money = GameManager.money
   update_money_display()
+  update_stats_display()
   combo_container.visible = false
 
 func _process(delta: float) -> void:
@@ -78,3 +88,31 @@ func format_number(num: int) -> String:
     count += 1
 
   return result
+
+func _on_upgrade_purchased(_type: String, _level: int) -> void:
+  update_stats_display()
+
+func _on_weapon_changed(_level: int) -> void:
+  update_stats_display()
+
+func update_stats_display() -> void:
+  # Weapon info
+  var weapon = WeaponManager.get_current_weapon()
+  weapon_label.text = "무기: %s (Lv.%d)" % [weapon.name, WeaponManager.current_weapon_level + 1]
+
+  # Final stats (base * weapon)
+  var base_speed = GameManager.get_attack_speed()
+  var base_range = GameManager.get_attack_range()
+  var drop_mult = GameManager.get_drop_multiplier()
+  var magnet_range = GameManager.get_magnet_range()
+
+  var weapon_speed = WeaponManager.get_weapon_speed()
+  var weapon_range = WeaponManager.get_weapon_range()
+
+  var final_speed = base_speed * weapon_speed
+  var final_range = base_range * weapon_range
+
+  attack_speed_label.text = "공격 속도: x%.2f" % final_speed
+  attack_range_label.text = "공격 범위: %.0f" % final_range
+  drop_rate_label.text = "드롭률: x%.2f" % drop_mult
+  magnet_range_label.text = "수집 범위: %.0f" % magnet_range

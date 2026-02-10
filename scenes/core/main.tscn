@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://chud123" path="res://scenes/ui/hud.tscn" id="7_hud"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="8_upgrade"]
 [ext_resource type="PackedScene" uid="uid://cweaponshop" path="res://scenes/ui/weapon_shop.tscn" id="11_weaponshop"]
-[ext_resource type="PackedScene" uid="uid://cinfopanel" path="res://scenes/ui/info_panel.tscn" id="12_infopanel"]
 [ext_resource type="PackedScene" uid="uid://cjoystick123" path="res://scenes/ui/virtual_joystick.tscn" id="10_joystick"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
@@ -127,8 +126,6 @@ script = ExtResource("6_camera")
 [node name="UpgradePanel" parent="." instance=ExtResource("8_upgrade")]
 
 [node name="WeaponShop" parent="." instance=ExtResource("11_weaponshop")]
-
-[node name="InfoPanel" parent="." instance=ExtResource("12_infopanel")]
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("10_joystick")]
 
