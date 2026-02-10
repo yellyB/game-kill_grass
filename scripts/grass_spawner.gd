@@ -166,6 +166,9 @@ func get_grass_type_index(gd: GrassData) -> int:
 func process_regen(delta: float) -> void:
 	for grid_pos in grass_data:
 		var data = grass_data[grid_pos]
+		# Process hit flash timer
+		if data.has("hit_timer") and data.hit_timer > 0:
+			data.hit_timer -= delta
 		if data.cut:
 			data.regen_timer += delta
 			if data.regen_timer >= data.regen_time:
@@ -192,8 +195,12 @@ func update_multimesh() -> void:
 		var world_pos = Vector2(grid_pos.x, grid_pos.y)
 		visible_grass.append(world_pos)
 
-		var gd = GameManager.grass_data_list[data.type] if data.type < GameManager.grass_data_list.size() else null
-		colors_list.append(gd.color if gd else Color(0.3, 0.7, 0.3, 1))
+		# Check if grass was recently hit - show white flash
+		if data.has("hit_timer") and data.hit_timer > 0:
+			colors_list.append(Color(1.0, 1.0, 1.0, 1.0))  # White flash
+		else:
+			var gd = GameManager.grass_data_list[data.type] if data.type < GameManager.grass_data_list.size() else null
+			colors_list.append(gd.color if gd else Color(0.3, 0.7, 0.3, 1))
 
 	multimesh.instance_count = visible_grass.size()
 
@@ -207,6 +214,7 @@ func update_multimesh() -> void:
 func attack_grass_in_area(center: Vector2, radius: float) -> int:
 	var total_value = 0
 	var attacked_positions: Array = []
+	var damage = WeaponManager.get_weapon_damage()
 
 	for grid_pos in grass_data:
 		var data = grass_data[grid_pos]
@@ -217,7 +225,8 @@ func attack_grass_in_area(center: Vector2, radius: float) -> int:
 		var distance = center.distance_to(world_pos)
 
 		if distance <= radius:
-			data.health -= 1
+			data.health -= damage
+			data.hit_timer = 0.1  # White flash for 0.1 seconds
 			if data.health <= 0:
 				data.cut = true
 				data.regen_timer = 0.0

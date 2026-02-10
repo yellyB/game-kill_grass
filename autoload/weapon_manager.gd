@@ -11,6 +11,7 @@ const WEAPONS = [
   {
     "name": "낡은 낫",
     "price": 0,
+    "damage": 1,
     "range_mult": 1.0,
     "speed_mult": 1.0,
     "attack_type": "single",
@@ -24,6 +25,7 @@ const WEAPONS = [
   {
     "name": "날 선 낫",
     "price": 100,
+    "damage": 2,
     "range_mult": 1.2,
     "speed_mult": 1.0,
     "attack_type": "single",
@@ -37,6 +39,7 @@ const WEAPONS = [
   {
     "name": "무거운 낫",
     "price": 180,
+    "damage": 4,
     "range_mult": 1.5,
     "speed_mult": 0.7,
     "attack_type": "single",
@@ -50,6 +53,7 @@ const WEAPONS = [
   {
     "name": "이중 낫",
     "price": 324,
+    "damage": 3,
     "range_mult": 1.3,
     "speed_mult": 1.0,
     "attack_type": "double",
@@ -63,6 +67,7 @@ const WEAPONS = [
   {
     "name": "회전 예초낫",
     "price": 583,
+    "damage": 2,
     "range_mult": 1.4,
     "speed_mult": 1.5,
     "attack_type": "spin",
@@ -76,6 +81,7 @@ const WEAPONS = [
   {
     "name": "제초 기계",
     "price": 1050,
+    "damage": 4,
     "range_mult": 1.6,
     "speed_mult": 2.0,
     "attack_type": "aura",
@@ -89,6 +95,7 @@ const WEAPONS = [
   {
     "name": "분쇄 예초기",
     "price": 1890,
+    "damage": 6,
     "range_mult": 2.0,
     "speed_mult": 2.5,
     "attack_type": "aura",
@@ -102,6 +109,7 @@ const WEAPONS = [
   {
     "name": "화염 제초기",
     "price": 3400,
+    "damage": 12,
     "range_mult": 2.2,
     "speed_mult": 3.0,
     "attack_type": "flame",
@@ -115,6 +123,7 @@ const WEAPONS = [
   {
     "name": "재앙 장치",
     "price": 5400,
+    "damage": 24,
     "range_mult": 3.0,
     "speed_mult": 1.0,
     "attack_type": "screen",
@@ -128,6 +137,7 @@ const WEAPONS = [
   {
     "name": "세계 정리자",
     "price": 8600,
+    "damage": 60,
     "range_mult": 5.0,
     "speed_mult": 4.0,
     "attack_type": "world",
@@ -193,6 +203,9 @@ func get_weapon_range() -> float:
 
 func get_weapon_speed() -> float:
   return get_current_weapon().speed_mult
+
+func get_weapon_damage() -> int:
+  return get_current_weapon().damage
 
 func get_attack_type() -> String:
   return get_current_weapon().attack_type
