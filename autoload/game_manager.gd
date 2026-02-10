@@ -38,7 +38,7 @@ func _init_grass_data() -> void:
 	normal_grass.max_health = 1
 	normal_grass.regen_time = 3.0
 	normal_grass.min_drop_value = 1
-	normal_grass.max_drop_value = 2
+	normal_grass.max_drop_value = 1
 	normal_grass.drop_chance = 1.0
 	normal_grass.color = Color(0.3, 0.7, 0.3)
 	normal_grass.cut_color = Color(0.5, 0.4, 0.2)
@@ -49,7 +49,7 @@ func _init_grass_data() -> void:
 	tough_grass.max_health = 3
 	tough_grass.regen_time = 5.0
 	tough_grass.min_drop_value = 5
-	tough_grass.max_drop_value = 10
+	tough_grass.max_drop_value = 5
 	tough_grass.drop_chance = 1.0
 	tough_grass.color = Color(0.15, 0.5, 0.35)
 	tough_grass.cut_color = Color(0.3, 0.35, 0.25)
@@ -59,7 +59,7 @@ func _init_grass_data() -> void:
 	strong_grass.grass_name = "완전 센풀"
 	strong_grass.max_health = 6
 	strong_grass.regen_time = 8.0
-	strong_grass.min_drop_value = 15
+	strong_grass.min_drop_value = 30
 	strong_grass.max_drop_value = 30
 	strong_grass.drop_chance = 1.0
 	strong_grass.color = Color(0.1, 0.35, 0.5)
