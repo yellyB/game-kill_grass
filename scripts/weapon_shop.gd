@@ -1,5 +1,8 @@
 extends Control
 
+signal panel_opened
+signal panel_closed
+
 @onready var panel: Panel = $Panel
 @onready var toggle_btn: Button = $ToggleBtn
 @onready var close_btn: Button = $Panel/CloseBtn
@@ -28,10 +31,20 @@ func _on_toggle_pressed() -> void:
 	panel.visible = is_open
 	if is_open:
 		update_display()
+		panel_opened.emit()
+	else:
+		panel_closed.emit()
 
 func _on_close_pressed() -> void:
 	is_open = false
 	panel.visible = false
+	panel_closed.emit()
+
+func _on_other_panel_opened() -> void:
+	toggle_btn.disabled = true
+
+func _on_other_panel_closed() -> void:
+	toggle_btn.disabled = false
 
 func _on_upgrade_pressed() -> void:
 	if WeaponManager.purchase_next_weapon():
