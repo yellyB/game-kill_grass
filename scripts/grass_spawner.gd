@@ -21,8 +21,10 @@ func find_player() -> void:
 
 func _on_upgrade_purchased(upgrade_type: String, _level: int) -> void:
 	if upgrade_type == "grass_density":
-		# Reload all chunks with new density
-		reload_all_chunks()
+		# Mark density as changed - chunks will update gradually as player moves
+		current_density_level = GameManager.get_grass_density_level()
+		# Only reload the player's current chunk for immediate feedback
+		reload_current_chunk()
 
 func _process(_delta: float) -> void:
 	if player:
@@ -122,17 +124,18 @@ func get_random_position_in_chunk(chunk_origin: Vector2, existing: Array[Vector2
 
 	return Vector2.INF
 
-func reload_all_chunks() -> void:
-	# Unload all chunks
-	var all_coords = loaded_chunks.keys().duplicate()
-	for chunk_coord in all_coords:
-		unload_chunk(chunk_coord)
+func reload_current_chunk() -> void:
+	if not player:
+		return
 
-	# Update density level
-	current_density_level = GameManager.get_grass_density_level()
+	# Only reload the chunk the player is currently in
+	var relative_player_pos = player.global_position - global_position
+	var player_chunk = get_chunk_coord(relative_player_pos)
 
-	# Reload chunks around player
-	update_chunks()
+	# Unload and reload just this chunk
+	if loaded_chunks.has(player_chunk):
+		unload_chunk(player_chunk)
+		load_chunk(player_chunk)
 
 func spawn_grass_at(pos: Vector2, _rng: RandomNumberGenerator) -> Node:
 	if not grass_scene:
