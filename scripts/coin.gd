@@ -82,11 +82,11 @@ func collect() -> void:
 		return
 	is_collected = true
 
-	# Add money with bonus from upgrade
-	var breakdown = GameManager.add_money_with_breakdown(value)
+	# Add money
+	GameManager.add_money(value)
 
 	# Spawn floating text at coin position
-	spawn_floating_text(breakdown.base, breakdown.bonus)
+	spawn_floating_text(value)
 
 	# Collect effect
 	if visual:
@@ -98,14 +98,14 @@ func collect() -> void:
 
 	queue_free()
 
-func spawn_floating_text(base_amount: int, combo_bonus: int) -> void:
+func spawn_floating_text(amount: int) -> void:
 	var floating_text = FloatingTextScene.instantiate()
 	floating_text.position = position
 
 	# Add to tree first so @onready variables are initialized
 	get_parent().add_child(floating_text)
 	# Then setup the values
-	floating_text.setup(base_amount, combo_bonus)
+	floating_text.setup(amount)
 
 func set_value(new_value: int) -> void:
 	value = new_value

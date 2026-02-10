@@ -1,8 +1,6 @@
 extends CanvasLayer
 
 @onready var money_label: Label = $MoneyContainer/MoneyLabel
-@onready var bonus_label: Label = $BonusContainer/BonusLabel
-@onready var bonus_container: Control = $BonusContainer
 
 # Stats labels
 @onready var weapon_label: Label = $StatsContainer/WeaponLabel
@@ -10,7 +8,7 @@ extends CanvasLayer
 @onready var attack_range_label: Label = $StatsContainer/AttackRangeLabel
 @onready var drop_rate_label: Label = $StatsContainer/DropRateLabel
 @onready var magnet_range_label: Label = $StatsContainer/MagnetRangeLabel
-@onready var bonus_rate_label: Label = $StatsContainer/BonusRateLabel
+@onready var grass_quality_label: Label = $StatsContainer/GrassQualityLabel
 
 # Debug UI (only in debug builds)
 @onready var debug_container: Control = $DebugContainer
@@ -20,7 +18,6 @@ var target_money: int = 0
 
 func _ready() -> void:
   GameManager.money_changed.connect(_on_money_changed)
-  GameManager.bonus_triggered.connect(_on_bonus_triggered)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
@@ -29,7 +26,6 @@ func _ready() -> void:
   target_money = GameManager.money
   update_money_display()
   update_stats_display()
-  bonus_container.visible = false
 
   # Show debug UI only in debug builds
   if debug_container:
@@ -59,24 +55,6 @@ func _on_money_changed(new_amount: int) -> void:
   var tween = create_tween()
   tween.tween_property(money_label, "scale", Vector2(1.2, 1.2), 0.05)
   tween.tween_property(money_label, "scale", Vector2(1.0, 1.0), 0.1)
-
-func _on_bonus_triggered(bonus_amount: int) -> void:
-  bonus_container.visible = true
-  bonus_label.text = "+%d" % bonus_amount
-  bonus_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))  # Green
-
-  # Pop effect
-  var tween = create_tween()
-  bonus_label.scale = Vector2(1.5, 1.5)
-  tween.tween_property(bonus_label, "scale", Vector2(1.0, 1.0), 0.15)
-
-  # Fade out after showing
-  await get_tree().create_timer(0.5).timeout
-  var fade_tween = create_tween()
-  fade_tween.tween_property(bonus_container, "modulate:a", 0.0, 0.3)
-  await fade_tween.finished
-  bonus_container.visible = false
-  bonus_container.modulate.a = 1.0
 
 func update_money_display() -> void:
   money_label.text = "$" + format_number(displayed_money)
@@ -110,7 +88,7 @@ func update_stats_display() -> void:
   var base_range = GameManager.get_attack_range()
   var drop_mult = GameManager.get_drop_multiplier()
   var magnet_range = GameManager.get_magnet_range()
-  var bonus_rate = GameManager.get_bonus_rate()
+  var grass_quality = GameManager.get_grass_quality_level()
 
   var weapon_speed = WeaponManager.get_weapon_speed()
   var weapon_range = WeaponManager.get_weapon_range()
@@ -122,7 +100,7 @@ func update_stats_display() -> void:
   attack_range_label.text = "공격 범위: %.0f" % final_range
   drop_rate_label.text = "드롭률: x%.2f" % drop_mult
   magnet_range_label.text = "수집 범위: %.0f" % magnet_range
-  bonus_rate_label.text = "보상 증가: x%.2f" % bonus_rate
+  grass_quality_label.text = "풀 등급: Lv.%d" % (grass_quality + 1)
 
 func _on_reset_btn_pressed() -> void:
   SaveManager.reset_all_data()

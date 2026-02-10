@@ -100,11 +100,11 @@ theme_override_font_sizes/font_size = 20
 text = "수집 범위 Lv.1
 $100"
 
-[node name="BonusRateBtn" type="Button" parent="Control/Panel/VBoxContainer"]
+[node name="GrassQualityBtn" type="Button" parent="Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "보상 증가 Lv.1
+text = "풀 등급 Lv.1
 $100"
 
 [node name="CloseBtn" type="Button" parent="Control/Panel"]
