@@ -34,6 +34,14 @@ func setup_multimesh() -> void:
 
 	multimesh_instance = MultiMeshInstance2D.new()
 	multimesh_instance.multimesh = multimesh
+
+	# Apply grass sway shader (GPU-based animation - zero CPU cost!)
+	var grass_shader = load("res://resources/shaders/grass_sway.gdshader")
+	if grass_shader:
+		var shader_mat = ShaderMaterial.new()
+		shader_mat.shader = grass_shader
+		multimesh_instance.material = shader_mat
+
 	add_child(multimesh_instance)
 
 func create_grass_mesh() -> ArrayMesh:
@@ -189,10 +197,10 @@ func update_multimesh() -> void:
 	for i in visible_grass.size():
 		var t = Transform2D()
 		t.origin = visible_grass[i]
-		if i < grass_data.size():
-			var grid_pos = Vector2i(int(visible_grass[i].x), int(visible_grass[i].y))
-			if grass_data.has(grid_pos) and grass_data[grid_pos].cut:
-				t = t.scaled(Vector2(1.5, 0.3))  # Flatten cut grass
+		var grid_pos = Vector2i(int(visible_grass[i].x), int(visible_grass[i].y))
+		var is_cut = grass_data.has(grid_pos) and grass_data[grid_pos].cut
+		if is_cut:
+			t = t.scaled(Vector2(1.5, 0.3))  # Flatten cut grass
 		multimesh.set_instance_transform_2d(i, t)
 		multimesh.set_instance_color(i, colors_list[i])
 
