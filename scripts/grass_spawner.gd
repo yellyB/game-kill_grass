@@ -183,24 +183,21 @@ func update_multimesh() -> void:
 
 	for grid_pos in grass_data:
 		var data = grass_data[grid_pos]
+		# Skip cut grass - don't render it
+		if data.cut:
+			continue
+
 		var world_pos = Vector2(grid_pos.x, grid_pos.y)
 		visible_grass.append(world_pos)
 
-		if data.cut:
-			colors_list.append(Color(0.5, 0.4, 0.2, 1))  # Brown for cut
-		else:
-			var gd = GameManager.grass_data_list[data.type] if data.type < GameManager.grass_data_list.size() else null
-			colors_list.append(gd.color if gd else Color(0.3, 0.7, 0.3, 1))
+		var gd = GameManager.grass_data_list[data.type] if data.type < GameManager.grass_data_list.size() else null
+		colors_list.append(gd.color if gd else Color(0.3, 0.7, 0.3, 1))
 
 	multimesh.instance_count = visible_grass.size()
 
 	for i in visible_grass.size():
 		var t = Transform2D()
 		t.origin = visible_grass[i]
-		var grid_pos = Vector2i(int(visible_grass[i].x), int(visible_grass[i].y))
-		var is_cut = grass_data.has(grid_pos) and grass_data[grid_pos].cut
-		if is_cut:
-			t = t.scaled(Vector2(1.5, 0.3))  # Flatten cut grass
 		multimesh.set_instance_transform_2d(i, t)
 		multimesh.set_instance_color(i, colors_list[i])
 
