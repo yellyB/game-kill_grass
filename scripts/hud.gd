@@ -5,7 +5,7 @@ extends CanvasLayer
 # Stats labels
 @onready var weapon_label: Label = $StatsContainer/WeaponLabel
 @onready var weapon_stats_label: Label = $StatsContainer/WeaponStatsLabel
-@onready var drop_rate_label: Label = $StatsContainer/DropRateLabel
+@onready var grass_density_label: Label = $StatsContainer/GrassDensityLabel
 @onready var magnet_range_label: Label = $StatsContainer/MagnetRangeLabel
 @onready var grass_quality_label: Label = $StatsContainer/GrassQualityLabel
 
@@ -88,11 +88,14 @@ func update_stats_display() -> void:
   weapon_stats_label.text = "속도 x%.1f | 범위 x%.1f" % [weapon_speed, weapon_range]
 
   # Upgrade stats
-  var drop_mult = GameManager.get_drop_multiplier()
+  var grass_density = GameManager.get_grass_density_level()
   var magnet_range = GameManager.get_magnet_range()
   var grass_quality = GameManager.get_grass_quality_level()
 
-  drop_rate_label.text = "드롭률: x%.2f" % drop_mult
+  if grass_density >= GameManager.MAX_DENSITY_LEVEL:
+    grass_density_label.text = "풀 밀도: Lv.%d (MAX)" % (grass_density + 1)
+  else:
+    grass_density_label.text = "풀 밀도: Lv.%d" % (grass_density + 1)
   magnet_range_label.text = "수집 범위: %.0f" % magnet_range
   grass_quality_label.text = "풀 등급: Lv.%d" % (grass_quality + 1)
 

@@ -4,7 +4,7 @@ signal panel_opened
 signal panel_closed
 
 @onready var panel: Panel = $Panel
-@onready var drop_rate_btn: Button = $Panel/VBoxContainer/DropRateBtn
+@onready var grass_density_btn: Button = $Panel/VBoxContainer/GrassDensityBtn
 @onready var magnet_range_btn: Button = $Panel/VBoxContainer/MagnetRangeBtn
 @onready var grass_quality_btn: Button = $Panel/VBoxContainer/GrassQualityBtn
 @onready var close_btn: Button = $Panel/CloseBtn
@@ -16,7 +16,7 @@ func _ready() -> void:
 	panel.visible = false
 	toggle_btn.pressed.connect(_on_toggle_pressed)
 	close_btn.pressed.connect(_on_close_pressed)
-	drop_rate_btn.pressed.connect(_on_drop_rate_pressed)
+	grass_density_btn.pressed.connect(_on_grass_density_pressed)
 	magnet_range_btn.pressed.connect(_on_magnet_range_pressed)
 	grass_quality_btn.pressed.connect(_on_grass_quality_pressed)
 
@@ -45,8 +45,8 @@ func _on_other_panel_opened() -> void:
 func _on_other_panel_closed() -> void:
 	toggle_btn.disabled = false
 
-func _on_drop_rate_pressed() -> void:
-	GameManager.purchase_upgrade("drop_rate")
+func _on_grass_density_pressed() -> void:
+	GameManager.purchase_upgrade("grass_density")
 
 func _on_magnet_range_pressed() -> void:
 	GameManager.purchase_upgrade("magnet_range")
@@ -62,14 +62,21 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
 	update_button_texts()
 
 func update_button_texts() -> void:
-	var drop_cost = GameManager.get_upgrade_cost(GameManager.upgrade_drop_rate)
+	var density_level = GameManager.upgrade_grass_density
+	var density_cost = GameManager.get_upgrade_cost(density_level)
 	var magnet_cost = GameManager.get_upgrade_cost(GameManager.upgrade_magnet_range)
 	var quality_cost = GameManager.get_upgrade_cost(GameManager.upgrade_grass_quality)
 
-	drop_rate_btn.text = "드롭률 Lv.%d\n$%d" % [GameManager.upgrade_drop_rate + 1, drop_cost]
+	# Grass density has max level of 10
+	if density_level >= GameManager.MAX_DENSITY_LEVEL:
+		grass_density_btn.text = "풀 밀도 Lv.%d\nMAX" % (density_level + 1)
+		grass_density_btn.disabled = true
+	else:
+		grass_density_btn.text = "풀 밀도 Lv.%d\n$%d" % [density_level + 1, density_cost]
+		grass_density_btn.disabled = GameManager.money < density_cost
+
 	magnet_range_btn.text = "수집 범위 Lv.%d\n$%d" % [GameManager.upgrade_magnet_range + 1, magnet_cost]
 	grass_quality_btn.text = "풀 등급 Lv.%d\n$%d" % [GameManager.upgrade_grass_quality + 1, quality_cost]
 
-	drop_rate_btn.disabled = GameManager.money < drop_cost
 	magnet_range_btn.disabled = GameManager.money < magnet_cost
 	grass_quality_btn.disabled = GameManager.money < quality_cost

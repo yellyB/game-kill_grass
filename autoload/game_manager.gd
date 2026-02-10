@@ -4,7 +4,7 @@ extends Node
 var money: int = 0
 
 # Upgrades
-var upgrade_drop_rate: int = 0
+var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
 var upgrade_magnet_range: int = 0
 var upgrade_grass_quality: int = 0  # 풀 등급 업그레이드 (고급 풀 등장 확률 증가)
 
@@ -13,8 +13,12 @@ const BASE_UPGRADE_COST: int = 100
 const UPGRADE_COST_MULTIPLIER: float = 1.5
 
 # Game settings
-var base_drop_rate: float = 1.0
 var base_magnet_range: float = 75.0  # Half of original 150
+
+# Grass density settings
+const MAX_DENSITY_LEVEL: int = 10
+const BASE_GRASS_PER_CHUNK: int = 8
+const BASE_MIN_SPACING: float = 60.0
 
 # Grass data
 var grass_data_list: Array[GrassData] = []
@@ -89,8 +93,16 @@ func add_money(amount: int) -> void:
 func get_grass_quality_level() -> int:
 	return upgrade_grass_quality
 
-func get_drop_multiplier() -> float:
-	return base_drop_rate * (1.0 + upgrade_drop_rate * 0.25)
+func get_grass_per_chunk() -> int:
+	# Level 0: 8, Level 10: 80 (very dense)
+	return int(BASE_GRASS_PER_CHUNK * (1.0 + upgrade_grass_density * 0.9))
+
+func get_grass_min_spacing() -> float:
+	# Level 0: 60, Level 10: 12 (almost no space between grass)
+	return BASE_MIN_SPACING / (1.0 + upgrade_grass_density * 0.4)
+
+func get_grass_density_level() -> int:
+	return upgrade_grass_density
 
 func get_magnet_range() -> float:
 	return base_magnet_range * (1.0 + upgrade_magnet_range * 0.3)  # 30% increase per level
@@ -100,15 +112,21 @@ func get_upgrade_cost(current_level: int) -> int:
 
 func purchase_upgrade(upgrade_type: String) -> bool:
 	var current_level: int
+	var max_level: int = -1  # -1 means no max
 	match upgrade_type:
-		"drop_rate":
-			current_level = upgrade_drop_rate
+		"grass_density":
+			current_level = upgrade_grass_density
+			max_level = MAX_DENSITY_LEVEL
 		"magnet_range":
 			current_level = upgrade_magnet_range
 		"grass_quality":
 			current_level = upgrade_grass_quality
 		_:
 			return false
+
+	# Check max level
+	if max_level >= 0 and current_level >= max_level:
+		return false
 
 	var cost = get_upgrade_cost(current_level)
 	if money < cost:
@@ -118,8 +136,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 	money_changed.emit(money)
 
 	match upgrade_type:
-		"drop_rate":
-			upgrade_drop_rate += 1
+		"grass_density":
+			upgrade_grass_density += 1
 		"magnet_range":
 			upgrade_magnet_range += 1
 		"grass_quality":
@@ -131,14 +149,14 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 func get_save_data() -> Dictionary:
 	return {
 		"money": money,
-		"upgrade_drop_rate": upgrade_drop_rate,
+		"upgrade_grass_density": upgrade_grass_density,
 		"upgrade_magnet_range": upgrade_magnet_range,
 		"upgrade_grass_quality": upgrade_grass_quality
 	}
 
 func load_save_data(data: Dictionary) -> void:
 	money = data.get("money", 0)
-	upgrade_drop_rate = data.get("upgrade_drop_rate", 0)
+	upgrade_grass_density = data.get("upgrade_grass_density", 0)
 	upgrade_magnet_range = data.get("upgrade_magnet_range", 0)
 	upgrade_grass_quality = data.get("upgrade_grass_quality", 0)
 	money_changed.emit(money)

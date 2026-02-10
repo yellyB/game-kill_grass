@@ -53,13 +53,13 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 20
 text = "속도 x1.0 | 범위 x1.0"
 
-[node name="DropRateLabel" type="Label" parent="StatsContainer"]
+[node name="GrassDensityLabel" type="Label" parent="StatsContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_colors/font_color = Color(0.5, 0.9, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 22
-text = "드롭률: x1.00"
+text = "풀 밀도: Lv.1"
 
 [node name="MagnetRangeLabel" type="Label" parent="StatsContainer"]
 layout_mode = 2

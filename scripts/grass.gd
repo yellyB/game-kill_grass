@@ -94,17 +94,14 @@ func cut() -> void:
 	regen_timer.start()
 
 func calculate_drop() -> int:
-	var drop_multiplier = GameManager.get_drop_multiplier()
-
 	if grass_data:
 		if randf() > grass_data.drop_chance:
 			return 0
-		var base_value = randi_range(grass_data.min_drop_value, grass_data.max_drop_value)
-		return int(base_value * drop_multiplier)
+		return randi_range(grass_data.min_drop_value, grass_data.max_drop_value)
 	else:
 		if randf() > 0.8:
 			return 0
-		return int(randi_range(1, 5) * drop_multiplier)
+		return randi_range(1, 5)
 
 func spawn_coin(value: int) -> void:
 	var coin = CoinScene.instantiate()
