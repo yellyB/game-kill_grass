@@ -20,12 +20,69 @@ var base_attack_range: float = 80.0
 var base_drop_rate: float = 1.0
 var base_magnet_range: float = 75.0  # Half of original 150
 
+# Grass data
+var grass_data_list: Array[GrassData] = []
+
 # Signals
 signal money_changed(new_amount: int)
 signal upgrade_purchased(upgrade_type: String, level: int)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_init_grass_data()
+
+func _init_grass_data() -> void:
+	var normal_grass = GrassData.new()
+	normal_grass.grass_name = "Normal Grass"
+	normal_grass.max_health = 1
+	normal_grass.regen_time = 5.0
+	normal_grass.min_drop_value = 1
+	normal_grass.max_drop_value = 1
+	normal_grass.drop_chance = 1.0
+	normal_grass.color = Color(0.3, 0.7, 0.3)
+	normal_grass.cut_color = Color(0.5, 0.4, 0.2)
+
+	var tough_grass = GrassData.new()
+	tough_grass.grass_name = "Tough Grass"
+	tough_grass.max_health = 3
+	tough_grass.regen_time = 8.0
+	tough_grass.min_drop_value = 5
+	tough_grass.max_drop_value = 5
+	tough_grass.drop_chance = 1.0
+	tough_grass.color = Color(0.15, 0.4, 0.35)
+	tough_grass.cut_color = Color(0.3, 0.35, 0.25)
+
+	var golden_grass = GrassData.new()
+	golden_grass.grass_name = "Golden Grass"
+	golden_grass.max_health = 2
+	golden_grass.regen_time = 15.0
+	golden_grass.min_drop_value = 10
+	golden_grass.max_drop_value = 10
+	golden_grass.drop_chance = 1.0
+	golden_grass.color = Color(0.9, 0.8, 0.2)
+	golden_grass.cut_color = Color(0.6, 0.5, 0.1)
+
+	grass_data_list.append(normal_grass)
+	grass_data_list.append(tough_grass)
+	grass_data_list.append(golden_grass)
+
+func get_random_grass_data() -> GrassData:
+	var quality_level = upgrade_grass_quality
+
+	# Golden increases from 5% to 100% over 17 levels
+	var golden_chance = min(0.05 + quality_level * (0.95 / 17.0), 1.0)
+
+	# Remaining probability split between normal and tough
+	var remaining = 1.0 - golden_chance
+	var tough_chance = remaining * 0.26
+
+	var roll = randf()
+	if roll < golden_chance:
+		return grass_data_list[2]  # Golden
+	elif roll < golden_chance + tough_chance:
+		return grass_data_list[1]  # Tough
+	else:
+		return grass_data_list[0]  # Normal (remaining)
 
 func add_money(amount: int) -> void:
 	money += amount
