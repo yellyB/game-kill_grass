@@ -123,21 +123,24 @@ func spawn_grass_at(pos: Vector2, rng: RandomNumberGenerator) -> Node:
 
 	# Assign random grass type with weighted probability
 	# Base rates: 70% normal, 25% tough, 5% golden
-	# Each upgrade level shifts 5% from normal to higher tiers
+	# Level 18 (quality_level 17) = 100% golden
 	var quality_level = GameManager.get_grass_quality_level()
-	var quality_shift = quality_level * 0.05  # 5% per level
 
-	var normal_chance = max(0.70 - quality_shift, 0.20)  # Min 20% normal
-	var tough_chance = min(0.25 + quality_shift * 0.6, 0.50)  # Up to 50% tough
-	var golden_chance = min(0.05 + quality_shift * 0.4, 0.30)  # Up to 30% golden
+	# Golden increases from 5% to 100% over 17 levels
+	var golden_chance = min(0.05 + quality_level * (0.95 / 17.0), 1.0)
+
+	# Remaining probability split between normal and tough (keeping original ratio)
+	var remaining = 1.0 - golden_chance
+	var normal_chance = remaining * 0.74  # 70/(70+25)
+	var tough_chance = remaining * 0.26   # 25/(70+25)
 
 	var roll = rng.randf()
-	if roll < normal_chance:
-		grass.grass_data = grass_data_list[0]  # Normal
-	elif roll < normal_chance + tough_chance:
+	if roll < golden_chance:
+		grass.grass_data = grass_data_list[2]  # Golden (check first for high levels)
+	elif roll < golden_chance + tough_chance:
 		grass.grass_data = grass_data_list[1]  # Tough
 	else:
-		grass.grass_data = grass_data_list[2]  # Golden
+		grass.grass_data = grass_data_list[0]  # Normal
 
 	add_child(grass)
 	return grass
