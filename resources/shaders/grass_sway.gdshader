@@ -1,9 +1,9 @@
 shader_type canvas_item;
 
 // Sway parameters
-uniform float sway_speed : hint_range(0.5, 5.0) = 2.0;
-uniform float sway_amount : hint_range(0.0, 0.2) = 0.08;
-uniform float wind_strength : hint_range(0.0, 1.0) = 0.5;
+uniform float sway_speed : hint_range(0.5, 10.0) = 5.0;
+uniform float sway_amount : hint_range(0.0, 0.3) = 0.12;
+uniform float wind_strength : hint_range(0.0, 1.0) = 0.7;
 
 void vertex() {
 	// Get world position for phase variation (so grass doesn't sway in sync)
