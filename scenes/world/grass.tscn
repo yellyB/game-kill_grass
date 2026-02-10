@@ -1,24 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://cgrass123"]
+[gd_scene load_steps=2 format=3 uid="uid://cgrass123"]
 
 [ext_resource type="Script" path="res://scripts/grass.gd" id="1_grass"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_grass"]
 size = Vector2(30, 50)
-
-[sub_resource type="Gradient" id="Gradient_particle"]
-colors = PackedColorArray(0.4, 0.8, 0.3, 1, 0.2, 0.5, 0.1, 0)
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_cut"]
-emission_shape = 1
-emission_sphere_radius = 10.0
-direction = Vector3(0, -1, 0)
-spread = 60.0
-initial_velocity_min = 50.0
-initial_velocity_max = 150.0
-gravity = Vector3(0, 300, 0)
-scale_min = 2.0
-scale_max = 5.0
-color_ramp = SubResource("Gradient_particle")
 
 [node name="Grass" type="Area2D" groups=["grass"]]
 collision_layer = 2
@@ -65,12 +50,3 @@ shape = SubResource("RectangleShape2D_grass")
 [node name="RegenTimer" type="Timer" parent="."]
 wait_time = 5.0
 one_shot = true
-
-[node name="CutParticles" type="GPUParticles2D" parent="."]
-position = Vector2(0, -30)
-emitting = false
-amount = 12
-process_material = SubResource("ParticleProcessMaterial_cut")
-lifetime = 0.5
-one_shot = true
-explosiveness = 0.9

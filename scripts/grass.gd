@@ -6,60 +6,29 @@ signal grass_cut(grass: Node2D, value: int)
 
 const CoinScene = preload("res://scenes/world/coin.tscn")
 
-# Global cooldowns for performance optimization (shared across all grass instances)
-static var last_hitstop_time: int = 0
-static var last_shake_time: int = 0
-
 @onready var grass_visual: Node2D = $GrassVisual
 @onready var collision: CollisionShape2D = $CollisionShape2D
 @onready var regen_timer: Timer = $RegenTimer
-@onready var particles: GPUParticles2D = $CutParticles
 
 var current_health: int = 1
 var is_cut: bool = false
-var camera: Camera2D = null
-var sway_offset: float = 0.0
-var base_colors: Array[Color] = []
-var cut_tween: Tween = null
-var regen_tween: Tween = null
 
 func _ready() -> void:
 	add_to_group("grass")
 	collision.disabled = false
 
-	# Random sway offset for variety
-	sway_offset = randf() * TAU
-
-	# Store base colors
-	for blade in grass_visual.get_children():
-		if blade is Polygon2D:
-			base_colors.append(blade.color)
+	# Random initial rotation for variety (static, no animation)
+	grass_visual.rotation = randf_range(-0.08, 0.08)
 
 	if grass_data:
 		current_health = grass_data.max_health
 		regen_timer.wait_time = grass_data.regen_time
-		update_visual()
+		apply_grass_color()
 	else:
 		current_health = 1
 		regen_timer.wait_time = 5.0
 
 	regen_timer.timeout.connect(_on_regen_timeout)
-
-	# Find camera for shake effect
-	await get_tree().process_frame
-	camera = get_tree().get_first_node_in_group("camera")
-
-func _process(delta: float) -> void:
-	if is_cut:
-		return
-
-	# Optimized sway animation - only update 30% of frames
-	# This reduces 522 sin() calculations to ~157 per frame
-	if randf() > 0.3:
-		return
-
-	sway_offset += delta * 6.0  # Compensate for reduced update rate
-	grass_visual.rotation = sin(sway_offset) * 0.05
 
 func take_damage(amount: int) -> void:
 	if is_cut:
@@ -69,38 +38,24 @@ func take_damage(amount: int) -> void:
 
 	if current_health <= 0:
 		cut()
-	else:
-		flash_damage()
 
 func cut() -> void:
 	is_cut = true
 	collision.set_deferred("disabled", true)
 
-	play_cut_effect()
-
-	var drop_value = calculate_drop()
-	if drop_value > 0:
-		spawn_coin(drop_value)
-
-	apply_hitstop()
-
-	# Camera shake with cooldown (100ms) to prevent excessive shaking
-	var current_time = Time.get_ticks_msec()
-	if camera and camera.has_method("shake") and current_time - last_shake_time > 100:
-		last_shake_time = current_time
-		camera.shake(0.3)
-
-	# Change to cut state - flatten and brown
-	var cut_color = Color(0.5, 0.4, 0.2)
-	if grass_data:
-		cut_color = grass_data.cut_color
-
+	# Instant cut visual - no tween
+	var cut_color = grass_data.cut_color if grass_data else Color(0.5, 0.4, 0.2)
 	for blade in grass_visual.get_children():
 		if blade is Polygon2D:
 			blade.color = cut_color
 
 	grass_visual.scale = Vector2(1.2, 0.3)
 	grass_visual.rotation = randf_range(-0.3, 0.3)
+
+	# Spawn coin
+	var drop_value = calculate_drop()
+	if drop_value > 0:
+		spawn_coin(drop_value)
 
 	grass_cut.emit(self, drop_value)
 	regen_timer.start()
@@ -117,44 +72,11 @@ func calculate_drop() -> int:
 
 func spawn_coin(value: int) -> void:
 	var coin = CoinScene.instantiate()
-	# Store spawn position before adding to tree
-	var spawn_pos = position + get_parent().position  # grass position + GrassSpawner position
+	var spawn_pos = position + get_parent().position
 	coin.position = spawn_pos
 	coin.set_value(value)
-	# Add to WorldRoot so it moves with the world
-	var world_root = get_parent().get_parent()  # GrassSpawner -> WorldRoot
+	var world_root = get_parent().get_parent()
 	world_root.add_child(coin)
-
-func play_cut_effect() -> void:
-	# Only emit particles 30% of the time for performance
-	if particles and randf() < 0.3:
-		particles.emitting = true
-
-	# Kill existing tween before creating new one
-	if cut_tween and cut_tween.is_running():
-		cut_tween.kill()
-
-	cut_tween = create_tween()
-	cut_tween.tween_property(grass_visual, "scale", Vector2(1.4, 0.2), 0.05)
-	cut_tween.tween_property(grass_visual, "scale", Vector2(1.2, 0.3), 0.1)
-
-func apply_hitstop() -> void:
-	# Global cooldown (50ms) to prevent multiple simultaneous hitstops
-	var current_time = Time.get_ticks_msec()
-	if current_time - last_hitstop_time < 50:
-		return
-	last_hitstop_time = current_time
-
-	Engine.time_scale = 0.7
-	await get_tree().create_timer(0.03, true, false, true).timeout
-	Engine.time_scale = 1.0
-
-func flash_damage() -> void:
-	for blade in grass_visual.get_children():
-		if blade is Polygon2D:
-			blade.color = Color.WHITE
-	await get_tree().create_timer(0.05).timeout
-	update_visual()
 
 func _on_regen_timeout() -> void:
 	regenerate()
@@ -163,7 +85,7 @@ func regenerate() -> void:
 	is_cut = false
 	collision.set_deferred("disabled", false)
 
-	# Get new random grass type based on current quality level
+	# Get new random grass type
 	grass_data = GameManager.get_random_grass_data()
 
 	if grass_data:
@@ -172,31 +94,14 @@ func regenerate() -> void:
 	else:
 		current_health = 1
 
-	update_visual()
+	# Instant restore - no animation
+	grass_visual.scale = Vector2.ONE
+	grass_visual.rotation = randf_range(-0.08, 0.08)
+	apply_grass_color()
 
-	# Grow animation - kill existing tween first
-	if regen_tween and regen_tween.is_running():
-		regen_tween.kill()
-
-	grass_visual.scale = Vector2(0.1, 0.1)
-	grass_visual.rotation = 0
-	regen_tween = create_tween()
-	regen_tween.set_ease(Tween.EASE_OUT)
-	regen_tween.set_trans(Tween.TRANS_BACK)  # BACK is cheaper than ELASTIC
-	regen_tween.tween_property(grass_visual, "scale", Vector2(1, 1), 0.3)
-
-func update_visual() -> void:
-	grass_visual.scale = Vector2(1, 1)
-	grass_visual.rotation = 0
-
-	var i = 0
+func apply_grass_color() -> void:
+	if not grass_data:
+		return
 	for blade in grass_visual.get_children():
 		if blade is Polygon2D:
-			if grass_data:
-				# Tint based on grass_data color
-				var base = base_colors[i] if i < base_colors.size() else Color(0.3, 0.6, 0.25)
-				blade.color = base.lerp(grass_data.color, 0.5)
-			else:
-				if i < base_colors.size():
-					blade.color = base_colors[i]
-			i += 1
+			blade.color = grass_data.color
