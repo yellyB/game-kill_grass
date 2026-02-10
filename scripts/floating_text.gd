@@ -1,7 +1,7 @@
 extends Node2D
 
 @onready var base_label: Label = $BaseLabel
-@onready var combo_label: Label = $ComboLabel
+@onready var bonus_label: Label = $BonusLabel
 
 var float_speed: float = 80.0
 var fade_duration: float = 1.0
@@ -16,18 +16,18 @@ func _process(delta: float) -> void:
 	position.y -= float_speed * delta
 	position += spread_offset * delta
 
-func setup(base_amount: int, combo_bonus: int) -> void:
+func setup(base_amount: int, bonus_amount: int) -> void:
 	if base_label:
 		base_label.text = "+%d" % base_amount
 		base_label.modulate = Color(1, 0.9, 0.3)  # Gold color
 
-	if combo_label:
-		if combo_bonus > 0:
-			combo_label.text = "+%d" % combo_bonus
-			combo_label.modulate = Color(0.3, 1, 0.5)  # Green for combo
-			combo_label.visible = true
+	if bonus_label:
+		if bonus_amount > 0:
+			bonus_label.text = "+%d" % bonus_amount
+			bonus_label.modulate = Color(0.3, 1, 0.5)  # Green for bonus
+			bonus_label.visible = true
 		else:
-			combo_label.visible = false
+			bonus_label.visible = false
 
 func animate() -> void:
 	# Scale pop effect

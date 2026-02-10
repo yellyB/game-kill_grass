@@ -2,15 +2,13 @@ extends Node
 
 # Game state
 var money: int = 0
-var combo: int = 0
-var combo_timer: float = 0.0
-const COMBO_TIMEOUT: float = 1.5
 
 # Upgrades
 var upgrade_attack_speed: int = 0
 var upgrade_attack_range: int = 0
 var upgrade_drop_rate: int = 0
 var upgrade_magnet_range: int = 0
+var upgrade_bonus_rate: int = 0  # 보상 증가 업그레이드
 
 # Upgrade costs (increases each level)
 const BASE_UPGRADE_COST: int = 100
@@ -24,48 +22,34 @@ var base_magnet_range: float = 75.0  # Half of original 150
 
 # Signals
 signal money_changed(new_amount: int)
-signal combo_changed(new_combo: int)
-signal combo_ended()
+signal bonus_triggered(bonus_amount: int)
 signal upgrade_purchased(upgrade_type: String, level: int)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-func _process(delta: float) -> void:
-	if combo > 0:
-		combo_timer -= delta
-		if combo_timer <= 0:
-			end_combo()
-
 func add_money(amount: int) -> void:
-	var bonus = 1.0 + (combo * 0.03)  # 3% bonus per combo
-	var final_amount = int(amount * bonus)
+	var bonus_mult = get_bonus_rate()
+	var final_amount = int(amount * bonus_mult)
 	money += final_amount
 	money_changed.emit(money)
 
-func add_money_with_breakdown(amount: int, use_combo: int = -1) -> Dictionary:
-	# Use provided combo or current combo
-	var effective_combo = use_combo if use_combo >= 0 else combo
-	var combo_multiplier = effective_combo * 0.03  # 3% per combo
-	var combo_bonus = int(amount * combo_multiplier)
-	var total = amount + combo_bonus
+func add_money_with_breakdown(amount: int) -> Dictionary:
+	var bonus_mult = get_bonus_rate() - 1.0  # Extra multiplier beyond base
+	var bonus_amount = int(amount * bonus_mult)
+	var total = amount + bonus_amount
 	money += total
 	money_changed.emit(money)
+	if bonus_amount > 0:
+		bonus_triggered.emit(bonus_amount)
 	return {
 		"base": amount,
-		"combo_bonus": combo_bonus,
+		"bonus": bonus_amount,
 		"total": total
 	}
 
-func add_combo() -> void:
-	combo += 1
-	combo_timer = COMBO_TIMEOUT
-	combo_changed.emit(combo)
-
-func end_combo() -> void:
-	combo = 0
-	combo_timer = 0.0
-	combo_ended.emit()
+func get_bonus_rate() -> float:
+	return 1.0 + (upgrade_bonus_rate * 0.05)  # 5% bonus per level
 
 func get_attack_speed() -> float:
 	return base_attack_speed * (1.0 + upgrade_attack_speed * 0.15)
@@ -93,6 +77,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 			current_level = upgrade_drop_rate
 		"magnet_range":
 			current_level = upgrade_magnet_range
+		"bonus_rate":
+			current_level = upgrade_bonus_rate
 		_:
 			return false
 
@@ -112,6 +98,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 			upgrade_drop_rate += 1
 		"magnet_range":
 			upgrade_magnet_range += 1
+		"bonus_rate":
+			upgrade_bonus_rate += 1
 
 	upgrade_purchased.emit(upgrade_type, current_level + 1)
 	return true
@@ -122,7 +110,8 @@ func get_save_data() -> Dictionary:
 		"upgrade_attack_speed": upgrade_attack_speed,
 		"upgrade_attack_range": upgrade_attack_range,
 		"upgrade_drop_rate": upgrade_drop_rate,
-		"upgrade_magnet_range": upgrade_magnet_range
+		"upgrade_magnet_range": upgrade_magnet_range,
+		"upgrade_bonus_rate": upgrade_bonus_rate
 	}
 
 func load_save_data(data: Dictionary) -> void:
@@ -131,8 +120,9 @@ func load_save_data(data: Dictionary) -> void:
 	upgrade_attack_range = data.get("upgrade_attack_range", 0)
 	upgrade_drop_rate = data.get("upgrade_drop_rate", 0)
 	upgrade_magnet_range = data.get("upgrade_magnet_range", 0)
+	upgrade_bonus_rate = data.get("upgrade_bonus_rate", 0)
 	money_changed.emit(money)
 
 func reset_session_data() -> void:
-	combo = 0
-	combo_timer = 0.0
+	# Reset any temporary session state (none currently)
+	pass

@@ -77,7 +77,15 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 22
 text = "수집 범위: 75"
 
-[node name="ComboContainer" type="Control" parent="."]
+[node name="BonusRateLabel" type="Label" parent="StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 22
+text = "보상 증가: x1.00"
+
+[node name="BonusContainer" type="Control" parent="."]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -87,7 +95,7 @@ offset_right = 100.0
 offset_bottom = 180.0
 grow_horizontal = 2
 
-[node name="ComboLabel" type="Label" parent="ComboContainer"]
+[node name="BonusLabel" type="Label" parent="BonusContainer"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -95,10 +103,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(100, 40)
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 64
-text = "x0"
+text = "+0"
 horizontal_alignment = 1
 vertical_alignment = 1
