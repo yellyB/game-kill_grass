@@ -23,8 +23,8 @@ func _process(delta: float) -> void:
 		# Move world in opposite direction of input
 		position -= current_direction * move_speed * delta
 
-	# Keep background centered on world origin (follows camera view)
-	if background and player:
-		# Background should stay at the inverse of world position
-		# so it appears stationary relative to the camera
-		background.position = -position + Vector2(-3000, -3000)
+	# Keep background always centered under camera view
+	if background:
+		# Background needs to stay at camera position in local space
+		# Since camera follows player at (0,0), we offset by -position to cancel world movement
+		background.global_position = Vector2(-3000, -3000)
