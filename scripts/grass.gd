@@ -6,6 +6,10 @@ signal grass_cut(grass: Node2D, value: int)
 
 const CoinScene = preload("res://scenes/world/coin.tscn")
 
+# Global cooldowns for performance optimization (shared across all grass instances)
+static var last_hitstop_time: int = 0
+static var last_shake_time: int = 0
+
 @onready var grass_visual: Node2D = $GrassVisual
 @onready var collision: CollisionShape2D = $CollisionShape2D
 @onready var regen_timer: Timer = $RegenTimer
@@ -16,6 +20,8 @@ var is_cut: bool = false
 var camera: Camera2D = null
 var sway_offset: float = 0.0
 var base_colors: Array[Color] = []
+var cut_tween: Tween = null
+var regen_tween: Tween = null
 
 func _ready() -> void:
 	add_to_group("grass")
@@ -47,10 +53,13 @@ func _process(delta: float) -> void:
 	if is_cut:
 		return
 
-	# Gentle swaying animation
-	sway_offset += delta * 2.0
-	var sway = sin(sway_offset) * 0.05
-	grass_visual.rotation = sway
+	# Optimized sway animation - only update 30% of frames
+	# This reduces 522 sin() calculations to ~157 per frame
+	if randf() > 0.3:
+		return
+
+	sway_offset += delta * 6.0  # Compensate for reduced update rate
+	grass_visual.rotation = sin(sway_offset) * 0.05
 
 func take_damage(amount: int) -> void:
 	if is_cut:
@@ -75,7 +84,10 @@ func cut() -> void:
 
 	apply_hitstop()
 
-	if camera and camera.has_method("shake"):
+	# Camera shake with cooldown (100ms) to prevent excessive shaking
+	var current_time = Time.get_ticks_msec()
+	if camera and camera.has_method("shake") and current_time - last_shake_time > 100:
+		last_shake_time = current_time
 		camera.shake(0.3)
 
 	# Change to cut state - flatten and brown
@@ -114,14 +126,25 @@ func spawn_coin(value: int) -> void:
 	world_root.add_child(coin)
 
 func play_cut_effect() -> void:
-	if particles:
+	# Only emit particles 30% of the time for performance
+	if particles and randf() < 0.3:
 		particles.emitting = true
 
-	var tween = create_tween()
-	tween.tween_property(grass_visual, "scale", Vector2(1.4, 0.2), 0.05)
-	tween.tween_property(grass_visual, "scale", Vector2(1.2, 0.3), 0.1)
+	# Kill existing tween before creating new one
+	if cut_tween and cut_tween.is_running():
+		cut_tween.kill()
+
+	cut_tween = create_tween()
+	cut_tween.tween_property(grass_visual, "scale", Vector2(1.4, 0.2), 0.05)
+	cut_tween.tween_property(grass_visual, "scale", Vector2(1.2, 0.3), 0.1)
 
 func apply_hitstop() -> void:
+	# Global cooldown (50ms) to prevent multiple simultaneous hitstops
+	var current_time = Time.get_ticks_msec()
+	if current_time - last_hitstop_time < 50:
+		return
+	last_hitstop_time = current_time
+
 	Engine.time_scale = 0.7
 	await get_tree().create_timer(0.03, true, false, true).timeout
 	Engine.time_scale = 1.0
@@ -151,13 +174,16 @@ func regenerate() -> void:
 
 	update_visual()
 
-	# Grow animation
+	# Grow animation - kill existing tween first
+	if regen_tween and regen_tween.is_running():
+		regen_tween.kill()
+
 	grass_visual.scale = Vector2(0.1, 0.1)
 	grass_visual.rotation = 0
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_ELASTIC)
-	tween.tween_property(grass_visual, "scale", Vector2(1, 1), 0.4)
+	regen_tween = create_tween()
+	regen_tween.set_ease(Tween.EASE_OUT)
+	regen_tween.set_trans(Tween.TRANS_BACK)  # BACK is cheaper than ELASTIC
+	regen_tween.tween_property(grass_visual, "scale", Vector2(1, 1), 0.3)
 
 func update_visual() -> void:
 	grass_visual.scale = Vector2(1, 1)
