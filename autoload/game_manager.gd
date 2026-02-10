@@ -32,35 +32,38 @@ func _ready() -> void:
 	_init_grass_data()
 
 func _init_grass_data() -> void:
+	# 0: 기본풀 - 체력 낮음, 보상 적음
 	var normal_grass = GrassData.new()
-	normal_grass.grass_name = "Normal Grass"
+	normal_grass.grass_name = "기본풀"
 	normal_grass.max_health = 1
-	normal_grass.regen_time = 5.0
+	normal_grass.regen_time = 3.0
 	normal_grass.min_drop_value = 1
-	normal_grass.max_drop_value = 1
+	normal_grass.max_drop_value = 2
 	normal_grass.drop_chance = 1.0
 	normal_grass.color = Color(0.3, 0.7, 0.3)
 	normal_grass.cut_color = Color(0.5, 0.4, 0.2)
 
+	# 1: 강한풀 - 체력 중간, 보상 좋음
 	var tough_grass = GrassData.new()
-	tough_grass.grass_name = "Tough Grass"
+	tough_grass.grass_name = "강한풀"
 	tough_grass.max_health = 3
-	tough_grass.regen_time = 8.0
+	tough_grass.regen_time = 5.0
 	tough_grass.min_drop_value = 5
-	tough_grass.max_drop_value = 5
+	tough_grass.max_drop_value = 10
 	tough_grass.drop_chance = 1.0
-	tough_grass.color = Color(0.15, 0.4, 0.35)
+	tough_grass.color = Color(0.15, 0.5, 0.35)
 	tough_grass.cut_color = Color(0.3, 0.35, 0.25)
 
+	# 2: 황금풀 - 체력 매우 높음, 보상 엄청남 (후반 레어)
 	var golden_grass = GrassData.new()
-	golden_grass.grass_name = "Golden Grass"
-	golden_grass.max_health = 2
-	golden_grass.regen_time = 15.0
-	golden_grass.min_drop_value = 10
-	golden_grass.max_drop_value = 10
+	golden_grass.grass_name = "황금풀"
+	golden_grass.max_health = 15
+	golden_grass.regen_time = 30.0
+	golden_grass.min_drop_value = 100
+	golden_grass.max_drop_value = 500
 	golden_grass.drop_chance = 1.0
-	golden_grass.color = Color(0.9, 0.8, 0.2)
-	golden_grass.cut_color = Color(0.6, 0.5, 0.1)
+	golden_grass.color = Color(1.0, 0.85, 0.1)
+	golden_grass.cut_color = Color(0.7, 0.6, 0.1)
 
 	grass_data_list.append(normal_grass)
 	grass_data_list.append(tough_grass)
@@ -69,20 +72,26 @@ func _init_grass_data() -> void:
 func get_random_grass_data() -> GrassData:
 	var quality_level = upgrade_grass_quality
 
-	# Golden increases from 5% to 100% over 17 levels
-	var golden_chance = min(0.05 + quality_level * (0.95 / 17.0), 1.0)
+	# 황금풀: 레벨 10부터 등장, 최대 3% 확률 (매우 희귀)
+	var golden_chance = 0.0
+	if quality_level >= 10:
+		golden_chance = min((quality_level - 10) * 0.003, 0.03)  # 레벨 10에서 0%, 레벨 20에서 3%
 
-	# Remaining probability split between normal and tough
+	# 강한풀: 레벨 0에서 0%, 레벨 18에서 100%
+	# 기본풀: 레벨 0에서 100%, 레벨 18에서 0%
+	var tough_ratio = min(quality_level / 18.0, 1.0)  # 0.0 ~ 1.0
+
+	# 황금풀 확률을 제외한 나머지에서 강한풀 비율 적용
 	var remaining = 1.0 - golden_chance
-	var tough_chance = remaining * 0.26
+	var tough_chance = remaining * tough_ratio
 
 	var roll = randf()
 	if roll < golden_chance:
-		return grass_data_list[2]  # Golden
+		return grass_data_list[2]  # 황금풀
 	elif roll < golden_chance + tough_chance:
-		return grass_data_list[1]  # Tough
+		return grass_data_list[1]  # 강한풀
 	else:
-		return grass_data_list[0]  # Normal (remaining)
+		return grass_data_list[0]  # 기본풀 (나머지)
 
 func add_money(amount: int) -> void:
 	money += amount
