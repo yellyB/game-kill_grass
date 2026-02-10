@@ -54,7 +54,18 @@ func _init_grass_data() -> void:
 	tough_grass.color = Color(0.15, 0.5, 0.35)
 	tough_grass.cut_color = Color(0.3, 0.35, 0.25)
 
-	# 2: 황금풀 - 체력 매우 높음, 보상 엄청남 (후반 레어)
+	# 2: 완전 센풀 - 체력 높음, 보상 매우 좋음
+	var strong_grass = GrassData.new()
+	strong_grass.grass_name = "완전 센풀"
+	strong_grass.max_health = 6
+	strong_grass.regen_time = 8.0
+	strong_grass.min_drop_value = 15
+	strong_grass.max_drop_value = 30
+	strong_grass.drop_chance = 1.0
+	strong_grass.color = Color(0.1, 0.35, 0.5)
+	strong_grass.cut_color = Color(0.2, 0.3, 0.35)
+
+	# 3: 황금풀 - 예외적 존재, 모든 레벨에서 동일 확률로 등장
 	var golden_grass = GrassData.new()
 	golden_grass.grass_name = "황금풀"
 	golden_grass.max_health = 15
@@ -67,31 +78,48 @@ func _init_grass_data() -> void:
 
 	grass_data_list.append(normal_grass)
 	grass_data_list.append(tough_grass)
+	grass_data_list.append(strong_grass)
 	grass_data_list.append(golden_grass)
 
 func get_random_grass_data() -> GrassData:
 	var quality_level = upgrade_grass_quality
 
-	# 황금풀: 레벨 10부터 등장, 최대 3% 확률 (매우 희귀)
-	var golden_chance = 0.0
-	if quality_level >= 10:
-		golden_chance = min((quality_level - 10) * 0.003, 0.03)  # 레벨 10에서 0%, 레벨 20에서 3%
-
-	# 강한풀: 레벨 0에서 0%, 레벨 18에서 100%
-	# 기본풀: 레벨 0에서 100%, 레벨 18에서 0%
-	var tough_ratio = min(quality_level / 18.0, 1.0)  # 0.0 ~ 1.0
-
-	# 황금풀 확률을 제외한 나머지에서 강한풀 비율 적용
-	var remaining = 1.0 - golden_chance
-	var tough_chance = remaining * tough_ratio
+	# 황금풀: 모든 레벨에서 동일한 확률 (2%)
+	const GOLDEN_CHANCE = 0.02
 
 	var roll = randf()
-	if roll < golden_chance:
-		return grass_data_list[2]  # 황금풀
-	elif roll < golden_chance + tough_chance:
+	if roll < GOLDEN_CHANCE:
+		return grass_data_list[3]  # 황금풀
+
+	# 나머지 확률에서 3단계 풀 분배
+	# Lv.0: 기본풀 100%
+	# Lv.9: 기본풀 50%, 강한풀 50%
+	# Lv.18: 강한풀 50%, 완전 센풀 50%
+	# Lv.27+: 완전 센풀 100%
+	var progress = min(quality_level / 27.0, 1.0)  # 0.0 ~ 1.0
+
+	# 3단계 전환: 기본 -> 강한 -> 완전 센
+	var normal_chance: float
+	var tough_chance: float
+
+	if progress < 0.5:
+		# 전반부: 기본풀에서 강한풀로 전환
+		var t = progress * 2.0  # 0 ~ 1
+		normal_chance = 1.0 - t
+		tough_chance = t
+	else:
+		# 후반부: 강한풀에서 완전 센풀로 전환
+		var t = (progress - 0.5) * 2.0  # 0 ~ 1
+		normal_chance = 0.0
+		tough_chance = 1.0 - t
+
+	var remaining_roll = randf()
+	if remaining_roll < normal_chance:
+		return grass_data_list[0]  # 기본풀
+	elif remaining_roll < normal_chance + tough_chance:
 		return grass_data_list[1]  # 강한풀
 	else:
-		return grass_data_list[0]  # 기본풀 (나머지)
+		return grass_data_list[2]  # 완전 센풀
 
 func add_money(amount: int) -> void:
 	money += amount
