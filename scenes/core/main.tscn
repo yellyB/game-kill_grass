@@ -23,6 +23,13 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
+bg_color = Color(0.15, 0.15, 0.2, 0.98)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
@@ -126,3 +133,82 @@ script = ExtResource("6_camera")
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("10_joystick")]
 
+[node name="BackToMenuUI" type="CanvasLayer" parent="."]
+
+[node name="BackToMenuBtn" type="Button" parent="BackToMenuUI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -125.0
+offset_top = -120.0
+offset_right = 125.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 28
+text = "처음으로"
+
+[node name="ConfirmDialog" type="Control" parent="BackToMenuUI"]
+visible = false
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Overlay" type="ColorRect" parent="BackToMenuUI/ConfirmDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="DialogPanel" type="Panel" parent="BackToMenuUI/ConfirmDialog"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -120.0
+offset_right = 180.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="MessageLabel" type="Label" parent="BackToMenuUI/ConfirmDialog/DialogPanel"]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 30.0
+offset_right = 340.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 26
+text = "첫 화면으로 돌아갈까요?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ConfirmBtn" type="Button" parent="BackToMenuUI/ConfirmDialog/DialogPanel"]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 170.0
+offset_bottom = 200.0
+theme_override_font_sizes/font_size = 22
+text = "처음으로"
+
+[node name="CancelBtn" type="Button" parent="BackToMenuUI/ConfirmDialog/DialogPanel"]
+layout_mode = 1
+offset_left = 190.0
+offset_top = 130.0
+offset_right = 340.0
+offset_bottom = 200.0
+theme_override_font_sizes/font_size = 22
+text = "게임 계속하기"

@@ -14,6 +14,7 @@ signal panel_closed
 @onready var stats_label: Label = $Panel/StatsLabel
 
 var is_open: bool = false
+var show_toggle_button: bool = true
 
 func _ready() -> void:
 	panel.visible = false
@@ -25,6 +26,20 @@ func _ready() -> void:
 	WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
 	update_display()
+	toggle_btn.visible = show_toggle_button
+
+func set_toggle_button_visible(should_show: bool) -> void:
+	show_toggle_button = should_show
+	if toggle_btn:
+		toggle_btn.visible = should_show
+
+func open_panel() -> void:
+	if is_open:
+		return
+	is_open = true
+	panel.visible = true
+	update_display()
+	panel_opened.emit()
 
 func _on_toggle_pressed() -> void:
 	is_open = !is_open

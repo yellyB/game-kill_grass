@@ -14,6 +14,7 @@ signal panel_closed
 
 var is_open: bool = false
 var selected_upgrade: String = ""
+var show_toggle_button: bool = true
 
 # Upgrade descriptions
 const UPGRADE_INFO = {
@@ -52,6 +53,21 @@ func _ready() -> void:
 
   update_button_texts()
   clear_selection()
+  toggle_btn.visible = show_toggle_button
+
+func set_toggle_button_visible(should_show: bool) -> void:
+  show_toggle_button = should_show
+  if toggle_btn:
+    toggle_btn.visible = should_show
+
+func open_panel() -> void:
+  if is_open:
+    return
+  is_open = true
+  panel.visible = true
+  update_button_texts()
+  clear_selection()
+  panel_opened.emit()
 
 func _on_toggle_pressed() -> void:
   is_open = !is_open
@@ -208,9 +224,6 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
 
 func update_button_texts() -> void:
   var density_level = GameManager.upgrade_grass_density
-  var density_cost = GameManager.get_upgrade_cost(density_level)
-  var magnet_cost = GameManager.get_upgrade_cost(GameManager.upgrade_magnet_range)
-  var quality_cost = GameManager.get_upgrade_cost(GameManager.upgrade_grass_quality)
 
   # Grass density has max level of 10
   if density_level >= GameManager.MAX_DENSITY_LEVEL:
