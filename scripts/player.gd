@@ -27,23 +27,32 @@ var aura_effect: Node2D = null
 
 var input_direction: Vector2 = Vector2.ZERO
 var can_attack: bool = true
-var grasses_in_range: Array[Node2D] = []
 var target_weapon_angle: float = 0.0
 var is_swinging: bool = false
 var walk_time: float = 0.0
 var spin_angle: float = 0.0  # For continuous spinning weapons
 var current_visual_type: String = ""
 var weapon_base_scale: Vector2 = Vector2.ONE  # Store weapon's base scale
+var grass_spawner: Node2D = null
+var attack_radius: float = 80.0
 
 func _ready() -> void:
-  attack_area.area_entered.connect(_on_grass_entered)
-  attack_area.area_exited.connect(_on_grass_exited)
   attack_timer.timeout.connect(_on_attack_timer_timeout)
   update_attack_range()
   create_weapon_visual()
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
   queue_redraw()  # For debug drawing
+  # Find grass spawner
+  call_deferred("find_grass_spawner")
+
+func find_grass_spawner() -> void:
+  grass_spawner = get_tree().get_first_node_in_group("grass_spawner")
+  if not grass_spawner:
+    # Try to find by path
+    var world_root = get_parent()
+    if world_root:
+      grass_spawner = world_root.get_node_or_null("GrassSpawner")
 
 func _process(delta: float) -> void:
   input_direction = get_input_direction()
@@ -116,7 +125,7 @@ func update_weapon_direction(delta: float) -> void:
 func try_attack() -> void:
   if not can_attack:
     return
-  if grasses_in_range.is_empty():
+  if not grass_spawner:
     return
 
   can_attack = false
@@ -124,63 +133,20 @@ func try_attack() -> void:
   attack_timer.wait_time = 0.2 / weapon_speed
   attack_timer.start()
 
-  var attack_type = WeaponManager.get_attack_type()
+  # Calculate attack position (slightly in front of player in movement direction)
+  var attack_center = global_position
+  if input_direction != Vector2.ZERO:
+    attack_center += input_direction * (attack_radius * 0.5)
 
-  match attack_type:
-    "double":
-      # Attack two closest grasses
-      attack_multiple_grass(2)
-    "spin", "aura", "flame", "world":
-      # Attack all grass in range
-      attack_all_grass()
-    "screen":
-      # Attack all grass in range with screen effect
-      attack_all_grass()
-    _:
-      # Single target attack
-      attack_closest_grass()
+  # Convert to grass spawner local coordinates
+  var local_attack_center = attack_center - grass_spawner.global_position
 
-func attack_closest_grass() -> void:
-  var closest_grass: Node2D = null
-  var closest_distance: float = INF
+  # Attack grass and get total value
+  grass_spawner.attack_grass_in_area(local_attack_center, attack_radius)
 
-  for grass in grasses_in_range:
-    if is_instance_valid(grass) and grass.has_method("take_damage"):
-      var distance = global_position.distance_to(grass.global_position)
-      if distance < closest_distance:
-        closest_distance = distance
-        closest_grass = grass
-
-  if closest_grass:
-    swing_weapon(closest_grass.global_position)
-    closest_grass.take_damage(1)
-
-func attack_multiple_grass(count: int) -> void:
-  var valid_grasses: Array = []
-
-  for grass in grasses_in_range:
-    if is_instance_valid(grass) and grass.has_method("take_damage"):
-      valid_grasses.append(grass)
-
-  # Sort by distance
-  valid_grasses.sort_custom(func(a, b):
-    return global_position.distance_to(a.global_position) < global_position.distance_to(b.global_position)
-  )
-
-  # Attack up to 'count' grasses
-  for i in min(count, valid_grasses.size()):
-    if i == 0:
-      swing_weapon(valid_grasses[i].global_position)
-    valid_grasses[i].take_damage(1)
-
-func attack_all_grass() -> void:
-  var attacked = false
-  for grass in grasses_in_range:
-    if is_instance_valid(grass) and grass.has_method("take_damage"):
-      if not attacked:
-        swing_weapon(grass.global_position)
-        attacked = true
-      grass.take_damage(1)
+  # Swing animation
+  var target_pos = attack_center + input_direction * 30
+  swing_weapon(target_pos)
 
 func swing_weapon(target_pos: Vector2) -> void:
   var attack_type = WeaponManager.get_attack_type()
@@ -312,9 +278,7 @@ func world_attack() -> void:
 func update_attack_range() -> void:
   const BASE_ATTACK_RANGE: float = 80.0
   var weapon_range = WeaponManager.get_weapon_range()
-  var final_range = BASE_ATTACK_RANGE * weapon_range
-  if attack_shape and attack_shape.shape is CircleShape2D:
-    attack_shape.shape.radius = final_range
+  attack_radius = BASE_ATTACK_RANGE * weapon_range
 
 func create_weapon_visual() -> void:
   var visual_type = WeaponManager.get_visual_type()
@@ -623,13 +587,6 @@ func update_continuous_weapon_animation(delta: float) -> void:
         aura_effect.rotation += delta * 1.5
         for child in aura_effect.get_children():
           child.rotation -= delta * 3.0
-
-func _on_grass_entered(area: Area2D) -> void:
-  if area.is_in_group("grass"):
-    grasses_in_range.append(area)
-
-func _on_grass_exited(area: Area2D) -> void:
-  grasses_in_range.erase(area)
 
 func _on_attack_timer_timeout() -> void:
   can_attack = true

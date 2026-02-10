@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/world_root.gd" id="2_world"]
 [ext_resource type="Script" path="res://scripts/grass_spawner.gd" id="3_spawner"]
-[ext_resource type="PackedScene" uid="uid://cgrass123" path="res://scenes/world/grass.tscn" id="4_grass"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="5_player"]
 [ext_resource type="Script" path="res://scripts/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" uid="uid://chud123" path="res://scenes/ui/hud.tscn" id="7_hud"]
@@ -37,12 +36,10 @@ offset_right = 3000.0
 offset_bottom = 3000.0
 color = Color(0.18, 0.35, 0.18, 1)
 
-[node name="GrassSpawner" type="Node2D" parent="WorldRoot"]
+[node name="GrassSpawner" type="Node2D" parent="WorldRoot" groups=["grass_spawner"]]
 script = ExtResource("3_spawner")
-grass_scene = ExtResource("4_grass")
 chunk_size = 400.0
-render_distance = 4
-grass_per_chunk = 10
+render_distance = 2
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
 collision_layer = 1
