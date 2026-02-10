@@ -12,6 +12,9 @@ extends CanvasLayer
 @onready var magnet_range_label: Label = $StatsContainer/MagnetRangeLabel
 @onready var bonus_rate_label: Label = $StatsContainer/BonusRateLabel
 
+# Debug UI (only in debug builds)
+@onready var debug_container: Control = $DebugContainer
+
 var displayed_money: int = 0
 var target_money: int = 0
 
@@ -27,6 +30,14 @@ func _ready() -> void:
   update_money_display()
   update_stats_display()
   bonus_container.visible = false
+
+  # Show debug UI only in debug builds
+  if debug_container:
+    debug_container.visible = OS.is_debug_build()
+    if OS.is_debug_build():
+      var reset_btn = debug_container.get_node("ResetBtn")
+      if reset_btn:
+        reset_btn.pressed.connect(_on_reset_btn_pressed)
 
 func _process(delta: float) -> void:
   # Smooth money counter
@@ -109,3 +120,10 @@ func update_stats_display() -> void:
   drop_rate_label.text = "드롭률: x%.2f" % drop_mult
   magnet_range_label.text = "수집 범위: %.0f" % magnet_range
   bonus_rate_label.text = "보상 증가: x%.2f" % bonus_rate
+
+func _on_reset_btn_pressed() -> void:
+  SaveManager.reset_all_data()
+  displayed_money = 0
+  target_money = 0
+  update_money_display()
+  update_stats_display()

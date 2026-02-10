@@ -49,3 +49,19 @@ func delete_save() -> void:
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
+
+func reset_all_data() -> void:
+	# Delete save file
+	delete_save()
+	# Reset GameManager
+	GameManager.money = 0
+	GameManager.upgrade_attack_speed = 0
+	GameManager.upgrade_attack_range = 0
+	GameManager.upgrade_drop_rate = 0
+	GameManager.upgrade_magnet_range = 0
+	GameManager.upgrade_bonus_rate = 0
+	GameManager.money_changed.emit(0)
+	# Reset WeaponManager
+	WeaponManager.current_weapon_level = 0
+	WeaponManager.weapon_changed.emit(0)
+	print("[SaveManager] All data reset")
