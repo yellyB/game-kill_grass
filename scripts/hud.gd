@@ -4,8 +4,7 @@ extends CanvasLayer
 
 # Stats labels
 @onready var weapon_label: Label = $StatsContainer/WeaponLabel
-@onready var attack_speed_label: Label = $StatsContainer/AttackSpeedLabel
-@onready var attack_range_label: Label = $StatsContainer/AttackRangeLabel
+@onready var weapon_stats_label: Label = $StatsContainer/WeaponStatsLabel
 @onready var drop_rate_label: Label = $StatsContainer/DropRateLabel
 @onready var magnet_range_label: Label = $StatsContainer/MagnetRangeLabel
 @onready var grass_quality_label: Label = $StatsContainer/GrassQualityLabel
@@ -83,21 +82,16 @@ func update_stats_display() -> void:
   var weapon = WeaponManager.get_current_weapon()
   weapon_label.text = "무기: %s (Lv.%d)" % [weapon.name, WeaponManager.current_weapon_level + 1]
 
-  # Final stats (base * weapon)
-  var base_speed = GameManager.get_attack_speed()
-  var base_range = GameManager.get_attack_range()
+  # Weapon stats (speed and range come from weapon)
+  var weapon_speed = WeaponManager.get_weapon_speed()
+  var weapon_range = WeaponManager.get_weapon_range()
+  weapon_stats_label.text = "속도 x%.1f | 범위 x%.1f" % [weapon_speed, weapon_range]
+
+  # Upgrade stats
   var drop_mult = GameManager.get_drop_multiplier()
   var magnet_range = GameManager.get_magnet_range()
   var grass_quality = GameManager.get_grass_quality_level()
 
-  var weapon_speed = WeaponManager.get_weapon_speed()
-  var weapon_range = WeaponManager.get_weapon_range()
-
-  var final_speed = base_speed * weapon_speed
-  var final_range = base_range * weapon_range
-
-  attack_speed_label.text = "공격 속도: x%.2f" % final_speed
-  attack_range_label.text = "공격 범위: %.0f" % final_range
   drop_rate_label.text = "드롭률: x%.2f" % drop_mult
   magnet_range_label.text = "수집 범위: %.0f" % magnet_range
   grass_quality_label.text = "풀 등급: Lv.%d" % (grass_quality + 1)

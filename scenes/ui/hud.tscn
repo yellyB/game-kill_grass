@@ -45,21 +45,13 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 26
 text = "무기: 낡은 낫 (Lv.1)"
 
-[node name="AttackSpeedLabel" type="Label" parent="StatsContainer"]
+[node name="WeaponStatsLabel" type="Label" parent="StatsContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.5, 1)
+theme_override_colors/font_color = Color(0.8, 0.8, 0.9, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 22
-text = "공격 속도: x1.00"
-
-[node name="AttackRangeLabel" type="Label" parent="StatsContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.8, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 22
-text = "공격 범위: 80"
+theme_override_font_sizes/font_size = 20
+text = "속도 x1.0 | 범위 x1.0"
 
 [node name="DropRateLabel" type="Label" parent="StatsContainer"]
 layout_mode = 2

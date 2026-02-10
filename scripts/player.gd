@@ -120,9 +120,8 @@ func try_attack() -> void:
     return
 
   can_attack = false
-  var base_speed = GameManager.get_attack_speed()
   var weapon_speed = WeaponManager.get_weapon_speed()
-  attack_timer.wait_time = 0.2 / (base_speed * weapon_speed)
+  attack_timer.wait_time = 0.2 / weapon_speed
   attack_timer.start()
 
   var attack_type = WeaponManager.get_attack_type()
@@ -311,9 +310,9 @@ func world_attack() -> void:
   is_swinging = false
 
 func update_attack_range() -> void:
-  var base_range = GameManager.get_attack_range()
+  const BASE_ATTACK_RANGE: float = 80.0
   var weapon_range = WeaponManager.get_weapon_range()
-  var final_range = base_range * weapon_range
+  var final_range = BASE_ATTACK_RANGE * weapon_range
   if attack_shape and attack_shape.shape is CircleShape2D:
     attack_shape.shape.radius = final_range
 
@@ -636,9 +635,7 @@ func _on_attack_timer_timeout() -> void:
   can_attack = true
 
 func _on_upgrade_purchased(upgrade_type: String, _level: int) -> void:
-  if upgrade_type == "attack_range":
-    update_attack_range()
-  elif upgrade_type == "magnet_range":
+  if upgrade_type == "magnet_range":
     queue_redraw()  # Update debug circle
 
 func _on_weapon_changed(_level: int) -> void:

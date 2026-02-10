@@ -55,8 +55,6 @@ func reset_all_data() -> void:
 	delete_save()
 	# Reset GameManager
 	GameManager.money = 0
-	GameManager.upgrade_attack_speed = 0
-	GameManager.upgrade_attack_range = 0
 	GameManager.upgrade_drop_rate = 0
 	GameManager.upgrade_magnet_range = 0
 	GameManager.upgrade_grass_quality = 0

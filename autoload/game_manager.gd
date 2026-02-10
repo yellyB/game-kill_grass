@@ -4,8 +4,6 @@ extends Node
 var money: int = 0
 
 # Upgrades
-var upgrade_attack_speed: int = 0
-var upgrade_attack_range: int = 0
 var upgrade_drop_rate: int = 0
 var upgrade_magnet_range: int = 0
 var upgrade_grass_quality: int = 0  # 풀 등급 업그레이드 (고급 풀 등장 확률 증가)
@@ -15,8 +13,6 @@ const BASE_UPGRADE_COST: int = 100
 const UPGRADE_COST_MULTIPLIER: float = 1.5
 
 # Game settings
-var base_attack_speed: float = 1.0
-var base_attack_range: float = 80.0
 var base_drop_rate: float = 1.0
 var base_magnet_range: float = 75.0  # Half of original 150
 
@@ -93,12 +89,6 @@ func add_money(amount: int) -> void:
 func get_grass_quality_level() -> int:
 	return upgrade_grass_quality
 
-func get_attack_speed() -> float:
-	return base_attack_speed * (1.0 + upgrade_attack_speed * 0.15)
-
-func get_attack_range() -> float:
-	return base_attack_range * (1.0 + upgrade_attack_range * 0.2)
-
 func get_drop_multiplier() -> float:
 	return base_drop_rate * (1.0 + upgrade_drop_rate * 0.25)
 
@@ -111,10 +101,6 @@ func get_upgrade_cost(current_level: int) -> int:
 func purchase_upgrade(upgrade_type: String) -> bool:
 	var current_level: int
 	match upgrade_type:
-		"attack_speed":
-			current_level = upgrade_attack_speed
-		"attack_range":
-			current_level = upgrade_attack_range
 		"drop_rate":
 			current_level = upgrade_drop_rate
 		"magnet_range":
@@ -132,10 +118,6 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 	money_changed.emit(money)
 
 	match upgrade_type:
-		"attack_speed":
-			upgrade_attack_speed += 1
-		"attack_range":
-			upgrade_attack_range += 1
 		"drop_rate":
 			upgrade_drop_rate += 1
 		"magnet_range":
@@ -149,8 +131,6 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 func get_save_data() -> Dictionary:
 	return {
 		"money": money,
-		"upgrade_attack_speed": upgrade_attack_speed,
-		"upgrade_attack_range": upgrade_attack_range,
 		"upgrade_drop_rate": upgrade_drop_rate,
 		"upgrade_magnet_range": upgrade_magnet_range,
 		"upgrade_grass_quality": upgrade_grass_quality
@@ -158,8 +138,6 @@ func get_save_data() -> Dictionary:
 
 func load_save_data(data: Dictionary) -> void:
 	money = data.get("money", 0)
-	upgrade_attack_speed = data.get("upgrade_attack_speed", 0)
-	upgrade_attack_range = data.get("upgrade_attack_range", 0)
 	upgrade_drop_rate = data.get("upgrade_drop_rate", 0)
 	upgrade_magnet_range = data.get("upgrade_magnet_range", 0)
 	upgrade_grass_quality = data.get("upgrade_grass_quality", 0)
