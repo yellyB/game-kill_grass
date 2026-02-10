@@ -38,6 +38,9 @@ func _ready() -> void:
       var reset_btn = debug_container.get_node("ResetBtn")
       if reset_btn:
         reset_btn.pressed.connect(_on_reset_btn_pressed)
+      var add_money_btn = debug_container.get_node("AddMoneyBtn")
+      if add_money_btn:
+        add_money_btn.pressed.connect(_on_add_money_btn_pressed)
 
 func _process(delta: float) -> void:
   # Smooth money counter
@@ -127,3 +130,7 @@ func _on_reset_btn_pressed() -> void:
   target_money = 0
   update_money_display()
   update_stats_display()
+
+func _on_add_money_btn_pressed() -> void:
+  GameManager.money += 100000
+  GameManager.money_changed.emit(GameManager.money)
