@@ -111,8 +111,8 @@ func show_session_end_overlay(earnings: int) -> void:
 	touch_button.disabled = true
 
 	# Set texts
-	session_earnings_label.text = "획득: $%d" % earnings
-	bonus_label.text = "세션 완료 보너스 +$%d" % BONUS_COINS
+	session_earnings_label.text = "획득: $%s" % format_number(earnings)
+	bonus_label.text = "세션 완료 보너스 +$%s" % format_number(BONUS_COINS)
 
 	# Show overlay
 	session_end_overlay.visible = true
@@ -167,3 +167,14 @@ func _on_confirm_back_to_menu() -> void:
 func _on_cancel_back_to_menu() -> void:
 	confirm_dialog.visible = false
 	get_tree().paused = false
+
+func format_number(num: int) -> String:
+	var str_num = str(num)
+	var result = ""
+	var count = 0
+	for i in range(str_num.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			result = "," + result
+		result = str_num[i] + result
+		count += 1
+	return result
