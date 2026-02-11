@@ -12,6 +12,7 @@ signal panel_closed
 @onready var confirm_btn: Button = $Panel/ConfirmBtn
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var toggle_btn: Button = $ToggleBtn
+@onready var money_label: Label = $Panel/MoneyLabel
 
 var is_open: bool = false
 var selected_upgrade: String = ""
@@ -60,6 +61,7 @@ func _ready() -> void:
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
 
   update_button_texts()
+  update_money_display()
   clear_selection()
   toggle_btn.visible = show_toggle_button
 
@@ -74,6 +76,7 @@ func open_panel() -> void:
   is_open = true
   panel.visible = true
   update_button_texts()
+  update_money_display()
   clear_selection()
   panel_opened.emit()
 
@@ -184,7 +187,7 @@ func update_description() -> void:
   else:
     stat_change = info.stat_format % [current_value, next_value]
 
-  description_label.text = "%s\n\n%s\n\n%s\n\n비용: $%d" % [info.name, info.description, stat_change, cost]
+  description_label.text = "%s\n\n%s\n\n%s\n\n비용: $%s" % [info.name, info.description, stat_change, format_number(cost)]
 
 func update_confirm_button() -> void:
   if selected_upgrade.is_empty():
@@ -221,22 +224,23 @@ func update_confirm_button() -> void:
   # Check money
   if GameManager.money < cost:
     confirm_btn.disabled = true
-    confirm_btn.text = "돈 부족 ($%d)" % cost
+    confirm_btn.text = "돈 부족 ($%s)" % format_number(cost)
   else:
     confirm_btn.disabled = false
-    confirm_btn.text = "강화하기 ($%d)" % cost
+    confirm_btn.text = "강화하기 ($%s)" % format_number(cost)
 
 func _on_confirm_pressed() -> void:
   if selected_upgrade.is_empty():
     return
 
   if GameManager.purchase_upgrade(selected_upgrade):
-    # Success - update UI
+    SaveManager.save_game()
     update_button_texts()
     update_description()
     update_confirm_button()
 
 func _on_money_changed(_amount: int) -> void:
+  update_money_display()
   if is_open:
     update_button_texts()
     update_confirm_button()
@@ -245,6 +249,21 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
   update_button_texts()
   update_description()
   update_confirm_button()
+  update_money_display()
+
+func update_money_display() -> void:
+  money_label.text = "$%s" % format_number(GameManager.money)
+
+func format_number(num: int) -> String:
+  var str_num = str(num)
+  var result = ""
+  var count = 0
+  for i in range(str_num.length() - 1, -1, -1):
+    if count > 0 and count % 3 == 0:
+      result = "," + result
+    result = str_num[i] + result
+    count += 1
+  return result
 
 func update_button_texts() -> void:
   var density_level = GameManager.upgrade_grass_density
