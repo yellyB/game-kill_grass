@@ -5,6 +5,7 @@ extends Control
 @onready var upgrade_btn: Button = $VBoxContainer/UpgradeBtn
 @onready var quit_btn: Button = $VBoxContainer/QuitBtn
 @onready var title_label: Label = $TitleLabel
+@onready var money_label: Label = $MoneyLabel
 @onready var upgrade_panel: Control = $UpgradePanel/Control
 @onready var weapon_shop: Control = $WeaponShop/Control
 
@@ -23,6 +24,10 @@ func _ready() -> void:
 	upgrade_panel.panel_closed.connect(_on_panel_closed)
 	weapon_shop.panel_opened.connect(_on_panel_opened)
 	weapon_shop.panel_closed.connect(_on_panel_closed)
+
+	# Money display
+	update_money_display()
+	GameManager.money_changed.connect(_on_money_changed)
 
 	# Title animation
 	animate_title()
@@ -56,3 +61,20 @@ func _on_panel_closed() -> void:
 	weapon_btn.disabled = false
 	upgrade_btn.disabled = false
 	quit_btn.disabled = false
+
+func _on_money_changed(_amount: int) -> void:
+	update_money_display()
+
+func update_money_display() -> void:
+	money_label.text = "$" + format_number(GameManager.money)
+
+func format_number(num: int) -> String:
+	var str_num = str(num)
+	var result = ""
+	var count = 0
+	for i in range(str_num.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			result = "," + result
+		result = str_num[i] + result
+		count += 1
+	return result
