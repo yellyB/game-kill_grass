@@ -1,7 +1,5 @@
 extends Area2D
 
-const FloatingTextScene = preload("res://scenes/ui/floating_text.tscn")
-
 @export var value: int = 1
 @export var magnet_speed: float = 600.0
 @export var pickup_delay: float = 0.3
@@ -85,8 +83,9 @@ func collect() -> void:
 	# Add money
 	GameManager.add_money(value)
 
-	# Spawn floating text at coin position
-	spawn_floating_text(value)
+	# Accumulate floating text on player
+	if player and player.has_method("accumulate_coin_text"):
+		player.accumulate_coin_text(value)
 
 	# Collect effect
 	if visual:
@@ -97,15 +96,6 @@ func collect() -> void:
 		await tween.finished
 
 	queue_free()
-
-func spawn_floating_text(amount: int) -> void:
-	var floating_text = FloatingTextScene.instantiate()
-	floating_text.position = position
-
-	# Add to tree first so @onready variables are initialized
-	get_parent().add_child(floating_text)
-	# Then setup the values
-	floating_text.setup(amount)
 
 func set_value(new_value: int) -> void:
 	value = new_value

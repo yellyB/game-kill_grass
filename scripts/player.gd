@@ -2,6 +2,8 @@ extends CharacterBody2D
 
 signal input_direction_changed(direction: Vector2)
 
+const FloatingTextScene = preload("res://scenes/ui/floating_text.tscn")
+
 @export var move_speed: float = 300.0
 
 # Debug settings
@@ -36,6 +38,13 @@ var weapon_base_scale: Vector2 = Vector2.ONE  # Store weapon's base scale
 var grass_spawner: Node2D = null
 var attack_radius: float = 80.0
 
+# Coin text batching
+const BATCH_TIMEOUT: float = 0.3
+var batch_total: int = 0
+var batch_timer: float = 0.0
+var batch_active: bool = false
+var batch_floating_text: Node2D = null
+
 func _ready() -> void:
   attack_timer.timeout.connect(_on_attack_timer_timeout)
   update_attack_range()
@@ -68,6 +77,12 @@ func _process(delta: float) -> void:
 
   # Handle continuous weapon animations
   update_continuous_weapon_animation(delta)
+
+  # Coin text batch timer
+  if batch_active:
+    batch_timer -= delta
+    if batch_timer <= 0:
+      _finish_batch()
 
 func _physics_process(_delta: float) -> void:
   pass
@@ -620,6 +635,33 @@ func _input(event: InputEvent) -> void:
       var drag_vector = event.position - touch_start_pos
       if drag_vector.length() > 20:  # Dead zone
         input_direction = drag_vector.normalized()
+
+func accumulate_coin_text(value: int) -> void:
+  if batch_active and is_instance_valid(batch_floating_text):
+    # Add to existing batch
+    batch_total += value
+    batch_timer = BATCH_TIMEOUT
+    batch_floating_text.update_batch(batch_total)
+  else:
+    # Start new batch
+    batch_total = value
+    batch_timer = BATCH_TIMEOUT
+    batch_active = true
+    _spawn_batch_text()
+
+func _spawn_batch_text() -> void:
+  batch_floating_text = FloatingTextScene.instantiate()
+  # Position above player head
+  batch_floating_text.position = Vector2(0, -70)
+  add_child(batch_floating_text)
+  batch_floating_text.start_batch(batch_total)
+
+func _finish_batch() -> void:
+  batch_active = false
+  if is_instance_valid(batch_floating_text):
+    batch_floating_text.finish_batch()
+  batch_floating_text = null
+  batch_total = 0
 
 func _draw() -> void:
   if not DEBUG_SHOW_RANGES:
