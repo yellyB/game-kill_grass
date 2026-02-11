@@ -7,6 +7,7 @@ signal panel_closed
 @onready var grass_density_btn: Button = $Panel/VBoxContainer/GrassDensityBtn
 @onready var magnet_range_btn: Button = $Panel/VBoxContainer/MagnetRangeBtn
 @onready var grass_quality_btn: Button = $Panel/VBoxContainer/GrassQualityBtn
+@onready var grass_regen_btn: Button = $Panel/VBoxContainer/GrassRegenBtn
 @onready var description_label: Label = $Panel/DescriptionPanel/DescriptionLabel
 @onready var confirm_btn: Button = $Panel/ConfirmBtn
 @onready var close_btn: Button = $Panel/CloseBtn
@@ -35,6 +36,12 @@ const UPGRADE_INFO = {
     "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다.",
     "stat_format": "등급 레벨: %d → %d",
     "max_level": -1
+  },
+  "grass_regen": {
+    "name": "풀 재생 속도",
+    "description": "베어진 풀이 더 빨리 다시 자랍니다.",
+    "stat_format": "재생 시간: %.1f초 → %.1f초",
+    "max_level": 10
   }
 }
 
@@ -47,6 +54,7 @@ func _ready() -> void:
   grass_density_btn.pressed.connect(_on_grass_density_selected)
   magnet_range_btn.pressed.connect(_on_magnet_range_selected)
   grass_quality_btn.pressed.connect(_on_grass_quality_selected)
+  grass_regen_btn.pressed.connect(_on_grass_regen_selected)
 
   GameManager.money_changed.connect(_on_money_changed)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
@@ -99,6 +107,9 @@ func _on_magnet_range_selected() -> void:
 func _on_grass_quality_selected() -> void:
   select_upgrade("grass_quality")
 
+func _on_grass_regen_selected() -> void:
+  select_upgrade("grass_regen")
+
 func select_upgrade(upgrade_type: String) -> void:
   selected_upgrade = upgrade_type
   update_description()
@@ -117,6 +128,7 @@ func update_button_selection() -> void:
   grass_density_btn.modulate = Color(1.0, 1.0, 0.5) if selected_upgrade == "grass_density" else Color(1, 1, 1)
   magnet_range_btn.modulate = Color(1.0, 1.0, 0.5) if selected_upgrade == "magnet_range" else Color(1, 1, 1)
   grass_quality_btn.modulate = Color(1.0, 1.0, 0.5) if selected_upgrade == "grass_quality" else Color(1, 1, 1)
+  grass_regen_btn.modulate = Color(1.0, 1.0, 0.5) if selected_upgrade == "grass_regen" else Color(1, 1, 1)
 
 func update_description() -> void:
   if selected_upgrade.is_empty():
@@ -152,6 +164,14 @@ func update_description() -> void:
       cost = GameManager.get_upgrade_cost(current_level)
       current_value = current_level
       next_value = current_level + 1
+    "grass_regen":
+      current_level = GameManager.upgrade_grass_regen
+      cost = GameManager.get_upgrade_cost(current_level)
+      current_value = GameManager.get_grass_regen_time(23.0)
+      var temp_level = GameManager.upgrade_grass_regen
+      GameManager.upgrade_grass_regen += 1
+      next_value = GameManager.get_grass_regen_time(23.0)
+      GameManager.upgrade_grass_regen = temp_level
 
   # Check max level
   if info.max_level >= 0 and current_level >= info.max_level:
@@ -186,6 +206,10 @@ func update_confirm_button() -> void:
       cost = GameManager.get_upgrade_cost(current_level)
     "grass_quality":
       current_level = GameManager.upgrade_grass_quality
+      cost = GameManager.get_upgrade_cost(current_level)
+    "grass_regen":
+      current_level = GameManager.upgrade_grass_regen
+      max_level = GameManager.MAX_REGEN_LEVEL
       cost = GameManager.get_upgrade_cost(current_level)
 
   # Check max level
@@ -224,6 +248,7 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
 
 func update_button_texts() -> void:
   var density_level = GameManager.upgrade_grass_density
+  var regen_level = GameManager.upgrade_grass_regen
 
   # Grass density has max level of 10
   if density_level >= GameManager.MAX_DENSITY_LEVEL:
@@ -233,3 +258,9 @@ func update_button_texts() -> void:
 
   magnet_range_btn.text = "수집 범위 Lv.%d → Lv.%d" % [GameManager.upgrade_magnet_range, GameManager.upgrade_magnet_range + 1]
   grass_quality_btn.text = "풀 등급 Lv.%d → Lv.%d" % [GameManager.upgrade_grass_quality, GameManager.upgrade_grass_quality + 1]
+
+  # Grass regen has max level of 10
+  if regen_level >= GameManager.MAX_REGEN_LEVEL:
+    grass_regen_btn.text = "풀 재생 Lv.%d (MAX)" % regen_level
+  else:
+    grass_regen_btn.text = "풀 재생 Lv.%d → Lv.%d" % [regen_level, regen_level + 1]

@@ -113,8 +113,9 @@ func load_chunk(chunk_coord: Vector2i) -> void:
 	var chunk_origin = Vector2(chunk_coord.x * chunk_size, chunk_coord.y * chunk_size)
 
 	# Get density - affects grid spacing
+	# Level 0: cell_size = 100 (very sparse), Level 10: cell_size = 16 (dense)
 	var density_level = GameManager.get_grass_density_level()
-	var cell_size = grid_cell_size / (1.0 + density_level * 0.15)  # Denser grid at higher levels
+	var cell_size = grid_cell_size * 2.5 / (1.0 + density_level * 0.525)
 
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(chunk_coord)
@@ -132,12 +133,13 @@ func load_chunk(chunk_coord: Vector2i) -> void:
 
 			if not grass_data.has(grid_pos):
 				var gd = GameManager.get_random_grass_data()
+				var base_regen = gd.regen_time if gd else 5.0
 				grass_data[grid_pos] = {
 					"cut": false,
 					"type": get_grass_type_index(gd),
 					"health": gd.max_health if gd else 1,
 					"max_health": gd.max_health if gd else 1,
-					"regen_time": gd.regen_time if gd else 5.0,
+					"regen_time": GameManager.get_grass_regen_time(base_regen),
 					"regen_timer": 0.0,
 					"value": randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1
 				}
@@ -174,11 +176,12 @@ func process_regen(delta: float) -> void:
 			if data.regen_timer >= data.regen_time:
 				# Regenerate with new random type
 				var gd = GameManager.get_random_grass_data()
+				var base_regen = gd.regen_time if gd else 5.0
 				data.cut = false
 				data.type = get_grass_type_index(gd)
 				data.health = gd.max_health if gd else 1
 				data.max_health = gd.max_health if gd else 1
-				data.regen_time = gd.regen_time if gd else 5.0
+				data.regen_time = GameManager.get_grass_regen_time(base_regen)
 				data.regen_timer = 0.0
 				data.value = randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1
 

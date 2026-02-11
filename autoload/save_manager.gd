@@ -58,6 +58,7 @@ func reset_all_data() -> void:
 	GameManager.upgrade_grass_density = 0
 	GameManager.upgrade_magnet_range = 0
 	GameManager.upgrade_grass_quality = 0
+	GameManager.upgrade_grass_regen = 0
 	GameManager.money_changed.emit(0)
 	# Reset WeaponManager
 	WeaponManager.current_weapon_level = 0
