@@ -14,7 +14,9 @@ const BONUS_COINS: int = 100
 @onready var cancel_btn: Button = $BackToMenuUI/ConfirmDialog/DialogPanel/CancelBtn
 @onready var session_end_overlay: Control = $BackToMenuUI/SessionEndOverlay
 @onready var touch_button: Button = $BackToMenuUI/SessionEndOverlay/TouchButton
+@onready var session_earnings_label: Label = $BackToMenuUI/SessionEndOverlay/SessionEarningsLabel
 @onready var bonus_label: Label = $BackToMenuUI/SessionEndOverlay/BonusLabel
+@onready var tap_to_return_label: Label = $BackToMenuUI/SessionEndOverlay/TapToReturnLabel
 @onready var timer_label: Label = $HUD/TimerLabel
 
 var session_time_remaining: float = SESSION_TIME
@@ -63,12 +65,79 @@ func update_timer_display() -> void:
 func end_session() -> void:
 	session_ended = true
 	get_tree().paused = true
-	session_end_overlay.visible = true
 	back_to_menu_btn.visible = false
+
+	# Capture session earnings before adding bonus
+	var earnings = GameManager.session_money
 
 	# Add bonus coins
 	GameManager.add_money(BONUS_COINS)
+
+	# Phase 1: Coins pop and disappear
+	await animate_coins_disappear()
+
+	# Phase 2: Show overlay with animations
+	show_session_end_overlay(earnings)
+
+func animate_coins_disappear() -> void:
+	var coins = get_tree().get_nodes_in_group("coins")
+
+	if coins.is_empty():
+		await get_tree().create_timer(0.3).timeout
+		return
+
+	coins.shuffle()
+	var total_duration = min(2.0, coins.size() * 0.05)
+	var pop_interval = total_duration / coins.size()
+
+	for i in coins.size():
+		var coin = coins[i]
+		if not is_instance_valid(coin):
+			continue
+
+		var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tween.tween_interval(i * pop_interval)
+		tween.tween_property(coin, "scale", Vector2(1.8, 1.8), 0.08)
+		tween.tween_property(coin, "scale", Vector2(0, 0), 0.12)
+		tween.tween_callback(coin.queue_free)
+
+	await get_tree().create_timer(total_duration + 0.3).timeout
+
+func show_session_end_overlay(earnings: int) -> void:
+	# Hide elements initially
+	session_earnings_label.modulate = Color(1, 1, 1, 0)
+	bonus_label.modulate = Color(1, 1, 1, 0)
+	tap_to_return_label.modulate = Color(1, 1, 1, 0)
+	touch_button.disabled = true
+
+	# Set texts
+	session_earnings_label.text = "획득: $%d" % earnings
 	bonus_label.text = "세션 완료 보너스 +$%d" % BONUS_COINS
+
+	# Show overlay
+	session_end_overlay.visible = true
+
+	# Fade in earnings
+	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.tween_property(session_earnings_label, "modulate:a", 1.0, 0.4)
+
+	# After 1 second, fade in bonus
+	tween.tween_interval(0.6)
+	tween.tween_property(bonus_label, "modulate:a", 1.0, 0.5)
+
+	# After bonus appears, show tap to return
+	tween.tween_interval(0.3)
+	tween.tween_property(tap_to_return_label, "modulate:a", 1.0, 0.3)
+	tween.tween_callback(func():
+		touch_button.disabled = false
+		animate_tap_label()
+	)
+
+func animate_tap_label() -> void:
+	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tween.set_loops()
+	tween.tween_property(tap_to_return_label, "modulate:a", 0.3, 0.7)
+	tween.tween_property(tap_to_return_label, "modulate:a", 1.0, 0.7)
 
 func _on_session_end_touch() -> void:
 	get_tree().paused = false
