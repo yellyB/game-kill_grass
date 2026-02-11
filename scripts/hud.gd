@@ -16,13 +16,13 @@ var displayed_money: int = 0
 var target_money: int = 0
 
 func _ready() -> void:
-  GameManager.money_changed.connect(_on_money_changed)
+  GameManager.session_money_changed.connect(_on_session_money_changed)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
-  # Initialize display
-  displayed_money = GameManager.money
-  target_money = GameManager.money
+  # Initialize display (session earnings)
+  displayed_money = GameManager.session_money
+  target_money = GameManager.session_money
   update_money_display()
   update_stats_display()
 
@@ -48,8 +48,8 @@ func _process(delta: float) -> void:
       displayed_money = max(displayed_money - change, target_money)
     update_money_display()
 
-func _on_money_changed(new_amount: int) -> void:
-  target_money = new_amount
+func _on_session_money_changed(_new_amount: int) -> void:
+  target_money = GameManager.session_money
   # Pop effect on money label
   var tween = create_tween()
   tween.tween_property(money_label, "scale", Vector2(1.2, 1.2), 0.05)
@@ -107,5 +107,4 @@ func _on_reset_btn_pressed() -> void:
   update_stats_display()
 
 func _on_add_money_btn_pressed() -> void:
-  GameManager.money += 100000
-  GameManager.money_changed.emit(GameManager.money)
+  GameManager.add_money(100000)

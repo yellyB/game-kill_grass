@@ -2,6 +2,7 @@ extends Node
 
 # Game state
 var money: int = 0
+var session_money: int = 0
 
 # Upgrades
 var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
@@ -27,6 +28,7 @@ var grass_data_list: Array[GrassData] = []
 
 # Signals
 signal money_changed(new_amount: int)
+signal session_money_changed(new_amount: int)
 signal upgrade_purchased(upgrade_type: String, level: int)
 
 func _ready() -> void:
@@ -124,8 +126,8 @@ func get_random_grass_data() -> GrassData:
 		return grass_data_list[2]  # 완전 센풀
 
 func add_money(amount: int) -> void:
-	money += amount
-	money_changed.emit(money)
+	session_money += amount
+	session_money_changed.emit(session_money)
 
 # Returns grass quality level for spawning calculations
 # Higher level = more chance for rare grass
@@ -211,6 +213,11 @@ func load_save_data(data: Dictionary) -> void:
 	upgrade_grass_regen = data.get("upgrade_grass_regen", 0)
 	money_changed.emit(money)
 
+func finalize_session() -> void:
+	money += session_money
+	session_money = 0
+	money_changed.emit(money)
+
 func reset_session_data() -> void:
-	# Reset any temporary session state (none currently)
-	pass
+	session_money = 0
+	session_money_changed.emit(0)

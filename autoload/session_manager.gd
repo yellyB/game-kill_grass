@@ -27,6 +27,7 @@ func end_session() -> void:
     return
 
   session_ending.emit()
+  GameManager.finalize_session()
   SaveManager.save_game()
   is_session_active = false
   session_ended.emit()
