@@ -167,10 +167,10 @@ func update_description() -> void:
     "grass_regen":
       current_level = GameManager.upgrade_grass_regen
       cost = GameManager.get_upgrade_cost(current_level)
-      current_value = GameManager.get_grass_regen_time(23.0)
+      current_value = GameManager.get_grass_regen_time(22.0)
       var temp_level = GameManager.upgrade_grass_regen
       GameManager.upgrade_grass_regen += 1
-      next_value = GameManager.get_grass_regen_time(23.0)
+      next_value = GameManager.get_grass_regen_time(22.0)
       GameManager.upgrade_grass_regen = temp_level
 
   # Check max level
