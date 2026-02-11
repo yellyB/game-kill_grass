@@ -22,18 +22,21 @@ func start_session() -> void:
   GameManager.reset_session_data()
   session_started.emit()
 
-func end_session() -> void:
+func end_session(save: bool = true) -> void:
   if not is_session_active:
     return
 
   session_ending.emit()
-  GameManager.finalize_session()
-  SaveManager.save_game()
+  if save:
+    GameManager.finalize_session()
+    SaveManager.save_game()
+  else:
+    GameManager.reset_session_data()
   is_session_active = false
   session_ended.emit()
 
 func quit_to_menu() -> void:
-  end_session()
+  end_session(false)
   get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
 
 func quit_game() -> void:

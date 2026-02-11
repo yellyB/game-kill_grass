@@ -141,6 +141,9 @@ func animate_tap_label() -> void:
 
 func _on_session_end_touch() -> void:
 	get_tree().paused = false
+	# Normal session end - finalize and save
+	GameManager.finalize_session()
+	SaveManager.save_game()
 	SessionManager.quit_to_menu()
 
 func _notification(what: int) -> void:
