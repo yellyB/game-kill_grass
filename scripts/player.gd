@@ -159,6 +159,9 @@ func try_attack() -> void:
   # Attack grass and get total value
   grass_spawner.attack_grass_in_area(local_attack_center, attack_radius)
 
+  # Attack monsters in range
+  _attack_monsters_in_area(attack_center, attack_radius)
+
   # Swing animation
   var target_pos = attack_center + input_direction * 30
   swing_weapon(target_pos)
@@ -602,6 +605,16 @@ func update_continuous_weapon_animation(delta: float) -> void:
         aura_effect.rotation += delta * 1.5
         for child in aura_effect.get_children():
           child.rotation -= delta * 3.0
+
+func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
+  var monsters = get_tree().get_nodes_in_group("monsters")
+  var damage = WeaponManager.get_weapon_damage()
+  for monster in monsters:
+    if not is_instance_valid(monster):
+      continue
+    var dist = monster.global_position.distance_to(center)
+    if dist <= radius:
+      monster.take_damage(damage)
 
 func _on_attack_timer_timeout() -> void:
   can_attack = true
