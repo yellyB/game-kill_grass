@@ -1,0 +1,116 @@
+[gd_scene load_steps=3 format=3 uid="uid://citempanel"]
+
+[ext_resource type="Script" path="res://scripts/item_panel.gd" id="1_item"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.1, 0.15, 1.0)
+
+[node name="ItemPanel" type="CanvasLayer"]
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_item")
+
+[node name="ToggleBtn" type="Button" parent="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -120.0
+offset_right = 265.0
+offset_bottom = -10.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 28
+text = "아이템"
+
+[node name="Panel" type="Panel" parent="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="CloseBtn" type="Button" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = 90.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 32
+text = "X"
+
+[node name="MoneyLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -350.0
+offset_top = 125.0
+offset_right = -40.0
+offset_bottom = 175.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 38
+text = "$0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 120.0
+offset_bottom = 180.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 42
+text = "아이템"
+horizontal_alignment = 1
+
+[node name="EmptyLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -50.0
+offset_right = 250.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 30
+text = "아이템이 없습니다"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemGrid" type="GridContainer" parent="Control/Panel"]
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 220.0
+offset_right = -40.0
+offset_bottom = 1400.0
+grow_horizontal = 2
+columns = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
