@@ -18,6 +18,9 @@ var material_center: CenterContainer
 var material_grid: GridContainer
 var recipe_center: CenterContainer
 var recipe_grid: GridContainer
+var crafted_center: CenterContainer
+var crafted_grid: GridContainer
+var final_center: CenterContainer
 var detail_container: Control  # Overlay for recipe detail (no layout push)
 
 # ── Base materials (fixed order, 16 items) ──
@@ -97,6 +100,30 @@ const RECIPES: Array = [
 		]
 	},
 ]
+
+# ── Crafted items (parts) ──
+const CRAFTED_ITEMS: Array = [
+	{"id": "개념상 바퀴", "icon": "🛞"},
+	{"id": "폭발하는 엔진 코어", "icon": "🔥"},
+	{"id": "충격 무시 범퍼", "icon": "🛡"},
+	{"id": "이세계 내비게이션", "icon": "🧠"},
+	{"id": "강화 앞유리 모듈", "icon": "🪟"},
+	{"id": "임시 운전사 Mk.0", "icon": "👤"},
+]
+
+# ── Final assembly recipe ──
+const FINAL_RECIPE: Dictionary = {
+	"id": "이세계 트럭",
+	"icon": "🚛",
+	"ingredients": [
+		{"item_id": "개념상 바퀴", "count": 4},
+		{"item_id": "폭발하는 엔진 코어", "count": 1},
+		{"item_id": "충격 무시 범퍼", "count": 2},
+		{"item_id": "이세계 내비게이션", "count": 1},
+		{"item_id": "강화 앞유리 모듈", "count": 1},
+		{"item_id": "임시 운전사 Mk.0", "count": 1},
+	]
+}
 
 func _ready() -> void:
 	panel.visible = false
@@ -180,11 +207,31 @@ func _build_layout() -> void:
 	material_grid.add_theme_constant_override("v_separation", 12)
 	material_center.add_child(material_grid)
 
-	# Spacer pushes crafting section to bottom
-	var spacer = Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	spacer.custom_minimum_size = Vector2(0, 20)
-	content_vbox.add_child(spacer)
+	# Spacer
+	var spacer1 = Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 20)
+	content_vbox.add_child(spacer1)
+
+	# Parts section header (centered)
+	var parts_header = _create_section_header("부품")
+	parts_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content_vbox.add_child(parts_header)
+
+	# Parts grid (3 columns, centered)
+	crafted_center = CenterContainer.new()
+	crafted_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.add_child(crafted_center)
+
+	crafted_grid = GridContainer.new()
+	crafted_grid.columns = 3
+	crafted_grid.add_theme_constant_override("h_separation", 12)
+	crafted_grid.add_theme_constant_override("v_separation", 12)
+	crafted_center.add_child(crafted_grid)
+
+	# Spacer
+	var spacer2 = Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 20)
+	content_vbox.add_child(spacer2)
 
 	# Crafting section header (centered)
 	var craft_header = _create_section_header("조합")
@@ -201,6 +248,21 @@ func _build_layout() -> void:
 	recipe_grid.add_theme_constant_override("h_separation", 16)
 	recipe_grid.add_theme_constant_override("v_separation", 16)
 	recipe_center.add_child(recipe_grid)
+
+	# Spacer
+	var spacer3 = Control.new()
+	spacer3.custom_minimum_size = Vector2(0, 20)
+	content_vbox.add_child(spacer3)
+
+	# Final assembly section header (centered)
+	var final_header = _create_section_header("최종 조립")
+	final_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content_vbox.add_child(final_header)
+
+	# Final assembly card container (centered)
+	final_center = CenterContainer.new()
+	final_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.add_child(final_center)
 
 	# Recipe detail overlay (floats over scroll content, no layout push)
 	detail_container = Control.new()
@@ -227,7 +289,9 @@ func _create_section_header(text: String) -> Label:
 
 func _refresh_all() -> void:
 	_refresh_materials()
+	_refresh_crafted_items()
 	_refresh_recipes()
+	_refresh_final_assembly()
 
 func _refresh_materials() -> void:
 	for child in material_grid.get_children():
@@ -248,6 +312,14 @@ func _refresh_materials() -> void:
 			slot = _create_active_slot(item_id, image_path, count)
 		material_grid.add_child(slot)
 
+func _refresh_crafted_items() -> void:
+	for child in crafted_grid.get_children():
+		child.queue_free()
+
+	for item in CRAFTED_ITEMS:
+		var slot = _create_crafted_item_slot(item)
+		crafted_grid.add_child(slot)
+
 func _refresh_recipes() -> void:
 	for child in recipe_grid.get_children():
 		child.queue_free()
@@ -255,6 +327,13 @@ func _refresh_recipes() -> void:
 	for recipe in RECIPES:
 		var slot = _create_recipe_slot(recipe)
 		recipe_grid.add_child(slot)
+
+func _refresh_final_assembly() -> void:
+	for child in final_center.get_children():
+		child.queue_free()
+
+	var card = _create_final_assembly_card()
+	final_center.add_child(card)
 
 # ── Material slot creation ──
 
@@ -347,6 +426,166 @@ func _create_base_material_slot(item_id: String, image_path: String, count: int)
 		vbox.add_child(count_label)
 
 	return slot
+
+# ── Crafted item (part) slot creation ──
+
+func _create_crafted_item_slot(item: Dictionary) -> PanelContainer:
+	var item_id: String = item.id
+	var icon: String = item.icon
+	var count: int = GameManager.get_item_count(item_id)
+	var needed: int = _get_final_recipe_required(item_id)
+	var active: bool = count > 0
+	var complete: bool = count >= needed
+
+	var slot = PanelContainer.new()
+	slot.custom_minimum_size = Vector2(170, 100)
+
+	var style = StyleBoxFlat.new()
+	if complete:
+		style.bg_color = Color(0.1, 0.2, 0.12)
+	elif active:
+		style.bg_color = Color(0.15, 0.18, 0.25)
+	else:
+		style.bg_color = Color(0.08, 0.08, 0.12)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_left = 12
+	style.corner_radius_bottom_right = 12
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_width_left = 2
+	style.border_width_right = 2
+	if complete:
+		style.border_color = Color(0.3, 0.7, 0.3)
+	elif active:
+		style.border_color = Color(0.4, 0.6, 0.8)
+	else:
+		style.border_color = Color(0.2, 0.2, 0.3)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	slot.add_theme_stylebox_override("panel", style)
+
+	if not active:
+		slot.modulate = Color(1, 1, 1, 0.4)
+
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 8)
+	slot.add_child(hbox)
+
+	# Emoji icon
+	var icon_label = Label.new()
+	icon_label.text = icon
+	icon_label.add_theme_font_size_override("font_size", 36)
+	hbox.add_child(icon_label)
+
+	# Name + count
+	var info_vbox = VBoxContainer.new()
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vbox.add_theme_constant_override("separation", 2)
+	hbox.add_child(info_vbox)
+
+	var name_label = Label.new()
+	name_label.text = item_id
+	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9) if active else Color(0.4, 0.4, 0.5))
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info_vbox.add_child(name_label)
+
+	var count_label = Label.new()
+	count_label.text = "%d/%d" % [count, needed]
+	count_label.add_theme_font_size_override("font_size", 18)
+	if complete:
+		count_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+	elif active:
+		count_label.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
+	else:
+		count_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
+	info_vbox.add_child(count_label)
+
+	return slot
+
+# ── Final assembly card creation ──
+
+func _create_final_assembly_card() -> PanelContainer:
+	var fulfilled = _count_fulfilled_ingredients(FINAL_RECIPE)
+	var total = FINAL_RECIPE.ingredients.size()
+	var can_craft = _can_craft(FINAL_RECIPE)
+	var is_locked = fulfilled < total
+
+	var card = PanelContainer.new()
+	card.custom_minimum_size = Vector2(400, 130)
+
+	var style = StyleBoxFlat.new()
+	if is_locked:
+		style.bg_color = Color(0.06, 0.06, 0.08)
+	elif can_craft:
+		style.bg_color = Color(0.2, 0.18, 0.08)
+	else:
+		style.bg_color = Color(0.18, 0.12, 0.08)
+	style.corner_radius_top_left = 16
+	style.corner_radius_top_right = 16
+	style.corner_radius_bottom_left = 16
+	style.corner_radius_bottom_right = 16
+	style.border_width_top = 3
+	style.border_width_bottom = 3
+	style.border_width_left = 3
+	style.border_width_right = 3
+	style.border_color = Color(1.0, 0.8, 0.2) if can_craft else Color(0.2, 0.2, 0.25) if is_locked else Color(0.4, 0.3, 0.2)
+	style.content_margin_left = 20
+	style.content_margin_right = 20
+	style.content_margin_top = 16
+	style.content_margin_bottom = 16
+	card.add_theme_stylebox_override("panel", style)
+
+	if is_locked:
+		card.modulate = Color(1, 1, 1, 0.5)
+
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 16)
+	card.add_child(hbox)
+
+	# Icon: lock when locked, truck when unlocked
+	var icon_label = Label.new()
+	icon_label.text = "?" if is_locked else FINAL_RECIPE.icon
+	icon_label.add_theme_font_size_override("font_size", 56)
+	if is_locked:
+		icon_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
+	hbox.add_child(icon_label)
+
+	# Info
+	var info_vbox = VBoxContainer.new()
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vbox.add_theme_constant_override("separation", 6)
+	hbox.add_child(info_vbox)
+
+	var name_label = Label.new()
+	name_label.text = "???" if is_locked else FINAL_RECIPE.id
+	name_label.add_theme_font_size_override("font_size", 30)
+	name_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4) if is_locked else Color(1, 0.9, 0.5))
+	name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	name_label.add_theme_constant_override("outline_size", 2)
+	info_vbox.add_child(name_label)
+
+	var summary = Label.new()
+	summary.text = "부품을 모두 모으면 해금" if is_locked else "부품 %d/%d" % [fulfilled, total]
+	summary.add_theme_font_size_override("font_size", 20)
+	summary.add_theme_color_override("font_color", Color(0.3, 0.3, 0.35) if is_locked else (Color(1.0, 0.8, 0.2) if can_craft else Color(0.5, 0.4, 0.3)))
+	info_vbox.add_child(summary)
+
+	# Clickable overlay (only when unlocked)
+	if not is_locked:
+		var btn = Button.new()
+		btn.flat = true
+		btn.anchors_preset = Control.PRESET_FULL_RECT
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn.pressed.connect(_show_recipe_detail.bind(FINAL_RECIPE))
+		card.add_child(btn)
+
+	return card
 
 # ── Recipe slot creation ──
 
@@ -513,7 +752,7 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
 		row.add_theme_constant_override("separation", 16)
 		vbox.add_child(row)
 
-		# Ingredient image
+		# Ingredient image or emoji
 		var img_container = PanelContainer.new()
 		img_container.custom_minimum_size = Vector2(80, 80)
 		var img_style = StyleBoxFlat.new()
@@ -525,16 +764,26 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
 		img_container.add_theme_stylebox_override("panel", img_style)
 		row.add_child(img_container)
 
-		var tex_rect = TextureRect.new()
-		tex_rect.custom_minimum_size = Vector2(68, 68)
-		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		var img_path = _get_item_image_path(ing_id)
 		if img_path != "":
+			var tex_rect = TextureRect.new()
+			tex_rect.custom_minimum_size = Vector2(68, 68)
+			tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 			var tex = _load_texture(img_path)
 			if tex:
 				tex_rect.texture = tex
-		img_container.add_child(tex_rect)
+			img_container.add_child(tex_rect)
+		else:
+			# Crafted item — show emoji icon instead
+			var emoji_center = CenterContainer.new()
+			emoji_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			emoji_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			img_container.add_child(emoji_center)
+			var emoji_label = Label.new()
+			emoji_label.text = _get_crafted_item_icon(ing_id)
+			emoji_label.add_theme_font_size_override("font_size", 40)
+			emoji_center.add_child(emoji_label)
 
 		# Name + count
 		var info = VBoxContainer.new()
@@ -607,9 +856,82 @@ func _on_craft_pressed(recipe: Dictionary) -> void:
 	# Add crafted item
 	GameManager.add_item(recipe.id)
 
-	# Close detail and refresh
+	# Close detail and show success
 	_close_recipe_detail()
 	_refresh_all()
+	_show_craft_success(recipe)
+
+func _show_craft_success(recipe: Dictionary) -> void:
+	# Reuse detail_container as the success overlay
+	for child in detail_container.get_children():
+		child.queue_free()
+	detail_container.visible = true
+
+	# Dim background
+	var bg = ColorRect.new()
+	bg.color = Color(0.05, 0.08, 0.05, 0.92)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	detail_container.add_child(bg)
+
+	# Center content
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	detail_container.add_child(center)
+
+	var vbox = VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 16)
+	center.add_child(vbox)
+
+	# Success label
+	var success_label = Label.new()
+	success_label.text = "조합 성공!"
+	success_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	success_label.add_theme_font_size_override("font_size", 40)
+	success_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.3))
+	success_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	success_label.add_theme_constant_override("outline_size", 4)
+	vbox.add_child(success_label)
+
+	# Icon
+	var icon_label = Label.new()
+	icon_label.text = recipe.icon
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.add_theme_font_size_override("font_size", 80)
+	vbox.add_child(icon_label)
+
+	# Item name
+	var name_label = Label.new()
+	name_label.text = recipe.id
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", 36)
+	name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
+	name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	name_label.add_theme_constant_override("outline_size", 3)
+	vbox.add_child(name_label)
+
+	# "획득" sub-label
+	var sub_label = Label.new()
+	sub_label.text = "획득!"
+	sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub_label.add_theme_font_size_override("font_size", 28)
+	sub_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.6))
+	vbox.add_child(sub_label)
+
+	# Tap to close hint
+	var hint = Label.new()
+	hint.text = "터치하여 닫기"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 20)
+	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	vbox.add_child(hint)
+
+	# Close on tap
+	var dismiss_btn = Button.new()
+	dismiss_btn.flat = true
+	dismiss_btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dismiss_btn.pressed.connect(_close_recipe_detail)
+	detail_container.add_child(dismiss_btn)
 
 # ── Helpers ──
 
@@ -631,6 +953,18 @@ func _get_item_image_path(item_id: String) -> String:
 		if item.id == item_id:
 			return item.image
 	return ""
+
+func _get_final_recipe_required(item_id: String) -> int:
+	for ingredient in FINAL_RECIPE.ingredients:
+		if ingredient.item_id == item_id:
+			return ingredient.count
+	return 0
+
+func _get_crafted_item_icon(item_id: String) -> String:
+	for item in CRAFTED_ITEMS:
+		if item.id == item_id:
+			return item.icon
+	return "?"
 
 func _load_texture(res_path: String) -> ImageTexture:
 	var abs_path = ProjectSettings.globalize_path(res_path)

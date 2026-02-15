@@ -8,7 +8,9 @@ const DroppedItemScene = preload("res://scenes/world/dropped_item.tscn")
 
 var textures: Array[Texture2D] = []
 
-# Drop table: [{item_id, image_path, weight}]
+# Configurable via setup()
+var sprite_path: String = "res://resources/images/monster/slime/"
+var has_lightning: bool = true
 var drop_table: Array = [
   {"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 70},
   {"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 30},
@@ -30,6 +32,14 @@ var wander_speed: float = 40.0
 var max_health: int = 1
 var health: int = 1
 
+func setup(config: Dictionary) -> void:
+  sprite_path = config.sprite_path
+  max_health = config.max_health
+  health = config.max_health
+  wander_speed = config.wander_speed
+  drop_table = config.drop_table
+  has_lightning = config.get("has_lightning", false)
+
 func _ready() -> void:
   add_to_group("monsters")
   _load_textures()
@@ -38,10 +48,14 @@ func _ready() -> void:
   if shadow and not textures.is_empty():
     shadow.texture = textures[0]
   _pick_new_wander()
+  # Disable lightning for non-slime monsters
+  if not has_lightning and lightning_effect:
+    lightning_effect.set_process(false)
+    lightning_effect.visible = false
 
 func _load_textures() -> void:
   for i in range(1, 6):
-    var path = "res://resources/images/monster/slime/%d.png" % i
+    var path = "%s%d.png" % [sprite_path, i]
     var tex = _load_texture_from_file(path)
     if tex:
       textures.append(tex)
@@ -101,8 +115,8 @@ func take_damage(amount: int) -> void:
   sprite.modulate = Color(1, 0.3, 0.3)
   var tween = create_tween()
   tween.tween_property(sprite, "modulate", Color.WHITE, 0.15)
-  # Lightning burst on hit
-  if lightning_effect and lightning_effect.has_method("_spawn_bolts"):
+  # Lightning burst on hit (slime only)
+  if has_lightning and lightning_effect and lightning_effect.has_method("_spawn_bolts"):
     lightning_effect._spawn_bolts()
     lightning_effect._spawn_bolts()
   if health <= 0:
@@ -113,8 +127,8 @@ func die() -> void:
   remove_from_group("monsters")
   set_process(false)
 
-  # Lightning burst on death
-  if lightning_effect:
+  # Lightning burst on death (slime only)
+  if has_lightning and lightning_effect:
     for i in 3:
       lightning_effect._spawn_bolts()
 
@@ -143,7 +157,7 @@ func die() -> void:
     shake_tween.tween_property(sprite, "position", Vector2.ZERO, 0.035)
 
   # Stop lightning
-  if lightning_effect:
+  if has_lightning and lightning_effect:
     lightning_effect.set_process(false)
     lightning_effect.bolts.clear()
     lightning_effect.queue_redraw()
