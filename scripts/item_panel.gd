@@ -7,17 +7,96 @@ signal panel_closed
 @onready var toggle_btn: Button = $ToggleBtn
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var money_label: Label = $Panel/MoneyLabel
-@onready var empty_label: Label = $Panel/EmptyLabel
-@onready var item_grid: GridContainer = $Panel/ItemGrid
+@onready var scroll_container: ScrollContainer = $Panel/ScrollContainer
 
 var is_open: bool = false
 var show_toggle_button: bool = true
 
-# Item image paths
-const ITEM_IMAGES: Dictionary = {
-	"질긴 슬라임 조각": "res://resources/images/items/질긴 슬라임 조각.png",
-	"번개 먹은 배터리 껍질": "res://resources/images/items/번개 먹은 배터리 껍질.png",
-}
+# Content containers (built dynamically)
+var content_vbox: VBoxContainer
+var material_center: CenterContainer
+var material_grid: GridContainer
+var recipe_center: CenterContainer
+var recipe_grid: GridContainer
+var detail_container: Control  # Overlay for recipe detail (no layout push)
+
+# ── Base materials (fixed order, 16 items) ──
+const ALL_ITEMS: Array = [
+	{"id": "질긴 슬라임 조각", "image": "res://resources/images/items/질긴 슬라임 조각.png"},
+	{"id": "번개 먹은 배터리 껍질", "image": "res://resources/images/items/번개 먹은 배터리 껍질.png"},
+	{"id": "차축 뼈대", "image": "res://resources/images/items/차축 뼈대.png"},
+	{"id": "굴러다니는 바퀴 잔해", "image": "res://resources/images/items/굴러다니는 바퀴 잔해.png"},
+	{"id": "과성장 생체 응축체", "image": "res://resources/images/items/과성장 생체 응축체.png"},
+	{"id": "왜곡된 볼트 조각", "image": "res://resources/images/items/왜곡된 볼트 조각.png"},
+	{"id": "압축된 이세계 철편", "image": "res://resources/images/items/압축된 이세계 철편.png"},
+	{"id": "생체 연료 포자", "image": "res://resources/images/items/생체 연료 포자.png"},
+	{"id": "뒤틀린 시간 포자", "image": "res://resources/images/items/뒤틀린 시간 포자.png"},
+	{"id": "바람 머금은 잔디 섬유", "image": "res://resources/images/items/바람 머금은 잔디 섬유.png"},
+	{"id": "몬스터 핵", "image": "res://resources/images/items/몬스터 핵.png"},
+	{"id": "침식된 백골 프레임", "image": "res://resources/images/items/침식된 백골 프레임.png"},
+	{"id": "투명 수정 파편", "image": "res://resources/images/items/투명 수정 파편.png"},
+	{"id": "강화 유리 결정핵", "image": "res://resources/images/items/강화 유리 결정핵.png"},
+	{"id": "과열된 엔진 심장", "image": "res://resources/images/items/과열된 엔진 심장.png"},
+	{"id": "드래곤 배기가스 결정", "image": "res://resources/images/items/드래곤 배기가스 결정.png"},
+]
+
+# ── Crafting recipes ──
+const RECIPES: Array = [
+	{
+		"id": "개념상 바퀴",
+		"icon": "🛞",
+		"ingredients": [
+			{"item_id": "굴러다니는 바퀴 잔해", "count": 1},
+			{"item_id": "차축 뼈대", "count": 1},
+			{"item_id": "왜곡된 볼트 조각", "count": 1},
+			{"item_id": "질긴 슬라임 조각", "count": 1},
+		]
+	},
+	{
+		"id": "폭발하는 엔진 코어",
+		"icon": "🔥",
+		"ingredients": [
+			{"item_id": "과열된 엔진 심장", "count": 1},
+			{"item_id": "드래곤 배기가스 결정", "count": 1},
+			{"item_id": "번개 먹은 배터리 껍질", "count": 1},
+		]
+	},
+	{
+		"id": "충격 무시 범퍼",
+		"icon": "🛡",
+		"ingredients": [
+			{"item_id": "압축된 이세계 철편", "count": 1},
+			{"item_id": "생체 연료 포자", "count": 1},
+			{"item_id": "몬스터 핵", "count": 1},
+		]
+	},
+	{
+		"id": "이세계 내비게이션",
+		"icon": "🧠",
+		"ingredients": [
+			{"item_id": "뒤틀린 시간 포자", "count": 1},
+			{"item_id": "몬스터 핵", "count": 1},
+		]
+	},
+	{
+		"id": "강화 앞유리 모듈",
+		"icon": "🪟",
+		"ingredients": [
+			{"item_id": "투명 수정 파편", "count": 1},
+			{"item_id": "강화 유리 결정핵", "count": 1},
+			{"item_id": "압축된 이세계 철편", "count": 1},
+		]
+	},
+	{
+		"id": "임시 운전사 Mk.0",
+		"icon": "👤",
+		"ingredients": [
+			{"item_id": "바람 머금은 잔디 섬유", "count": 1},
+			{"item_id": "과성장 생체 응축체", "count": 1},
+			{"item_id": "침식된 백골 프레임", "count": 1},
+		]
+	},
+]
 
 func _ready() -> void:
 	panel.visible = false
@@ -28,6 +107,8 @@ func _ready() -> void:
 	GameManager.inventory_changed.connect(_on_inventory_changed)
 	update_money_display()
 	toggle_btn.visible = show_toggle_button
+
+	_build_layout()
 
 func set_toggle_button_visible(should_show: bool) -> void:
 	show_toggle_button = should_show
@@ -40,7 +121,7 @@ func open_panel() -> void:
 	is_open = true
 	panel.visible = true
 	update_money_display()
-	_refresh_grid()
+	_refresh_all()
 	panel_opened.emit()
 
 func _on_toggle_pressed() -> void:
@@ -48,7 +129,7 @@ func _on_toggle_pressed() -> void:
 	panel.visible = is_open
 	if is_open:
 		update_money_display()
-		_refresh_grid()
+		_refresh_all()
 		panel_opened.emit()
 	else:
 		panel_closed.emit()
@@ -69,72 +150,487 @@ func _on_money_changed(_amount: int) -> void:
 
 func _on_inventory_changed() -> void:
 	if is_open:
-		_refresh_grid()
+		_refresh_all()
 
 func update_money_display() -> void:
 	money_label.text = "$%s" % format_number(GameManager.money)
 
-func _refresh_grid() -> void:
-	# Clear existing items
-	for child in item_grid.get_children():
+# ── Layout building ──
+
+func _build_layout() -> void:
+	content_vbox = VBoxContainer.new()
+	content_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_vbox.add_theme_constant_override("separation", 20)
+	scroll_container.add_child(content_vbox)
+
+	# Materials section header (centered)
+	var mat_header = _create_section_header("재료")
+	mat_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content_vbox.add_child(mat_header)
+
+	# Materials grid (4 columns, centered)
+	material_center = CenterContainer.new()
+	material_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.add_child(material_center)
+
+	material_grid = GridContainer.new()
+	material_grid.columns = 4
+	material_grid.add_theme_constant_override("h_separation", 12)
+	material_grid.add_theme_constant_override("v_separation", 12)
+	material_center.add_child(material_grid)
+
+	# Spacer pushes crafting section to bottom
+	var spacer = Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer.custom_minimum_size = Vector2(0, 20)
+	content_vbox.add_child(spacer)
+
+	# Crafting section header (centered)
+	var craft_header = _create_section_header("조합")
+	craft_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	content_vbox.add_child(craft_header)
+
+	# Recipe grid (2 columns, centered)
+	recipe_center = CenterContainer.new()
+	recipe_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.add_child(recipe_center)
+
+	recipe_grid = GridContainer.new()
+	recipe_grid.columns = 2
+	recipe_grid.add_theme_constant_override("h_separation", 16)
+	recipe_grid.add_theme_constant_override("v_separation", 16)
+	recipe_center.add_child(recipe_grid)
+
+	# Recipe detail overlay (floats over scroll content, no layout push)
+	detail_container = Control.new()
+	detail_container.visible = false
+	detail_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	detail_container.offset_left = 0
+	detail_container.offset_top = 190  # same as scroll top
+	detail_container.offset_right = 0
+	detail_container.offset_bottom = 0
+	detail_container.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.add_child(detail_container)
+
+func _create_section_header(text: String) -> Label:
+	var label = Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.add_theme_font_size_override("font_size", 32)
+	label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	label.add_theme_constant_override("outline_size", 2)
+	return label
+
+# ── Refresh all ──
+
+func _refresh_all() -> void:
+	_refresh_materials()
+	_refresh_recipes()
+
+func _refresh_materials() -> void:
+	for child in material_grid.get_children():
 		child.queue_free()
 
-	var inv = GameManager.inventory
-	empty_label.visible = inv.is_empty()
+	for item_data in ALL_ITEMS:
+		var item_id: String = item_data.id
+		var image_path: String = item_data.image
+		var count = GameManager.get_item_count(item_id)
+		var discovered = GameManager.is_item_discovered(item_id)
 
-	for item_id in inv:
-		var count = inv[item_id]
-		if count <= 0:
-			continue
-		var slot = _create_item_slot(item_id, count)
-		item_grid.add_child(slot)
+		var slot: PanelContainer
+		if not discovered:
+			slot = _create_undiscovered_slot()
+		elif count <= 0:
+			slot = _create_inactive_slot(item_id, image_path)
+		else:
+			slot = _create_active_slot(item_id, image_path, count)
+		material_grid.add_child(slot)
 
-func _create_item_slot(item_id: String, count: int) -> PanelContainer:
+func _refresh_recipes() -> void:
+	for child in recipe_grid.get_children():
+		child.queue_free()
+
+	for recipe in RECIPES:
+		var slot = _create_recipe_slot(recipe)
+		recipe_grid.add_child(slot)
+
+# ── Material slot creation ──
+
+func _create_undiscovered_slot() -> PanelContainer:
 	var slot = PanelContainer.new()
-	slot.custom_minimum_size = Vector2(170, 200)
+	slot.custom_minimum_size = Vector2(130, 160)
 
 	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.18, 0.18, 0.25, 1.0)
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
-	style.corner_radius_bottom_left = 12
-	style.corner_radius_bottom_right = 12
+	style.bg_color = Color(0.08, 0.08, 0.12)
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_color = Color(0.2, 0.2, 0.3)
+	slot.add_theme_stylebox_override("panel", style)
+
+	var center = CenterContainer.new()
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	slot.add_child(center)
+
+	var question = Label.new()
+	question.text = "?"
+	question.add_theme_font_size_override("font_size", 48)
+	question.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
+	center.add_child(question)
+
+	return slot
+
+func _create_inactive_slot(item_id: String, image_path: String) -> PanelContainer:
+	var slot = _create_base_material_slot(item_id, image_path, -1)
+	slot.modulate = Color(1, 1, 1, 0.35)
+	return slot
+
+func _create_active_slot(item_id: String, image_path: String, count: int) -> PanelContainer:
+	return _create_base_material_slot(item_id, image_path, count)
+
+func _create_base_material_slot(item_id: String, image_path: String, count: int) -> PanelContainer:
+	var slot = PanelContainer.new()
+	slot.custom_minimum_size = Vector2(130, 160)
+
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.15, 0.15, 0.22)
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	style.border_width_top = 1
+	style.border_width_bottom = 1
+	style.border_width_left = 1
+	style.border_width_right = 1
+	style.border_color = Color(0.3, 0.3, 0.4)
 	slot.add_theme_stylebox_override("panel", style)
 
 	var vbox = VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 4)
 	slot.add_child(vbox)
 
 	# Item image
 	var tex_rect = TextureRect.new()
-	tex_rect.custom_minimum_size = Vector2(120, 120)
+	tex_rect.custom_minimum_size = Vector2(80, 80)
 	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	var image_path = ITEM_IMAGES.get(item_id, "")
-	if image_path != "":
-		var tex = _load_texture(image_path)
-		if tex:
-			tex_rect.texture = tex
+	var tex = _load_texture(image_path)
+	if tex:
+		tex_rect.texture = tex
 	vbox.add_child(tex_rect)
 
 	# Item name
 	var name_label = Label.new()
 	name_label.text = item_id
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 18)
-	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(name_label)
 
-	# Item count
-	var count_label = Label.new()
-	count_label.text = "x%d" % count
-	count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	count_label.add_theme_font_size_override("font_size", 22)
-	count_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
-	vbox.add_child(count_label)
+	# Item count (only if active)
+	if count >= 0:
+		var count_label = Label.new()
+		count_label.text = "x%d" % count
+		count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		count_label.add_theme_font_size_override("font_size", 20)
+		count_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+		vbox.add_child(count_label)
 
 	return slot
+
+# ── Recipe slot creation ──
+
+func _create_recipe_slot(recipe: Dictionary) -> PanelContainer:
+	var slot = PanelContainer.new()
+	slot.custom_minimum_size = Vector2(260, 110)
+
+	# Check if all ingredients available
+	var can_craft = _can_craft(recipe)
+
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.15, 0.2) if not can_craft else Color(0.12, 0.2, 0.15)
+	style.corner_radius_top_left = 14
+	style.corner_radius_top_right = 14
+	style.corner_radius_bottom_left = 14
+	style.corner_radius_bottom_right = 14
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_color = Color(0.3, 0.5, 0.3) if can_craft else Color(0.25, 0.25, 0.35)
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	slot.add_theme_stylebox_override("panel", style)
+
+	var hbox = HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 14)
+	slot.add_child(hbox)
+
+	# Icon emoji
+	var icon_label = Label.new()
+	icon_label.text = recipe.icon
+	icon_label.add_theme_font_size_override("font_size", 44)
+	hbox.add_child(icon_label)
+
+	# Recipe info
+	var info_vbox = VBoxContainer.new()
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vbox.add_theme_constant_override("separation", 4)
+	hbox.add_child(info_vbox)
+
+	var name_label = Label.new()
+	name_label.text = recipe.id
+	name_label.add_theme_font_size_override("font_size", 24)
+	name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
+	info_vbox.add_child(name_label)
+
+	# Ingredient count summary
+	var fulfilled = _count_fulfilled_ingredients(recipe)
+	var total = recipe.ingredients.size()
+	var summary = Label.new()
+	summary.text = "재료 %d/%d" % [fulfilled, total]
+	summary.add_theme_font_size_override("font_size", 18)
+	summary.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4) if can_craft else Color(0.6, 0.6, 0.6))
+	info_vbox.add_child(summary)
+
+	# Make it clickable
+	var btn = Button.new()
+	btn.flat = true
+	btn.anchors_preset = Control.PRESET_FULL_RECT
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn.pressed.connect(_show_recipe_detail.bind(recipe))
+	slot.add_child(btn)
+
+	return slot
+
+# ── Recipe detail modal ──
+
+func _show_recipe_detail(recipe: Dictionary) -> void:
+	# Clear previous detail
+	for child in detail_container.get_children():
+		child.queue_free()
+
+	# Show container
+	detail_container.visible = true
+
+	# Dim background (fills entire overlay area)
+	var bg = ColorRect.new()
+	bg.color = Color(0.08, 0.08, 0.12, 0.95)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	detail_container.add_child(bg)
+
+	# ScrollContainer for detail content (in case ingredients overflow)
+	var detail_scroll = ScrollContainer.new()
+	detail_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	detail_scroll.offset_left = 30
+	detail_scroll.offset_right = -30
+	detail_scroll.offset_top = 20
+	detail_scroll.offset_bottom = -20
+	detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	detail_container.add_child(detail_scroll)
+
+	# Detail card
+	var card = PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var card_style = StyleBoxFlat.new()
+	card_style.bg_color = Color(0.12, 0.12, 0.18)
+	card_style.corner_radius_top_left = 20
+	card_style.corner_radius_top_right = 20
+	card_style.corner_radius_bottom_left = 20
+	card_style.corner_radius_bottom_right = 20
+	card_style.border_width_top = 2
+	card_style.border_width_bottom = 2
+	card_style.border_width_left = 2
+	card_style.border_width_right = 2
+	card_style.border_color = Color(0.4, 0.4, 0.55)
+	card_style.content_margin_left = 40
+	card_style.content_margin_right = 40
+	card_style.content_margin_top = 32
+	card_style.content_margin_bottom = 32
+	card.add_theme_stylebox_override("panel", card_style)
+	detail_scroll.add_child(card)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 24)
+	card.add_child(vbox)
+
+	# Title row
+	var title_hbox = HBoxContainer.new()
+	title_hbox.add_theme_constant_override("separation", 16)
+	title_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(title_hbox)
+
+	var icon_label = Label.new()
+	icon_label.text = recipe.icon
+	icon_label.add_theme_font_size_override("font_size", 56)
+	title_hbox.add_child(icon_label)
+
+	var title_label = Label.new()
+	title_label.text = recipe.id
+	title_label.add_theme_font_size_override("font_size", 42)
+	title_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
+	title_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	title_label.add_theme_constant_override("outline_size", 3)
+	title_hbox.add_child(title_label)
+
+	# Separator
+	var sep = HSeparator.new()
+	sep.add_theme_constant_override("separation", 12)
+	vbox.add_child(sep)
+
+	# "필요 재료" header
+	var req_label = Label.new()
+	req_label.text = "필요 재료"
+	req_label.add_theme_font_size_override("font_size", 28)
+	req_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	vbox.add_child(req_label)
+
+	# Ingredients list
+	var can_craft = true
+	for ingredient in recipe.ingredients:
+		var ing_id: String = ingredient.item_id
+		var needed: int = ingredient.count
+		var have: int = GameManager.get_item_count(ing_id)
+		var enough = have >= needed
+
+		if not enough:
+			can_craft = false
+
+		var row = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 16)
+		vbox.add_child(row)
+
+		# Ingredient image
+		var img_container = PanelContainer.new()
+		img_container.custom_minimum_size = Vector2(80, 80)
+		var img_style = StyleBoxFlat.new()
+		img_style.bg_color = Color(0.1, 0.1, 0.15)
+		img_style.corner_radius_top_left = 10
+		img_style.corner_radius_top_right = 10
+		img_style.corner_radius_bottom_left = 10
+		img_style.corner_radius_bottom_right = 10
+		img_container.add_theme_stylebox_override("panel", img_style)
+		row.add_child(img_container)
+
+		var tex_rect = TextureRect.new()
+		tex_rect.custom_minimum_size = Vector2(68, 68)
+		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		var img_path = _get_item_image_path(ing_id)
+		if img_path != "":
+			var tex = _load_texture(img_path)
+			if tex:
+				tex_rect.texture = tex
+		img_container.add_child(tex_rect)
+
+		# Name + count
+		var info = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_theme_constant_override("separation", 4)
+		row.add_child(info)
+
+		var ing_name = Label.new()
+		ing_name.text = ing_id
+		ing_name.add_theme_font_size_override("font_size", 24)
+		ing_name.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+		info.add_child(ing_name)
+
+		var count_label = Label.new()
+		count_label.text = "%d / %d" % [have, needed]
+		count_label.add_theme_font_size_override("font_size", 22)
+		count_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3) if enough else Color(0.9, 0.3, 0.3))
+		info.add_child(count_label)
+
+		# Check/cross indicator
+		var indicator = Label.new()
+		indicator.text = "v" if enough else "x"
+		indicator.add_theme_font_size_override("font_size", 32)
+		indicator.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3) if enough else Color(0.9, 0.3, 0.3))
+		row.add_child(indicator)
+
+	# Separator before buttons
+	var sep2 = HSeparator.new()
+	sep2.add_theme_constant_override("separation", 8)
+	vbox.add_child(sep2)
+
+	# Button row
+	var btn_hbox = HBoxContainer.new()
+	btn_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_hbox.add_theme_constant_override("separation", 20)
+	vbox.add_child(btn_hbox)
+
+	# Craft button
+	var craft_btn = Button.new()
+	craft_btn.text = "조합" if can_craft else "재료 부족"
+	craft_btn.custom_minimum_size = Vector2(220, 70)
+	craft_btn.add_theme_font_size_override("font_size", 28)
+	craft_btn.disabled = not can_craft
+	if can_craft:
+		craft_btn.pressed.connect(_on_craft_pressed.bind(recipe))
+	btn_hbox.add_child(craft_btn)
+
+	# Close button
+	var close_btn_detail = Button.new()
+	close_btn_detail.text = "닫기"
+	close_btn_detail.custom_minimum_size = Vector2(160, 70)
+	close_btn_detail.add_theme_font_size_override("font_size", 28)
+	close_btn_detail.pressed.connect(_close_recipe_detail)
+	btn_hbox.add_child(close_btn_detail)
+
+func _close_recipe_detail() -> void:
+	detail_container.visible = false
+	for child in detail_container.get_children():
+		child.queue_free()
+
+func _on_craft_pressed(recipe: Dictionary) -> void:
+	# Verify all ingredients available
+	if not _can_craft(recipe):
+		return
+
+	# Consume ingredients
+	for ingredient in recipe.ingredients:
+		GameManager.remove_item(ingredient.item_id, ingredient.count)
+
+	# Add crafted item
+	GameManager.add_item(recipe.id)
+
+	# Close detail and refresh
+	_close_recipe_detail()
+	_refresh_all()
+
+# ── Helpers ──
+
+func _can_craft(recipe: Dictionary) -> bool:
+	for ingredient in recipe.ingredients:
+		if GameManager.get_item_count(ingredient.item_id) < ingredient.count:
+			return false
+	return true
+
+func _count_fulfilled_ingredients(recipe: Dictionary) -> int:
+	var count = 0
+	for ingredient in recipe.ingredients:
+		if GameManager.get_item_count(ingredient.item_id) >= ingredient.count:
+			count += 1
+	return count
+
+func _get_item_image_path(item_id: String) -> String:
+	for item in ALL_ITEMS:
+		if item.id == item_id:
+			return item.image
+	return ""
 
 func _load_texture(res_path: String) -> ImageTexture:
 	var abs_path = ProjectSettings.globalize_path(res_path)

@@ -84,33 +84,14 @@ theme_override_font_sizes/font_size = 42
 text = "아이템"
 horizontal_alignment = 1
 
-[node name="EmptyLabel" type="Label" parent="Control/Panel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -50.0
-offset_right = 250.0
-offset_bottom = 50.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 30
-text = "아이템이 없습니다"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ItemGrid" type="GridContainer" parent="Control/Panel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Panel"]
 layout_mode = 1
 anchor_right = 1.0
-offset_left = 40.0
-offset_top = 220.0
-offset_right = -40.0
-offset_bottom = 1400.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 190.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
-columns = 3
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
+grow_vertical = 2
+horizontal_scroll_mode = 0
