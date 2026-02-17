@@ -74,11 +74,35 @@
 - 풀 등급: 무제한, 고급 풀 등장 확률 증가
 - 풀 재생 속도: 최대 Lv.10, 레벨당 2초 감소
 
+### 몬스터 시스템
+- 7종 몬스터가 월드에 스폰 (`monster_spawner.gd`)
+- 몬스터별 고유 스프라이트 (5프레임 애니메이션), 체력, 이동속도, 드롭 테이블
+- 배회 AI: 이동/대기를 랜덤 반복
+- 피격 시 빨간 플래시, 사망 시 확대→흔들림→페이드 연출
+- 사망 시 드롭 테이블에 따라 아이템 드롭 (포물선 비행)
+- 몬스터 종류: 슬라임, 멧돼지, 잔디 기사, 스포어 마도사, 잔디 골렘, 수정 사슴, 드래곤 배기가스
+- 상세: `monster.md`
+
+### 아이템 & 제작 시스템
+- **재료 아이템** (16종): 몬스터 드롭으로 획득, `GameManager.inventory`에 저장
+- **부품** (6종): 재료를 조합하여 제작하는 중간 아이템
+  - 개념상 바퀴 🛞, 폭발하는 엔진 코어 🔥, 충격 무시 범퍼 🛡
+  - 이세계 내비게이션 🧠, 강화 유리 모듈 🪟, 운전기사 👤
+- **최종 아이템**: 이세계 트럭 🚛 (부품 6종을 모두 필요 수량만큼 모아 조립)
+- 미발견 재료는 "?" 표시, 발견 후 이미지/이름 공개
+- 제작 성공 시 즉시 저장 (`SaveManager.save_game()`)
+- UI: `scripts/item_panel.gd` (재료 4열 → 부품 2열 → 최종 조립 카드)
+
+### HUD 아이템 알림
+- 아이템 획득 시 화면 우측 상단(돈 아래)에 아이템명 표시
+- 1.5초 표시 후 0.5초간 페이드아웃
+- 폰트 크기 72, 황금색, 검정 아웃라인
+
 ## 파일 구조
 
 ```
 autoload/
-  game_manager.gd    - 돈, 업그레이드, 풀 데이터 관리
+  game_manager.gd    - 돈, 업그레이드, 인벤토리, 풀 데이터 관리
   weapon_manager.gd  - 무기 데이터 및 구매
   save_manager.gd    - 저장/불러오기
   session_manager.gd - 세션 관리 (시작/종료/메뉴 복귀)
@@ -92,9 +116,13 @@ scripts/
   coin.gd            - 코인 수집, 자석 효과
   floating_text.gd   - 금액 표시 UI
   world_root.gd      - 월드 이동, 배경 처리
-  hud.gd             - HUD 표시
+  hud.gd             - HUD 표시 + 아이템 획득 알림
   upgrade_panel.gd   - 업그레이드 패널 UI
   weapon_shop.gd     - 무기 상점 UI
+  item_panel.gd      - 아이템/제작 패널 UI
+  monster.gd         - 몬스터 동작, AI, 사망/드롭
+  monster_spawner.gd - 몬스터 스폰 (7종, 가중치 기반)
+  dropped_item.gd    - 드롭 아이템 (포물선 비행, 자석 수집)
   virtual_joystick.gd - 가상 조이스틱 (모바일)
   game_camera.gd     - 카메라
 
@@ -102,16 +130,21 @@ scenes/
   core/main.tscn     - 메인 게임 씬
   world/grass.tscn   - 풀 씬
   world/coin.tscn    - 코인 씬
+  world/monster.tscn  - 몬스터 씬
+  world/dropped_item.tscn - 드롭 아이템 씬
   ui/main_menu.tscn  - 메인 메뉴
   ui/hud.tscn        - HUD
   ui/upgrade_panel.tscn - 업그레이드 패널
   ui/weapon_shop.tscn   - 무기 상점
+  ui/item_panel.tscn    - 아이템/제작 패널
   ui/virtual_joystick.tscn - 가상 조이스틱
   ui/floating_text.tscn - 플로팅 텍스트
 
 resources/
   shaders/grass_sway.gdshader - 풀 흔들림 GPU 셰이더
   images/weapon/     - 무기 이미지 (1~10단계)
+  images/monster/    - 몬스터 스프라이트 (7종, 각 5프레임)
+  images/items/      - 드롭 아이템 이미지 (16종)
 
 docs/
   기획서.md          - 전체 게임 기획서
@@ -139,3 +172,5 @@ macOS: `~/Library/Application Support/Godot/app_userdata/Kill Grass/savegame.jso
 2. **플로팅 텍스트 값이 안 바뀜** → add_child() 후에 setup() 호출
 3. **무기 스케일 누적** → 애니메이션에서 고정 스케일 값 사용
 4. **풀 렌더링 성능** → MultiMesh + GPU 셰이더로 해결 (씬 인스턴스 제거)
+5. **Tween "Target object freed" 경고** → `queue_free()` 대신 `remove_child()` + `queue_free()` 사용
+6. **제작 중 UI 다중 갱신** → `_crafting` 플래그로 `inventory_changed` 시그널 억제
