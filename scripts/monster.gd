@@ -79,7 +79,7 @@ func _process(delta: float) -> void:
   if is_moving:
     position += wander_direction * wander_speed * delta
     if sprite:
-      sprite.flip_h = wander_direction.x < 0
+      sprite.flip_h = wander_direction.x > 0
 
   wander_timer -= delta
   if wander_timer <= 0:
