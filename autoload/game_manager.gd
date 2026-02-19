@@ -9,6 +9,13 @@ var inventory: Dictionary = {}
 # Items discovered at least once (for UI display)
 var discovered_items: Array = []
 
+# World selection
+var selected_world: int = 0
+var unlocked_worlds: Array = [0]
+const WORLD_UNLOCK_COSTS: Array = [0, 5000, 20000, 50000]
+
+signal world_unlocked(index: int)
+
 # Upgrades
 var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
 var upgrade_magnet_range: int = 0
@@ -227,6 +234,21 @@ func get_item_count(item_id: String) -> int:
 func is_item_discovered(item_id: String) -> bool:
 	return item_id in discovered_items
 
+func unlock_world(index: int) -> bool:
+	if index < 0 or index >= WORLD_UNLOCK_COSTS.size():
+		return false
+	if index in unlocked_worlds:
+		return false
+	var cost = WORLD_UNLOCK_COSTS[index]
+	if money < cost:
+		return false
+	money -= cost
+	unlocked_worlds.append(index)
+	money_changed.emit(money)
+	world_unlocked.emit(index)
+	SaveManager.save_game()
+	return true
+
 func get_save_data() -> Dictionary:
 	return {
 		"money": money,
@@ -235,7 +257,9 @@ func get_save_data() -> Dictionary:
 		"upgrade_grass_quality": upgrade_grass_quality,
 		"upgrade_grass_regen": upgrade_grass_regen,
 		"inventory": inventory,
-		"discovered_items": discovered_items
+		"discovered_items": discovered_items,
+		"selected_world": selected_world,
+		"unlocked_worlds": unlocked_worlds,
 	}
 
 func load_save_data(data: Dictionary) -> void:
@@ -246,6 +270,13 @@ func load_save_data(data: Dictionary) -> void:
 	upgrade_grass_regen = data.get("upgrade_grass_regen", 0)
 	inventory = data.get("inventory", {})
 	discovered_items = data.get("discovered_items", [])
+	selected_world = data.get("selected_world", 0)
+	var saved_worlds = data.get("unlocked_worlds", [0])
+	unlocked_worlds = []
+	for w in saved_worlds:
+		unlocked_worlds.append(int(w))
+	if 0 not in unlocked_worlds:
+		unlocked_worlds.append(0)
 	money_changed.emit(money)
 	inventory_changed.emit()
 

@@ -96,6 +96,13 @@ const MONSTER_TYPES: Array = [
 	},
 ]
 
+const WORLD_MONSTER_MAP: Array = [
+	["slime"],
+	["boar", "knight"],
+	["mage", "golem"],
+	["deer", "dragon"],
+]
+
 var player: Node2D = null
 var spawned: bool = false
 
@@ -123,14 +130,24 @@ func spawn_monsters() -> void:
 		get_parent().add_child(monster)
 
 func _pick_random_type() -> Dictionary:
-	var total_weight: int = 0
+	var world = GameManager.selected_world
+	var allowed_types: Array = WORLD_MONSTER_MAP[world] if world < WORLD_MONSTER_MAP.size() else ["slime"]
+
+	var filtered: Array = []
 	for m in MONSTER_TYPES:
+		if m.type in allowed_types:
+			filtered.append(m)
+	if filtered.is_empty():
+		filtered = [MONSTER_TYPES[0]]
+
+	var total_weight: int = 0
+	for m in filtered:
 		total_weight += m.spawn_weight
 
 	var roll = randi() % total_weight
 	var cumulative: int = 0
-	for m in MONSTER_TYPES:
+	for m in filtered:
 		cumulative += m.spawn_weight
 		if roll < cumulative:
 			return m
-	return MONSTER_TYPES[0]
+	return filtered[0]

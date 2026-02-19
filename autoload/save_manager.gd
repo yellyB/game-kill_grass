@@ -61,6 +61,8 @@ func reset_all_data() -> void:
 	GameManager.upgrade_grass_regen = 0
 	GameManager.inventory = {}
 	GameManager.discovered_items = []
+	GameManager.selected_world = 0
+	GameManager.unlocked_worlds = [0]
 	GameManager.money_changed.emit(0)
 	GameManager.inventory_changed.emit()
 	# Reset WeaponManager
