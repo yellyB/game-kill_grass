@@ -279,8 +279,12 @@ func _create_world_card(index: int) -> PanelContainer:
 		monster_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
 	info_vbox.add_child(monster_label)
 
-	# Cost label (locked only)
+	# Cost / key status (locked only)
 	if not unlocked:
+		var status_vbox = VBoxContainer.new()
+		status_vbox.add_theme_constant_override("separation", 2)
+		hbox.add_child(status_vbox)
+
 		var cost_label = Label.new()
 		cost_label.text = "$" + format_number(cost)
 		cost_label.add_theme_font_size_override("font_size", 24)
@@ -288,7 +292,17 @@ func _create_world_card(index: int) -> PanelContainer:
 			cost_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
 		else:
 			cost_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.4))
-		hbox.add_child(cost_label)
+		status_vbox.add_child(cost_label)
+
+		var key_label = Label.new()
+		key_label.add_theme_font_size_override("font_size", 18)
+		if GameManager.has_key(index):
+			key_label.text = "열쇠 O"
+			key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
+		else:
+			key_label.text = "열쇠 X"
+			key_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.4))
+		status_vbox.add_child(key_label)
 
 	# Clickable overlay button
 	var btn = Button.new()
@@ -319,8 +333,13 @@ func _ws_update_action_btn() -> void:
 		_ws_action_btn.disabled = false
 	else:
 		var cost = GameManager.WORLD_UNLOCK_COSTS[_ws_selected]
-		_ws_action_btn.text = "해금  $" + format_number(cost)
-		_ws_action_btn.disabled = GameManager.money < cost
+		var has_key = GameManager.has_key(_ws_selected)
+		if has_key:
+			_ws_action_btn.text = "해금  $" + format_number(cost)
+			_ws_action_btn.disabled = GameManager.money < cost
+		else:
+			_ws_action_btn.text = "열쇠 필요  $" + format_number(cost)
+			_ws_action_btn.disabled = true
 
 func _on_action_btn_pressed() -> void:
 	if _ws_selected < 0:

@@ -12,9 +12,12 @@ var discovered_items: Array = []
 # World selection
 var selected_world: int = 0
 var unlocked_worlds: Array = [0]
+var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
+var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
 const WORLD_UNLOCK_COSTS: Array = [0, 5000, 20000, 50000]
 
 signal world_unlocked(index: int)
+signal key_acquired(world_index: int)
 
 # Upgrades
 var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
@@ -48,6 +51,25 @@ signal inventory_changed()
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_init_grass_data()
+	call_deferred("_debug_fill_parts")
+
+func _debug_fill_parts() -> void:
+	if not OS.is_debug_build():
+		return
+	var parts = {
+		"개념상 바퀴": 4,
+		"폭발하는 엔진 코어": 10,
+		"충격 무시 범퍼": 2,
+		"이세계 내비게이션": 1,
+		"강화 유리 모듈": 6,
+		"운전기사": 1,
+	}
+	for part_id in parts:
+		if get_item_count(part_id) < parts[part_id]:
+			inventory[part_id] = parts[part_id]
+			if part_id not in discovered_items:
+				discovered_items.append(part_id)
+	inventory_changed.emit()
 
 func _init_grass_data() -> void:
 	# 0: 기본풀 - 체력 낮음, 보상 적음 (첫 무기로 4번 베기)
@@ -234,6 +256,15 @@ func get_item_count(item_id: String) -> int:
 func is_item_discovered(item_id: String) -> bool:
 	return item_id in discovered_items
 
+func add_key(world_index: int) -> void:
+	if world_index not in owned_keys:
+		owned_keys.append(world_index)
+		key_acquired.emit(world_index)
+		SaveManager.save_game()
+
+func has_key(world_index: int) -> bool:
+	return world_index in owned_keys
+
 func unlock_world(index: int) -> bool:
 	if index < 0 or index >= WORLD_UNLOCK_COSTS.size():
 		return false
@@ -242,7 +273,10 @@ func unlock_world(index: int) -> bool:
 	var cost = WORLD_UNLOCK_COSTS[index]
 	if money < cost:
 		return false
+	if not has_key(index):
+		return false
 	money -= cost
+	owned_keys.erase(index)
 	unlocked_worlds.append(index)
 	money_changed.emit(money)
 	world_unlocked.emit(index)
@@ -260,6 +294,8 @@ func get_save_data() -> Dictionary:
 		"discovered_items": discovered_items,
 		"selected_world": selected_world,
 		"unlocked_worlds": unlocked_worlds,
+		"owned_keys": owned_keys,
+		"truck_assembled": truck_assembled,
 	}
 
 func load_save_data(data: Dictionary) -> void:
@@ -277,6 +313,11 @@ func load_save_data(data: Dictionary) -> void:
 		unlocked_worlds.append(int(w))
 	if 0 not in unlocked_worlds:
 		unlocked_worlds.append(0)
+	truck_assembled = data.get("truck_assembled", false)
+	var saved_keys = data.get("owned_keys", [])
+	owned_keys = []
+	for k in saved_keys:
+		owned_keys.append(int(k))
 	money_changed.emit(money)
 	inventory_changed.emit()
 

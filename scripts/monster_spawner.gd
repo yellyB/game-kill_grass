@@ -1,6 +1,7 @@
 extends Node2D
 
 const MonsterScene = preload("res://scenes/world/monster.tscn")
+const ChestScene = preload("res://scenes/world/chest.tscn")
 
 @export var spawn_count: int = 8
 @export var spawn_radius: float = 800.0
@@ -103,6 +104,8 @@ const WORLD_MONSTER_MAP: Array = [
 	["deer", "dragon"],
 ]
 
+const CHEST_SPAWN_CHANCE: float = 1.0  # 디버깅용 100%, 나중에 낮춤
+
 var player: Node2D = null
 var spawned: bool = false
 
@@ -129,6 +132,8 @@ func spawn_monsters() -> void:
 		monster.position = Vector2(cos(angle), sin(angle)) * dist
 		get_parent().add_child(monster)
 
+	_spawn_chest()
+
 func _pick_random_type() -> Dictionary:
 	var world = GameManager.selected_world
 	var allowed_types: Array = WORLD_MONSTER_MAP[world] if world < WORLD_MONSTER_MAP.size() else ["slime"]
@@ -151,3 +156,36 @@ func _pick_random_type() -> Dictionary:
 		if roll < cumulative:
 			return m
 	return filtered[0]
+
+const LAST_WORLD_CHEST_ITEM: String = "졸음 약"
+
+func _spawn_chest() -> void:
+	var world = GameManager.selected_world
+	var is_last_world = world >= GameManager.WORLD_UNLOCK_COSTS.size() - 1
+
+	if is_last_world:
+		# 마지막 월드: 졸음 약 상자
+		if GameManager.get_item_count(LAST_WORLD_CHEST_ITEM) >= 1:
+			return
+	else:
+		var next_world = world + 1
+		# 이미 열쇠 보유 시 상자 미출현
+		if GameManager.has_key(next_world):
+			return
+		# 이미 해금된 월드면 열쇠 불필요
+		if next_world in GameManager.unlocked_worlds:
+			return
+
+	# 확률 체크
+	if randf() > CHEST_SPAWN_CHANCE:
+		return
+
+	var chest = ChestScene.instantiate()
+	if is_last_world:
+		chest.drop_item_id = LAST_WORLD_CHEST_ITEM
+	else:
+		chest.key_world_index = world + 1
+	var angle = randf() * TAU
+	var dist = randf_range(min_distance, spawn_radius)
+	chest.position = Vector2(cos(angle), sin(angle)) * dist
+	get_parent().add_child(chest)

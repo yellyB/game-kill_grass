@@ -20,6 +20,7 @@ func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   GameManager.item_added.connect(_on_item_added)
+  GameManager.key_acquired.connect(_on_key_acquired)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
   # Initialize display (session earnings)
@@ -110,6 +111,24 @@ func _on_reset_btn_pressed() -> void:
 
 func _on_add_money_btn_pressed() -> void:
   GameManager.add_money(100000)
+
+const WORLD_NAMES: Array = ["슬라임 늪", "들판", "마법의 숲", "용의 봉우리"]
+
+func _on_key_acquired(world_index: int) -> void:
+  var world_name = WORLD_NAMES[world_index] if world_index < WORLD_NAMES.size() else "월드 %d" % world_index
+  var label = Label.new()
+  label.text = "+ 열쇠 (%s)" % world_name
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  label.add_theme_font_size_override("font_size", 72)
+  label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
+  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  label.add_theme_constant_override("outline_size", 3)
+  item_notif_container.add_child(label)
+
+  var tween = create_tween()
+  tween.tween_interval(1.5)
+  tween.tween_property(label, "modulate:a", 0.0, 0.5)
+  tween.tween_callback(label.queue_free)
 
 func _on_item_added(item_id: String, _total_count: int) -> void:
   var label = Label.new()
