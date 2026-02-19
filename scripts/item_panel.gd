@@ -414,18 +414,19 @@ func _create_final_assembly_card() -> PanelContainer:
   var parts_total = RECIPES.size()  # 6
   var all_parts_ready = parts_fulfilled >= parts_total
   var can_craft = _can_craft(FINAL_RECIPE)
-  var missing_potion = all_parts_ready and not can_craft  # 부품 다 모았지만 졸음 약 없음
 
   var card = PanelContainer.new()
   card.custom_minimum_size = Vector2(400, 0)
 
   var style = StyleBoxFlat.new()
-  if not all_parts_ready:
-    style.bg_color = Color(0.06, 0.06, 0.08)
-  elif can_craft:
-    style.bg_color = Color(0.2, 0.18, 0.08)
+  if can_craft:
+    # 초록 (조립 가능 - 부품 + 졸음 약 모두 충족)
+    style.bg_color = Color(0.12, 0.2, 0.15)
+    style.border_color = Color(0.3, 0.6, 0.3)
   else:
-    style.bg_color = Color(0.14, 0.1, 0.16)
+    # 주황 (재료 부족)
+    style.bg_color = Color(0.12, 0.12, 0.08)
+    style.border_color = Color(0.5, 0.4, 0.15)
   style.corner_radius_top_left = 16
   style.corner_radius_top_right = 16
   style.corner_radius_bottom_left = 16
@@ -434,12 +435,6 @@ func _create_final_assembly_card() -> PanelContainer:
   style.border_width_bottom = 3
   style.border_width_left = 3
   style.border_width_right = 3
-  if can_craft:
-    style.border_color = Color(1.0, 0.8, 0.2)
-  elif all_parts_ready:
-    style.border_color = Color(0.5, 0.3, 0.6)
-  else:
-    style.border_color = Color(0.2, 0.2, 0.25)
   style.content_margin_left = 20
   style.content_margin_right = 20
   style.content_margin_top = 16
@@ -514,12 +509,14 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   slot.custom_minimum_size = Vector2(260, 110)
 
   var style = StyleBoxFlat.new()
-  if complete:
-    style.bg_color = Color(0.12, 0.12, 0.08)
-  elif can_craft:
+  if complete or can_craft:
+    # 초록 (재료 충족 / 제작 완료)
     style.bg_color = Color(0.12, 0.2, 0.15)
+    style.border_color = Color(0.3, 0.6, 0.3)
   else:
-    style.bg_color = Color(0.12, 0.15, 0.2)
+    # 주황 (재료 미충족)
+    style.bg_color = Color(0.12, 0.12, 0.08)
+    style.border_color = Color(0.5, 0.4, 0.15)
   style.corner_radius_top_left = 14
   style.corner_radius_top_right = 14
   style.corner_radius_bottom_left = 14
@@ -528,17 +525,14 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   style.border_width_bottom = 2
   style.border_width_left = 2
   style.border_width_right = 2
-  if complete:
-    style.border_color = Color(0.5, 0.4, 0.15)
-  elif can_craft:
-    style.border_color = Color(0.3, 0.6, 0.3)
-  else:
-    style.border_color = Color(0.25, 0.25, 0.35)
   style.content_margin_left = 16
   style.content_margin_right = 16
   style.content_margin_top = 12
   style.content_margin_bottom = 12
   slot.add_theme_stylebox_override("panel", style)
+
+  if complete:
+    slot.modulate = Color(1, 1, 1, 0.5)
 
   var hbox = HBoxContainer.new()
   hbox.alignment = BoxContainer.ALIGNMENT_CENTER

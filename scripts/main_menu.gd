@@ -48,6 +48,10 @@ func _ready() -> void:
 	update_money_display()
 	GameManager.money_changed.connect(_on_money_changed)
 
+	# Debug buttons (bottom of screen, debug builds only)
+	if OS.is_debug_build():
+		_build_debug_buttons()
+
 	# Title animation
 	animate_title()
 
@@ -374,3 +378,59 @@ func format_number(num: int) -> String:
 		result = str_num[i] + result
 		count += 1
 	return result
+
+# ── Debug Buttons ──
+
+const DEBUG_ALL_ITEMS: Array = [
+	"질긴 슬라임 조각", "번개 먹은 배터리 껍질", "차축 뼈대",
+	"굴러다니는 바퀴 잔해", "과성장 생체 응축체", "왜곡된 볼트 조각",
+	"압축된 이세계 철편", "생체 연료 포자", "뒤틀린 시간 포자",
+	"바람 머금은 잔디 섬유", "몬스터 핵", "침식된 백골 프레임",
+	"투명 수정 파편", "강화 유리 결정핵", "과열된 엔진 심장",
+	"드래곤 배기가스 결정",
+]
+
+func _build_debug_buttons() -> void:
+	var container = HBoxContainer.new()
+	container.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	container.offset_top = -50.0
+	container.offset_left = 20.0
+	container.offset_right = -20.0
+	container.alignment = BoxContainer.ALIGNMENT_CENTER
+	container.add_theme_constant_override("separation", 12)
+	add_child(container)
+
+	var reset_btn = Button.new()
+	reset_btn.text = "초기화"
+	reset_btn.add_theme_font_size_override("font_size", 18)
+	reset_btn.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+	reset_btn.pressed.connect(_on_debug_reset)
+	container.add_child(reset_btn)
+
+	var money_btn = Button.new()
+	money_btn.text = "+$100000"
+	money_btn.add_theme_font_size_override("font_size", 18)
+	money_btn.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	money_btn.pressed.connect(_on_debug_add_money)
+	container.add_child(money_btn)
+
+	var items_btn = Button.new()
+	items_btn.text = "아이템+10"
+	items_btn.add_theme_font_size_override("font_size", 18)
+	items_btn.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	items_btn.pressed.connect(_on_debug_add_items)
+	container.add_child(items_btn)
+
+func _on_debug_reset() -> void:
+	SaveManager.reset_all_data()
+	update_money_display()
+
+func _on_debug_add_money() -> void:
+	GameManager.money += 100000
+	GameManager.money_changed.emit(GameManager.money)
+	SaveManager.save_game()
+
+func _on_debug_add_items() -> void:
+	for item_id in DEBUG_ALL_ITEMS:
+		GameManager.add_item(item_id, 10)
+	SaveManager.save_game()
