@@ -105,7 +105,7 @@ func _open_world_select() -> void:
 	if world_overlay != null:
 		return
 	_on_panel_opened()
-	_ws_selected = -1
+	_ws_selected = GameManager.selected_world
 
 	world_overlay = Control.new()
 	world_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -326,10 +326,6 @@ func _on_world_card_pressed(index: int) -> void:
 func _ws_update_action_btn() -> void:
 	if _ws_action_btn == null:
 		return
-	if _ws_selected < 0:
-		_ws_action_btn.text = "월드를 선택하세요"
-		_ws_action_btn.disabled = true
-		return
 
 	var unlocked = _ws_selected in GameManager.unlocked_worlds
 	if unlocked:
@@ -363,7 +359,6 @@ func _close_world_select() -> void:
 	if world_overlay != null:
 		world_overlay.queue_free()
 		world_overlay = null
-	_ws_selected = -1
 	_ws_cards_container = null
 	_ws_action_btn = null
 	_on_panel_closed()
