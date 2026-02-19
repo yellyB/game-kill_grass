@@ -81,6 +81,7 @@ func open_panel() -> void:
   panel_opened.emit()
 
 func _on_toggle_pressed() -> void:
+  GameManager.play_button_click()
   is_open = !is_open
   panel.visible = is_open
   if is_open:
@@ -91,6 +92,7 @@ func _on_toggle_pressed() -> void:
     panel_closed.emit()
 
 func _on_close_pressed() -> void:
+  GameManager.play_button_click()
   is_open = false
   panel.visible = false
   panel_closed.emit()
@@ -102,15 +104,19 @@ func _on_other_panel_closed() -> void:
   toggle_btn.disabled = false
 
 func _on_grass_density_selected() -> void:
+  GameManager.play_button_click()
   select_upgrade("grass_density")
 
 func _on_magnet_range_selected() -> void:
+  GameManager.play_button_click()
   select_upgrade("magnet_range")
 
 func _on_grass_quality_selected() -> void:
+  GameManager.play_button_click()
   select_upgrade("grass_quality")
 
 func _on_grass_regen_selected() -> void:
+  GameManager.play_button_click()
   select_upgrade("grass_regen")
 
 func select_upgrade(upgrade_type: String) -> void:
@@ -230,10 +236,12 @@ func update_confirm_button() -> void:
     confirm_btn.text = "강화하기 ($%s)" % format_number(cost)
 
 func _on_confirm_pressed() -> void:
+  GameManager.play_confirm_click()
   if selected_upgrade.is_empty():
     return
 
   if GameManager.purchase_upgrade(selected_upgrade):
+    GameManager.play_upgrade_sound()
     SaveManager.save_game()
     update_button_texts()
     update_description()

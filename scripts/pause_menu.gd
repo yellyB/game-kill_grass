@@ -23,11 +23,14 @@ func toggle_pause() -> void:
 	get_tree().paused = is_paused
 
 func _on_pause_pressed() -> void:
+	GameManager.play_button_click()
 	toggle_pause()
 
 func _on_resume_pressed() -> void:
+	GameManager.play_button_click()
 	toggle_pause()
 
 func _on_save_quit_pressed() -> void:
+	GameManager.play_confirm_click()
 	get_tree().paused = false
 	SessionManager.quit_to_menu()

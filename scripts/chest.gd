@@ -1,6 +1,7 @@
 extends Node2D
 
 const DroppedItemScene = preload("res://scenes/world/dropped_item.tscn")
+const SFX_BREAK = preload("res://resources/sounds/effect/wood_box_break.wav")
 
 var key_world_index: int = -1
 var drop_item_id: String = ""  # 비어있으면 열쇠, 있으면 해당 아이템 드롭
@@ -25,6 +26,14 @@ func die() -> void:
 	is_dead = true
 	remove_from_group("monsters")
 	set_process(false)
+
+	# Play break sound (on root so it persists after queue_free)
+	var sfx = AudioStreamPlayer.new()
+	sfx.stream = SFX_BREAK
+	sfx.volume_db = -3.0
+	get_tree().root.add_child(sfx)
+	sfx.play()
+	sfx.finished.connect(sfx.queue_free)
 
 	# Open animation: expand + shake + fade
 	var tween = create_tween()

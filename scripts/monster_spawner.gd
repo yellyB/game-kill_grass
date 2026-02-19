@@ -59,26 +59,26 @@ const MONSTER_TYPES: Array = [
 		"spawn_weight": 15,
 	},
 	{
-		"type": "golem",
-		"sprite_path": "res://resources/images/monster/golem/",
-		"max_health": 25,
-		"wander_speed": 25,
+		"type": "deer",
+		"sprite_path": "res://resources/images/monster/deer/",
+		"max_health": 20,
+		"wander_speed": 60,
 		"drop_table": [
-			{"item_id": "몬스터 핵", "image_path": "res://resources/images/items/몬스터 핵.png", "weight": 30},
-			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 40},
-			{"item_id": "침식된 백골 프레임", "image_path": "res://resources/images/items/침식된 백골 프레임.png", "weight": 30},
+			{"item_id": "투명 수정 파편", "image_path": "res://resources/images/items/투명 수정 파편.png", "weight": 50},
+			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 50},
 		],
 		"has_lightning": false,
 		"spawn_weight": 5,
 	},
 	{
-		"type": "deer",
-		"sprite_path": "res://resources/images/monster/deer/",
-		"max_health": 18,
-		"wander_speed": 60,
+		"type": "golem",
+		"sprite_path": "res://resources/images/monster/golem/",
+		"max_health": 35,
+		"wander_speed": 22,
 		"drop_table": [
-			{"item_id": "투명 수정 파편", "image_path": "res://resources/images/items/투명 수정 파편.png", "weight": 50},
-			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 50},
+			{"item_id": "몬스터 핵", "image_path": "res://resources/images/items/몬스터 핵.png", "weight": 30},
+			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 40},
+			{"item_id": "침식된 백골 프레임", "image_path": "res://resources/images/items/침식된 백골 프레임.png", "weight": 30},
 		],
 		"has_lightning": false,
 		"spawn_weight": 5,
@@ -100,8 +100,8 @@ const MONSTER_TYPES: Array = [
 const WORLD_MONSTER_MAP: Array = [
 	["slime"],
 	["boar", "knight"],
-	["mage", "golem"],
-	["deer", "dragon"],
+	["mage", "deer"],
+	["golem", "dragon"],
 ]
 
 const CHEST_SPAWN_CHANCE: float = 1.0  # 디버깅용 100%, 나중에 낮춤

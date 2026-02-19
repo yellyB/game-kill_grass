@@ -1,6 +1,8 @@
 extends Node2D
 
 const DroppedItemScene = preload("res://scenes/world/dropped_item.tscn")
+const SFX_SLASH = preload("res://resources/sounds/effect/monster_slash.wav")
+const SFX_DEATH = preload("res://resources/sounds/effect/monster_death.wav")
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow: Sprite2D = $Shadow
@@ -31,6 +33,7 @@ var wander_speed: float = 40.0
 # Health (placeholder)
 var max_health: int = 1
 var health: int = 1
+var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
   sprite_path = config.sprite_path
@@ -42,6 +45,10 @@ func setup(config: Dictionary) -> void:
 
 func _ready() -> void:
   add_to_group("monsters")
+  sfx_hit = AudioStreamPlayer.new()
+  sfx_hit.stream = SFX_SLASH
+  sfx_hit.volume_db = -3.0
+  add_child(sfx_hit)
   _load_textures()
   if sprite and not textures.is_empty():
     sprite.texture = textures[0]
@@ -111,6 +118,7 @@ func take_damage(amount: int) -> void:
   if is_dead:
     return
   health -= amount
+  sfx_hit.play()
   # Hit flash
   sprite.modulate = Color(1, 0.3, 0.3)
   var tween = create_tween()
@@ -126,6 +134,14 @@ func die() -> void:
   is_dead = true
   remove_from_group("monsters")
   set_process(false)
+
+  # Play death sound (on root so it persists after queue_free)
+  var sfx = AudioStreamPlayer.new()
+  sfx.stream = SFX_DEATH
+  sfx.volume_db = -3.0
+  get_tree().root.add_child(sfx)
+  sfx.play()
+  sfx.finished.connect(sfx.queue_free)
 
   # Lightning burst on death (slime only)
   if has_lightning and lightning_effect:

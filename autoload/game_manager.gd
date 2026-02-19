@@ -48,10 +48,43 @@ signal upgrade_purchased(upgrade_type: String, level: int)
 signal item_added(item_id: String, count: int)
 signal inventory_changed()
 
+var _sfx_click: AudioStreamPlayer
+var _sfx_confirm: AudioStreamPlayer
+var _sfx_craft: AudioStreamPlayer
+var _sfx_upgrade: AudioStreamPlayer
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_init_grass_data()
 	call_deferred("_debug_fill_parts")
+	_sfx_click = AudioStreamPlayer.new()
+	_sfx_click.stream = preload("res://resources/sounds/effect/button_click.wav")
+	_sfx_click.volume_db = -5.0
+	add_child(_sfx_click)
+	_sfx_confirm = AudioStreamPlayer.new()
+	_sfx_confirm.stream = preload("res://resources/sounds/effect/confirm_button_click.wav")
+	_sfx_confirm.volume_db = -3.0
+	add_child(_sfx_confirm)
+	_sfx_craft = AudioStreamPlayer.new()
+	_sfx_craft.stream = preload("res://resources/sounds/effect/item_craft_short_hammer.wav")
+	_sfx_craft.volume_db = -3.0
+	add_child(_sfx_craft)
+	_sfx_upgrade = AudioStreamPlayer.new()
+	_sfx_upgrade.stream = preload("res://resources/sounds/effect/upgrade_success.wav")
+	_sfx_upgrade.volume_db = -3.0
+	add_child(_sfx_upgrade)
+
+func play_button_click() -> void:
+	_sfx_click.play()
+
+func play_confirm_click() -> void:
+	_sfx_confirm.play()
+
+func play_craft_sound() -> void:
+	_sfx_craft.play()
+
+func play_upgrade_sound() -> void:
+	_sfx_upgrade.play()
 
 func _debug_fill_parts() -> void:
 	if not OS.is_debug_build():

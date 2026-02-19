@@ -40,6 +40,7 @@ func open_panel() -> void:
 	panel_opened.emit()
 
 func _on_toggle_pressed() -> void:
+	GameManager.play_button_click()
 	is_open = !is_open
 	panel.visible = is_open
 	if is_open:
@@ -49,6 +50,7 @@ func _on_toggle_pressed() -> void:
 		panel_closed.emit()
 
 func _on_close_pressed() -> void:
+	GameManager.play_button_click()
 	is_open = false
 	panel.visible = false
 	panel_closed.emit()
@@ -60,7 +62,9 @@ func _on_other_panel_closed() -> void:
 	toggle_btn.disabled = false
 
 func _on_upgrade_pressed() -> void:
+	GameManager.play_confirm_click()
 	if WeaponManager.purchase_next_weapon():
+		GameManager.play_upgrade_sound()
 		SaveManager.save_game()
 		update_display()
 		# Play upgrade effect

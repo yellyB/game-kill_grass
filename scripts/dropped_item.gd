@@ -1,5 +1,7 @@
 extends Node2D
 
+const SFX_PICK_KEY = preload("res://resources/sounds/effect/pick_key.wav")
+
 var item_id: String = ""
 var item_texture: ImageTexture = null
 var target: Node2D = null  # Player to fly toward
@@ -158,6 +160,14 @@ func _build_key_visual() -> void:
 	add_child(tooth)
 
 func _collect() -> void:
+	# Play pickup sound (on root so it persists after queue_free)
+	var sfx = AudioStreamPlayer.new()
+	sfx.stream = SFX_PICK_KEY
+	sfx.volume_db = -3.0
+	get_tree().root.add_child(sfx)
+	sfx.play()
+	sfx.finished.connect(sfx.queue_free)
+
 	if is_key:
 		GameManager.add_key(key_world_index)
 	else:

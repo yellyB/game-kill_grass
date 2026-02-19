@@ -20,8 +20,8 @@ var _ws_action_btn: Button = null
 const WORLD_DATA: Array = [
 	{"name": "슬라임 늪", "monsters": "슬라임"},
 	{"name": "들판", "monsters": "멧돼지, 잔디 기사"},
-	{"name": "마법의 숲", "monsters": "마도사, 골렘"},
-	{"name": "용의 봉우리", "monsters": "수정 사슴, 드래곤"},
+	{"name": "마법의 숲", "monsters": "마도사, 수정 사슴"},
+	{"name": "용의 봉우리", "monsters": "잔디 골렘, 드래곤"},
 ]
 
 func _ready() -> void:
@@ -55,6 +55,19 @@ func _ready() -> void:
 	# Title animation
 	animate_title()
 
+	# Main menu BGM
+	_start_menu_bgm()
+
+var _menu_bgm: AudioStreamPlayer
+
+func _start_menu_bgm() -> void:
+	_menu_bgm = AudioStreamPlayer.new()
+	_menu_bgm.stream = preload("res://resources/sounds/bgm_main.wav")
+	_menu_bgm.volume_db = -10.0
+	_menu_bgm.finished.connect(_menu_bgm.play)
+	add_child(_menu_bgm)
+	_menu_bgm.play()
+
 func animate_title() -> void:
 	var tween = create_tween()
 	tween.set_loops()
@@ -62,21 +75,28 @@ func animate_title() -> void:
 	tween.tween_property(title_label, "scale", Vector2(1.0, 1.0), 1.0)
 
 func _on_play_pressed() -> void:
+	GameManager.play_button_click()
 	_open_world_select()
 
 func _start_game() -> void:
+	if _menu_bgm:
+		_menu_bgm.stop()
 	get_tree().change_scene_to_file("res://scenes/core/main.tscn")
 
 func _on_weapon_pressed() -> void:
+	GameManager.play_button_click()
 	weapon_shop.open_panel()
 
 func _on_upgrade_pressed() -> void:
+	GameManager.play_button_click()
 	upgrade_panel.open_panel()
 
 func _on_item_pressed() -> void:
+	GameManager.play_button_click()
 	item_panel.open_panel()
 
 func _on_quit_pressed() -> void:
+	GameManager.play_button_click()
 	get_tree().quit()
 
 func _on_panel_opened() -> void:
@@ -319,6 +339,7 @@ func _create_world_card(index: int) -> PanelContainer:
 	return card
 
 func _on_world_card_pressed(index: int) -> void:
+	GameManager.play_button_click()
 	_ws_selected = index
 	_ws_rebuild_cards()
 	_ws_update_action_btn()
@@ -342,6 +363,7 @@ func _ws_update_action_btn() -> void:
 			_ws_action_btn.disabled = true
 
 func _on_action_btn_pressed() -> void:
+	GameManager.play_confirm_click()
 	if _ws_selected < 0:
 		return
 	var unlocked = _ws_selected in GameManager.unlocked_worlds
@@ -356,6 +378,7 @@ func _on_action_btn_pressed() -> void:
 			_ws_update_action_btn()
 
 func _close_world_select() -> void:
+	GameManager.play_button_click()
 	if world_overlay != null:
 		world_overlay.queue_free()
 		world_overlay = null

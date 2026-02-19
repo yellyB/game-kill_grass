@@ -33,12 +33,14 @@ func _ready() -> void:
 	WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
 func _on_toggle_pressed() -> void:
+	GameManager.play_button_click()
 	is_open = !is_open
 	panel.visible = is_open
 	if is_open:
 		update_display()
 
 func _on_close_pressed() -> void:
+	GameManager.play_button_click()
 	is_open = false
 	panel.visible = false
 
