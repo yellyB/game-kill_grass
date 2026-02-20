@@ -46,7 +46,6 @@ const ALL_ITEMS: Array = [
 const RECIPES: Array = [
   {
     "id": "개념상 바퀴",
-    "icon": "🛞",
     "ingredients": [
       {"item_id": "굴러다니는 바퀴 잔해", "count": 2},
       {"item_id": "차축 뼈대", "count": 1},
@@ -56,7 +55,6 @@ const RECIPES: Array = [
   },
   {
     "id": "폭발하는 엔진 코어",
-    "icon": "🔥",
     "ingredients": [
       {"item_id": "과열된 엔진 심장", "count": 1},
       {"item_id": "드래곤 배기가스 결정", "count": 2},
@@ -65,7 +63,6 @@ const RECIPES: Array = [
   },
   {
     "id": "충격 무시 범퍼",
-    "icon": "🛡",
     "ingredients": [
       {"item_id": "압축된 이세계 철편", "count": 5},
       {"item_id": "생체 연료 포자", "count": 1},
@@ -74,7 +71,6 @@ const RECIPES: Array = [
   },
   {
     "id": "이세계 내비게이션",
-    "icon": "🧠",
     "ingredients": [
       {"item_id": "뒤틀린 시간 포자", "count": 4},
       {"item_id": "몬스터 핵", "count": 1},
@@ -82,7 +78,6 @@ const RECIPES: Array = [
   },
   {
     "id": "강화 유리 모듈",
-    "icon": "🪟",
     "ingredients": [
       {"item_id": "투명 수정 파편", "count": 8},
       {"item_id": "강화 유리 결정핵", "count": 1},
@@ -91,7 +86,6 @@ const RECIPES: Array = [
   },
   {
     "id": "운전기사",
-    "icon": "👤",
     "ingredients": [
       {"item_id": "바람 머금은 잔디 섬유", "count": 20},
       {"item_id": "과성장 생체 응축체", "count": 4},
@@ -102,12 +96,12 @@ const RECIPES: Array = [
 
 # ── Crafted items (parts) ──
 const CRAFTED_ITEMS: Array = [
-  {"id": "개념상 바퀴", "icon": "🛞"},
-  {"id": "폭발하는 엔진 코어", "icon": "🔥"},
-  {"id": "충격 무시 범퍼", "icon": "🛡"},
-  {"id": "이세계 내비게이션", "icon": "🧠"},
-  {"id": "강화 유리 모듈", "icon": "🪟"},
-  {"id": "운전기사", "icon": "👤"},
+  {"id": "개념상 바퀴", "image": "res://resources/images/product/개념상 바퀴.png"},
+  {"id": "폭발하는 엔진 코어", "image": "res://resources/images/product/폭발하는 엔진 코어.png"},
+  {"id": "충격 무시 범퍼", "image": "res://resources/images/product/충격 무시 범퍼.png"},
+  {"id": "이세계 내비게이션", "image": "res://resources/images/product/이세계 내비게이션.png"},
+  {"id": "강화 유리 모듈", "image": "res://resources/images/product/강화 유리 모듈.png"},
+  {"id": "운전기사", "image": "res://resources/images/product/운전기사.png"},
 ]
 
 # ── Final assembly recipe ──
@@ -422,9 +416,9 @@ func _create_final_assembly_card() -> PanelContainer:
 
   var style = StyleBoxFlat.new()
   if can_craft:
-    # 초록 (조립 가능 - 부품 + 졸음 약 모두 충족)
-    style.bg_color = Color(0.12, 0.2, 0.15)
-    style.border_color = Color(0.3, 0.6, 0.3)
+    # 청록 (조립 가능 - 부품 + 졸음 약 모두 충족)
+    style.bg_color = Color(0.1, 0.17, 0.15)
+    style.border_color = Color(0.25, 0.55, 0.42)
   else:
     # 주황 (재료 부족)
     style.bg_color = Color(0.12, 0.12, 0.08)
@@ -456,12 +450,17 @@ func _create_final_assembly_card() -> PanelContainer:
   top_hbox.add_theme_constant_override("separation", 10)
   main_vbox.add_child(top_hbox)
 
-  var icon_label = Label.new()
-  icon_label.text = "?" if not all_parts_ready else FINAL_RECIPE.icon
-  icon_label.add_theme_font_size_override("font_size", 56)
   if not all_parts_ready:
+    var icon_label = Label.new()
+    icon_label.text = "?"
+    icon_label.add_theme_font_size_override("font_size", 56)
     icon_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
-  top_hbox.add_child(icon_label)
+    top_hbox.add_child(icon_label)
+  else:
+    var icon_label = Label.new()
+    icon_label.text = FINAL_RECIPE.icon
+    icon_label.add_theme_font_size_override("font_size", 56)
+    top_hbox.add_child(icon_label)
 
   var name_label = Label.new()
   name_label.text = "???" if not all_parts_ready else FINAL_RECIPE.id
@@ -504,13 +503,13 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   var complete: bool = count >= needed
 
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(400, 110)
+  slot.custom_minimum_size = Vector2(400, 121)
 
   var style = StyleBoxFlat.new()
   if complete or can_craft:
-    # 초록 (재료 충족 / 제작 완료)
-    style.bg_color = Color(0.12, 0.2, 0.15)
-    style.border_color = Color(0.3, 0.6, 0.3)
+    # 청록 (재료 충족 / 제작 완료)
+    style.bg_color = Color(0.1, 0.17, 0.15)
+    style.border_color = Color(0.25, 0.55, 0.42)
   else:
     # 주황 (재료 미충족)
     style.bg_color = Color(0.12, 0.12, 0.08)
@@ -532,23 +531,28 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   if complete:
     slot.modulate = Color(1, 1, 1, 0.5)
 
-  var main_vbox = VBoxContainer.new()
-  main_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  main_vbox.add_theme_constant_override("separation", 4)
-  slot.add_child(main_vbox)
+  # [이미지] [이름 + 수량]
+  var row_hbox = HBoxContainer.new()
+  row_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
+  row_hbox.add_theme_constant_override("separation", 12)
+  slot.add_child(row_hbox)
 
-  # 첫째 줄: [아이콘][이름]
-  var top_hbox = HBoxContainer.new()
-  top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  top_hbox.add_theme_constant_override("separation", 8)
-  main_vbox.add_child(top_hbox)
+  # 이미지 컬럼
+  var part_image_path = _get_crafted_item_image(item_id)
+  var tex_rect = TextureRect.new()
+  tex_rect.custom_minimum_size = Vector2(80, 80)
+  tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+  var tex = _load_texture(part_image_path)
+  if tex:
+    tex_rect.texture = tex
+  row_hbox.add_child(tex_rect)
 
-  var icon_label = Label.new()
-  icon_label.text = recipe.icon
-  icon_label.add_theme_font_size_override("font_size", 44)
-  top_hbox.add_child(icon_label)
-
-  var info_vbox = main_vbox
+  # 이름 + 수량 컬럼 (세로 가운데 정렬)
+  var info_vbox = VBoxContainer.new()
+  info_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+  info_vbox.add_theme_constant_override("separation", 4)
+  row_hbox.add_child(info_vbox)
 
   var name_label = Label.new()
   name_label.text = item_id
@@ -557,17 +561,15 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
     name_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.3))
   else:
     name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
-  top_hbox.add_child(name_label)
+  info_vbox.add_child(name_label)
 
-  # Count: 보유/필요
   var count_label = Label.new()
   count_label.text = "%d/%d" % [count, needed]
   count_label.add_theme_font_size_override("font_size", 22)
-  count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   if complete:
     count_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.2))
   elif can_craft:
-    count_label.add_theme_color_override("font_color", Color(0.4, 0.8, 0.4))
+    count_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55))
   else:
     count_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
   info_vbox.add_child(count_label)
@@ -641,10 +643,21 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
   title_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
   vbox.add_child(title_hbox)
 
-  var icon_label = Label.new()
-  icon_label.text = recipe.icon
-  icon_label.add_theme_font_size_override("font_size", 56)
-  title_hbox.add_child(icon_label)
+  var detail_image_path = _get_crafted_item_image(recipe.id)
+  if detail_image_path != "":
+    var detail_tex_rect = TextureRect.new()
+    detail_tex_rect.custom_minimum_size = Vector2(56, 56)
+    detail_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    detail_tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+    var detail_tex = _load_texture(detail_image_path)
+    if detail_tex:
+      detail_tex_rect.texture = detail_tex
+    title_hbox.add_child(detail_tex_rect)
+  else:
+    var icon_label = Label.new()
+    icon_label.text = FINAL_RECIPE.icon
+    icon_label.add_theme_font_size_override("font_size", 56)
+    title_hbox.add_child(icon_label)
 
   var title_label = Label.new()
   title_label.text = recipe.id
@@ -717,15 +730,16 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
           tex_rect.texture = tex
         img_container.add_child(tex_rect)
       else:
-        # Crafted item — show emoji icon instead
-        var emoji_center = CenterContainer.new()
-        emoji_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-        emoji_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-        img_container.add_child(emoji_center)
-        var emoji_label = Label.new()
-        emoji_label.text = _get_crafted_item_icon(ing_id)
-        emoji_label.add_theme_font_size_override("font_size", 40)
-        emoji_center.add_child(emoji_label)
+        # Crafted item — show image
+        var part_img_path = _get_crafted_item_image(ing_id)
+        var part_tex_rect = TextureRect.new()
+        part_tex_rect.custom_minimum_size = Vector2(68, 68)
+        part_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        part_tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+        var part_tex = _load_texture(part_img_path)
+        if part_tex:
+          part_tex_rect.texture = part_tex
+        img_container.add_child(part_tex_rect)
 
     # Name + count
     var info = VBoxContainer.new()
@@ -745,7 +759,7 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
     if not discovered:
       count_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
     else:
-      count_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3) if enough else Color(0.9, 0.3, 0.3))
+      count_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if enough else Color(0.9, 0.3, 0.3))
     info.add_child(count_label)
 
     # Check/cross indicator
@@ -755,7 +769,7 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
       indicator.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
     else:
       indicator.text = "v" if enough else "x"
-      indicator.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3) if enough else Color(0.9, 0.3, 0.3))
+      indicator.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if enough else Color(0.9, 0.3, 0.3))
     indicator.add_theme_font_size_override("font_size", 32)
     row.add_child(indicator)
 
@@ -862,11 +876,11 @@ func _get_final_recipe_required(item_id: String) -> int:
       return ingredient.count
   return 0
 
-func _get_crafted_item_icon(item_id: String) -> String:
+func _get_crafted_item_image(item_id: String) -> String:
   for item in CRAFTED_ITEMS:
     if item.id == item_id:
-      return item.icon
-  return "?"
+      return item.get("image", "")
+  return ""
 
 func _load_texture(res_path: String) -> ImageTexture:
   var abs_path = ProjectSettings.globalize_path(res_path)
