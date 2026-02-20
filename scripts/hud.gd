@@ -200,7 +200,7 @@ func _connect_player_hit() -> void:
 
 func _on_player_hit() -> void:
   var label = Label.new()
-  label.text = "STUNNED!"
+  label.text = "SLOW!"
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
   label.add_theme_font_size_override("font_size", 80)
   label.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
@@ -209,9 +209,24 @@ func _on_player_hit() -> void:
   item_notif_container.add_child(label)
 
   var tween = create_tween()
-  tween.tween_interval(2.0)
+  tween.tween_interval(1.0)
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)
+
+  # Hit screen blink overlay
+  var dim = ColorRect.new()
+  dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  dim.color = Color(0, 0, 0, 0)
+  dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  add_child(dim)
+
+  var blink_tween = create_tween()
+  # 1.5초 동안 빠르게 깜박임 (10회)
+  for i in 10:
+    blink_tween.tween_property(dim, "color:a", 0.4, 0.04)
+    blink_tween.tween_property(dim, "color:a", 0.0, 0.04)
+    blink_tween.tween_interval(0.07)
+  blink_tween.tween_callback(dim.queue_free)
 
 var buff_container: VBoxContainer
 

@@ -82,15 +82,14 @@ func _process(delta: float) -> void:
     frame_timer = 0.0
     _advance_frame()
 
-  # Wandering
-  if is_moving:
-    position += wander_direction * wander_speed * delta
+  # Chase player
+  var player = get_tree().get_first_node_in_group("player")
+  if player:
+    var player_local = get_parent().to_local(player.global_position)
+    var dir = (player_local - position).normalized()
+    position += dir * wander_speed * delta
     if sprite:
-      sprite.flip_h = wander_direction.x > 0
-
-  wander_timer -= delta
-  if wander_timer <= 0:
-    _pick_new_wander()
+      sprite.flip_h = dir.x > 0
 
 func _advance_frame() -> void:
   if textures.is_empty():

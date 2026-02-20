@@ -34,6 +34,9 @@ var session_buff_overdrive: bool = false
 # Timed buffs: { "gold_rush": remaining_seconds, ... }
 var timed_buffs: Dictionary = {}
 
+# Hit penalty (50% attack speed & move speed reduction)
+var hit_penalty_active: bool = false
+
 # Upgrade costs (increases each level)
 const BASE_UPGRADE_COST: int = 100
 const UPGRADE_COST_MULTIPLIER: float = 1.5
@@ -253,6 +256,8 @@ func get_session_attack_speed_mult() -> float:
     mult *= 4.0  # +300%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
+  if hit_penalty_active:
+    mult *= 0.5
   return mult
 
 func get_session_attack_range_mult() -> float:
@@ -267,6 +272,8 @@ func get_session_move_speed_mult() -> float:
     mult *= 0.5  # -50%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
+  if hit_penalty_active:
+    mult *= 0.5
   return mult
 
 func get_coin_multiplier() -> int:
@@ -481,4 +488,5 @@ func reset_session_data() -> void:
   session_buff_move_speed = 0
   session_buff_overdrive = false
   timed_buffs.clear()
+  hit_penalty_active = false
   session_money_changed.emit(0)
