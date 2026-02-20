@@ -58,7 +58,6 @@ var _sfx_unlock: AudioStreamPlayer
 func _ready() -> void:
   process_mode = Node.PROCESS_MODE_ALWAYS
   _init_grass_data()
-  call_deferred("_debug_fill_parts")
   _sfx_click = AudioStreamPlayer.new()
   _sfx_click.stream = preload("res://resources/sounds/effect/button_click.wav")
   _sfx_click.volume_db = -5.0
@@ -102,23 +101,6 @@ func play_skill_upgrade_sound() -> void:
 func play_unlock_sound() -> void:
   _sfx_unlock.play()
 
-func _debug_fill_parts() -> void:
-  if not OS.is_debug_build():
-    return
-  var parts = {
-    "개념상 바퀴": 4,
-    "폭발하는 엔진 코어": 10,
-    "충격 무시 범퍼": 2,
-    "이세계 내비게이션": 1,
-    "강화 유리 모듈": 6,
-    "운전기사": 1,
-  }
-  for part_id in parts:
-    if get_item_count(part_id) < parts[part_id]:
-      inventory[part_id] = parts[part_id]
-      if part_id not in discovered_items:
-        discovered_items.append(part_id)
-  inventory_changed.emit()
 
 func _init_grass_data() -> void:
   # 0: 기본풀 - 체력 낮음, 보상 적음 (첫 무기로 4번 베기)
