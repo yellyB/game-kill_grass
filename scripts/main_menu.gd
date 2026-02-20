@@ -373,6 +373,7 @@ func _on_action_btn_pressed() -> void:
 		_start_game()
 	else:
 		if GameManager.unlock_world(_ws_selected):
+			GameManager.play_unlock_sound()
 			update_money_display()
 			_ws_rebuild_cards()
 			_ws_update_action_btn()

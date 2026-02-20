@@ -52,6 +52,7 @@ var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
 var _sfx_craft: AudioStreamPlayer
 var _sfx_upgrade: AudioStreamPlayer
+var _sfx_unlock: AudioStreamPlayer
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -73,6 +74,10 @@ func _ready() -> void:
 	_sfx_upgrade.stream = preload("res://resources/sounds/effect/upgrade_success.wav")
 	_sfx_upgrade.volume_db = -3.0
 	add_child(_sfx_upgrade)
+	_sfx_unlock = AudioStreamPlayer.new()
+	_sfx_unlock.stream = preload("res://resources/sounds/effect/unlock_world.wav")
+	_sfx_unlock.volume_db = -3.0
+	add_child(_sfx_unlock)
 
 func play_button_click() -> void:
 	_sfx_click.play()
@@ -85,6 +90,9 @@ func play_craft_sound() -> void:
 
 func play_upgrade_sound() -> void:
 	_sfx_upgrade.play()
+
+func play_unlock_sound() -> void:
+	_sfx_unlock.play()
 
 func _debug_fill_parts() -> void:
 	if not OS.is_debug_build():
