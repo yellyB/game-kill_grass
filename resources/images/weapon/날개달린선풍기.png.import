@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byoughw4pc80m"
-path="res://.godot/imported/5단계_회전예초낫.png-da6686ebb5861dbeb410c7902f5d2f33.ctex"
+uid="uid://d03eowguj6wu3"
+path="res://.godot/imported/날개달린선풍기.png-3bd4108501b17ab2bc37570af233cd55.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/5단계_회전예초낫.png"
-dest_files=["res://.godot/imported/5단계_회전예초낫.png-da6686ebb5861dbeb410c7902f5d2f33.ctex"]
+source_file="res://resources/images/weapon/날개달린선풍기.png"
+dest_files=["res://.godot/imported/날개달린선풍기.png-3bd4108501b17ab2bc37570af233cd55.ctex"]
 
 [params]
 

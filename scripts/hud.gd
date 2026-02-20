@@ -83,10 +83,7 @@ func update_stats_display() -> void:
   var weapon = WeaponManager.get_current_weapon()
   weapon_label.text = "무기: %s (Lv.%d)" % [weapon.name, WeaponManager.current_weapon_level + 1]
 
-  # Weapon stats (speed and range come from weapon)
-  var weapon_speed = WeaponManager.get_weapon_speed()
-  var weapon_range = WeaponManager.get_weapon_range()
-  weapon_stats_label.text = "속도 x%.1f | 범위 x%.1f" % [weapon_speed, weapon_range]
+  weapon_stats_label.text = "대미지: %d" % WeaponManager.get_weapon_damage()
 
   # Upgrade stats
   var grass_density = GameManager.get_grass_density_level()

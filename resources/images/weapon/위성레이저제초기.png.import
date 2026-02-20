@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b4tskjvjcghpx"
-path="res://.godot/imported/8단계_회염제초기.png-440139fcdbde5876464f490b5b9ba818.ctex"
+uid="uid://c33f2luhdsltt"
+path="res://.godot/imported/위성레이저제초기.png-565d2d1cf7476f389e4ca7d7566e4983.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/8단계_회염제초기.png"
-dest_files=["res://.godot/imported/8단계_회염제초기.png-440139fcdbde5876464f490b5b9ba818.ctex"]
+source_file="res://resources/images/weapon/위성레이저제초기.png"
+dest_files=["res://.godot/imported/위성레이저제초기.png-565d2d1cf7476f389e4ca7d7566e4983.ctex"]
 
 [params]
 

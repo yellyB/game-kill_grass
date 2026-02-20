@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://7cuew6npcpr2"
-path="res://.godot/imported/9단계_재앙장치.png-15084eb1c1e1167f5e8cd26a65b84897.ctex"
+uid="uid://dup318pq7peu"
+path="res://.godot/imported/체인소.png-f662f26e2ea0e2a4d7c8ebd6f653d119.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/9단계_재앙장치.png"
-dest_files=["res://.godot/imported/9단계_재앙장치.png-15084eb1c1e1167f5e8cd26a65b84897.ctex"]
+source_file="res://resources/images/weapon/체인소.png"
+dest_files=["res://.godot/imported/체인소.png-f662f26e2ea0e2a4d7c8ebd6f653d119.ctex"]
 
 [params]
 

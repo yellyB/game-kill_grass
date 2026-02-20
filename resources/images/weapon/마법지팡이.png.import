@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://be22a34u7oobv"
-path="res://.godot/imported/7단계_분쇄예초기.png-89293f2e6e022e2bb316d80f0a60118b.ctex"
+uid="uid://dx4gl1x5qj8r0"
+path="res://.godot/imported/마법지팡이.png-328a208e4af038a85d2a2ce02a2555fe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/7단계_분쇄예초기.png"
-dest_files=["res://.godot/imported/7단계_분쇄예초기.png-89293f2e6e022e2bb316d80f0a60118b.ctex"]
+source_file="res://resources/images/weapon/마법지팡이.png"
+dest_files=["res://.godot/imported/마법지팡이.png-328a208e4af038a85d2a2ce02a2555fe.ctex"]
 
 [params]
 

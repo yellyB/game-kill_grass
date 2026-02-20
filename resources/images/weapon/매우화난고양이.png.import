@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cewm3d3062rk7"
-path="res://.godot/imported/3단계_무거운낫.png-27fb43e1c69df7c11743fc9384e3f575.ctex"
+uid="uid://b8kb7tbu3fb4"
+path="res://.godot/imported/매우화난고양이.png-b0cedcccd292240bd06dc81354e0a640.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/3단계_무거운낫.png"
-dest_files=["res://.godot/imported/3단계_무거운낫.png-27fb43e1c69df7c11743fc9384e3f575.ctex"]
+source_file="res://resources/images/weapon/매우화난고양이.png"
+dest_files=["res://.godot/imported/매우화난고양이.png-b0cedcccd292240bd06dc81354e0a640.ctex"]
 
 [params]
 

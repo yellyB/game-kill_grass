@@ -60,8 +60,7 @@ func update_display() -> void:
 	# Weapon info
 	var weapon = WeaponManager.get_current_weapon()
 	weapon_name_label.text = "%s (Lv.%d)" % [weapon.name, WeaponManager.current_weapon_level + 1]
-	weapon_icon.color = weapon.color
-	weapon_type_label.text = get_attack_type_text(weapon.attack_type)
+	weapon_type_label.text = "대미지: %d" % weapon.damage
 
 	# Base stats from upgrades
 	var base_speed = GameManager.get_attack_speed()
@@ -72,37 +71,12 @@ func update_display() -> void:
 	attack_range_label.text = "공격 범위: %.0f (Lv.%d)" % [base_range, GameManager.upgrade_attack_range + 1]
 	drop_rate_label.text = "드롭률: x%.2f (Lv.%d)" % [drop_mult, GameManager.upgrade_drop_rate + 1]
 
-	# Final stats (base * weapon)
-	var weapon_speed = WeaponManager.get_weapon_speed()
-	var weapon_range = WeaponManager.get_weapon_range()
-	var final_speed = base_speed * weapon_speed
-	var final_range = base_range * weapon_range
-
-	final_speed_label.text = "최종 속도: x%.2f" % final_speed
-	final_range_label.text = "최종 범위: %.0f" % final_range
+	final_speed_label.text = "최종 속도: x%.2f" % base_speed
+	final_range_label.text = "최종 범위: %.0f" % base_range
 
 	# Progress
 	total_money_label.text = "보유 골드: $%s" % format_number(GameManager.money)
 	combo_label.text = "현재 콤보: x%d" % GameManager.combo
-
-func get_attack_type_text(attack_type: String) -> String:
-	match attack_type:
-		"single":
-			return "단일 공격"
-		"double":
-			return "이중 공격"
-		"spin":
-			return "회전 공격"
-		"aura":
-			return "범위 공격"
-		"flame":
-			return "화염 공격"
-		"screen":
-			return "화면 공격"
-		"world":
-			return "전체 공격"
-		_:
-			return "기본 공격"
 
 func format_number(num: int) -> String:
 	var str_num = str(num)

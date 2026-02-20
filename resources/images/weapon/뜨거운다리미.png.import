@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cw0q6qgbotve2"
-path="res://.godot/imported/6단계_제초기계.png-1d2e055d39d7082e7a7a92dc78b3c148.ctex"
+uid="uid://xv6m4jfx10tk"
+path="res://.godot/imported/뜨거운다리미.png-905616a94cb32760706681f2999e9452.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/6단계_제초기계.png"
-dest_files=["res://.godot/imported/6단계_제초기계.png-1d2e055d39d7082e7a7a92dc78b3c148.ctex"]
+source_file="res://resources/images/weapon/뜨거운다리미.png"
+dest_files=["res://.godot/imported/뜨거운다리미.png-905616a94cb32760706681f2999e9452.ctex"]
 
 [params]
 

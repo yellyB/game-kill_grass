@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://db4vpa2uqvqwa"
-path="res://.godot/imported/2단계_날선낫.png-58c06a4bdb801994fac7818c9c9d2197.ctex"
+uid="uid://06k2ghf20epc"
+path="res://.godot/imported/나뭇가지.png-72aa20e0f8e88c5372b78651d00fcede.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/2단계_날선낫.png"
-dest_files=["res://.godot/imported/2단계_날선낫.png-58c06a4bdb801994fac7818c9c9d2197.ctex"]
+source_file="res://resources/images/weapon/나뭇가지.png"
+dest_files=["res://.godot/imported/나뭇가지.png-72aa20e0f8e88c5372b78651d00fcede.ctex"]
 
 [params]
 

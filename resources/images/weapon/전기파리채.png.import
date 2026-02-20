@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2mtomhaws14x"
-path="res://.godot/imported/1단계_낡은낫.png-5016f0219101ba95a7f645f65aff073c.ctex"
+uid="uid://csqg6krkykmmc"
+path="res://.godot/imported/전기파리채.png-b3bc2e7943bec66f413678cff4e50402.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/1단계_낡은낫.png"
-dest_files=["res://.godot/imported/1단계_낡은낫.png-5016f0219101ba95a7f645f65aff073c.ctex"]
+source_file="res://resources/images/weapon/전기파리채.png"
+dest_files=["res://.godot/imported/전기파리채.png-b3bc2e7943bec66f413678cff4e50402.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://n4ljnf6a3qm4"
-path="res://.godot/imported/10단계_세계정리자.png-6d8b2abca82474ba99f3d84d1de0e855.ctex"
+uid="uid://bsxqfsnvtmaao"
+path="res://.godot/imported/피자커터.png-f38eb85d0d8227055392f3777f7bedcf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/weapon/10단계_세계정리자.png"
-dest_files=["res://.godot/imported/10단계_세계정리자.png-6d8b2abca82474ba99f3d84d1de0e855.ctex"]
+source_file="res://resources/images/weapon/피자커터.png"
+dest_files=["res://.godot/imported/피자커터.png-f38eb85d0d8227055392f3777f7bedcf.ctex"]
 
 [params]
 

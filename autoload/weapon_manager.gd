@@ -5,149 +5,17 @@ signal weapon_changed(weapon_level: int)
 # Preload weapon textures
 var weapon_textures: Array[Texture2D] = []
 
-# Weapon data structure
-# visual_type: "scythe", "double_scythe", "spinner", "machine", "flamethrower", "device", "orb"
 const WEAPONS = [
-  {
-    "name": "낡은 낫",
-    "price": 0,
-    "damage": 1,
-    "range_mult": 1.0,
-    "speed_mult": 1.0,
-    "attack_type": "single",
-    "description": "기본 무기",
-    "color": Color(0.6, 0.5, 0.4),
-    "visual_type": "scythe",
-    "blade_length": 60,
-    "blade_width": 12,
-    "texture": "res://resources/images/weapon/1단계_낡은낫.png"
-  },
-  {
-    "name": "날 선 낫",
-    "price": 100,
-    "damage": 2,
-    "range_mult": 1.2,
-    "speed_mult": 1.0,
-    "attack_type": "single",
-    "description": "범위 증가",
-    "color": Color(0.7, 0.7, 0.75),
-    "visual_type": "scythe",
-    "blade_length": 70,
-    "blade_width": 14,
-    "texture": "res://resources/images/weapon/2단계_날선낫.png"
-  },
-  {
-    "name": "무거운 낫",
-    "price": 180,
-    "damage": 4,
-    "range_mult": 1.5,
-    "speed_mult": 0.7,
-    "attack_type": "single",
-    "description": "범위↑ 속도↓",
-    "color": Color(0.4, 0.4, 0.5),
-    "visual_type": "heavy_scythe",
-    "blade_length": 85,
-    "blade_width": 20,
-    "texture": "res://resources/images/weapon/3단계_무거운낫.png"
-  },
-  {
-    "name": "이중 낫",
-    "price": 324,
-    "damage": 3,
-    "range_mult": 1.3,
-    "speed_mult": 1.0,
-    "attack_type": "double",
-    "description": "앞뒤 동시 공격",
-    "color": Color(0.5, 0.6, 0.7),
-    "visual_type": "double_scythe",
-    "blade_length": 55,
-    "blade_width": 12,
-    "texture": "res://resources/images/weapon/4단계_이중낫.png"
-  },
-  {
-    "name": "회전 예초낫",
-    "price": 583,
-    "damage": 2,
-    "range_mult": 1.4,
-    "speed_mult": 1.5,
-    "attack_type": "spin",
-    "description": "이동 중 지속 베기",
-    "color": Color(0.3, 0.7, 0.4),
-    "visual_type": "spinner",
-    "blade_length": 50,
-    "blade_width": 8,
-    "texture": "res://resources/images/weapon/5단계_회전예초낫.png"
-  },
-  {
-    "name": "제초 기계",
-    "price": 1050,
-    "damage": 4,
-    "range_mult": 1.6,
-    "speed_mult": 2.0,
-    "attack_type": "aura",
-    "description": "접근만 해도 피해",
-    "color": Color(0.8, 0.5, 0.2),
-    "visual_type": "machine",
-    "blade_length": 40,
-    "blade_width": 40,
-    "texture": "res://resources/images/weapon/6단계_제초기계.png"
-  },
-  {
-    "name": "분쇄 예초기",
-    "price": 1890,
-    "damage": 6,
-    "range_mult": 2.0,
-    "speed_mult": 2.5,
-    "attack_type": "aura",
-    "description": "대형 지속 범위",
-    "color": Color(0.9, 0.3, 0.3),
-    "visual_type": "machine",
-    "blade_length": 55,
-    "blade_width": 55,
-    "texture": "res://resources/images/weapon/7단계_분쇄예초기.png"
-  },
-  {
-    "name": "화염 제초기",
-    "price": 3400,
-    "damage": 12,
-    "range_mult": 2.2,
-    "speed_mult": 3.0,
-    "attack_type": "flame",
-    "description": "즉사 / 드롭 감소",
-    "color": Color(1.0, 0.4, 0.1),
-    "visual_type": "flamethrower",
-    "blade_length": 70,
-    "blade_width": 25,
-    "texture": "res://resources/images/weapon/8단계_회염제초기.png"
-  },
-  {
-    "name": "재앙 장치",
-    "price": 5400,
-    "damage": 24,
-    "range_mult": 3.0,
-    "speed_mult": 1.0,
-    "attack_type": "screen",
-    "description": "화면 전체 공격",
-    "color": Color(0.6, 0.2, 0.8),
-    "visual_type": "device",
-    "blade_length": 50,
-    "blade_width": 50,
-    "texture": "res://resources/images/weapon/9단계_재앙장치.png"
-  },
-  {
-    "name": "세계 정리자",
-    "price": 8600,
-    "damage": 60,
-    "range_mult": 5.0,
-    "speed_mult": 4.0,
-    "attack_type": "world",
-    "description": "맵 전체 자동 베기",
-    "color": Color(1.0, 0.9, 0.3),
-    "visual_type": "orb",
-    "blade_length": 60,
-    "blade_width": 60,
-    "texture": "res://resources/images/weapon/10단계_세계정리자.png"
-  }
+  {"name": "나뭇가지", "price": 0, "damage": 1, "texture": "res://resources/images/weapon/나뭇가지.png"},
+  {"name": "녹슨 식칼", "price": 100, "damage": 2, "texture": "res://resources/images/weapon/녹슨식칼.png"},
+  {"name": "피자 커터", "price": 250, "damage": 2, "texture": "res://resources/images/weapon/피자커터.png"},
+  {"name": "전기 파리채", "price": 500, "damage": 4, "texture": "res://resources/images/weapon/전기파리채.png"},
+  {"name": "뜨거운 다리미", "price": 900, "damage": 8, "texture": "res://resources/images/weapon/뜨거운다리미.png"},
+  {"name": "매우 화난 고양이", "price": 1500, "damage": 5, "texture": "res://resources/images/weapon/매우화난고양이.png"},
+  {"name": "체인소", "price": 2500, "damage": 10, "texture": "res://resources/images/weapon/체인소.png"},
+  {"name": "마법 지팡이", "price": 4000, "damage": 30, "texture": "res://resources/images/weapon/마법지팡이.png"},
+  {"name": "날개달린 선풍기", "price": 6000, "damage": 15, "texture": "res://resources/images/weapon/날개달린선풍기.png"},
+  {"name": "위성 레이저 제초기", "price": 9000, "damage": 60, "texture": "res://resources/images/weapon/위성레이저제초기.png"},
 ]
 
 var current_weapon_level: int = 0
@@ -198,29 +66,8 @@ func purchase_next_weapon() -> bool:
   weapon_changed.emit(current_weapon_level)
   return true
 
-func get_weapon_range() -> float:
-  return get_current_weapon().range_mult
-
-func get_weapon_speed() -> float:
-  return get_current_weapon().speed_mult
-
 func get_weapon_damage() -> int:
   return get_current_weapon().damage
-
-func get_attack_type() -> String:
-  return get_current_weapon().attack_type
-
-func get_weapon_color() -> Color:
-  return get_current_weapon().color
-
-func get_visual_type() -> String:
-  return get_current_weapon().visual_type
-
-func get_blade_length() -> int:
-  return get_current_weapon().blade_length
-
-func get_blade_width() -> int:
-  return get_current_weapon().blade_width
 
 func get_weapon_texture() -> Texture2D:
   if current_weapon_level < weapon_textures.size():
