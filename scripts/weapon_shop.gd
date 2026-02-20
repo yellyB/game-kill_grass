@@ -96,7 +96,7 @@ func update_display() -> void:
 			weapon_image.texture = WeaponManager.weapon_textures[next_level]
 
 		next_weapon_label.text = next.name
-		stats_label.text = "대미지: %d | 범위: x%.1f | 속도: x%.1f" % [next.damage, next.range_mult, next.speed_mult]
+		stats_label.text = "대미지: %d" % next.damage
 		upgrade_btn.text = "업그레이드\n$%s" % format_number(next.price)
 		upgrade_btn.disabled = not WeaponManager.can_upgrade()
 

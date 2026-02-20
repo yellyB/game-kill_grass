@@ -7,7 +7,6 @@ extends CanvasLayer
 @onready var weapon_label: Label = $StatsContainer/WeaponLabel
 @onready var weapon_stats_label: Label = $StatsContainer/WeaponStatsLabel
 @onready var grass_density_label: Label = $StatsContainer/GrassDensityLabel
-@onready var magnet_range_label: Label = $StatsContainer/MagnetRangeLabel
 @onready var grass_quality_label: Label = $StatsContainer/GrassQualityLabel
 
 var displayed_money: int = 0
@@ -18,6 +17,7 @@ func _ready() -> void:
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   GameManager.item_added.connect(_on_item_added)
   GameManager.key_acquired.connect(_on_key_acquired)
+  GameManager.powerup_acquired.connect(_on_powerup_acquired)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
   # Initialize display (session earnings)
@@ -81,15 +81,41 @@ func update_stats_display() -> void:
 
   # Upgrade stats
   var grass_density = GameManager.get_grass_density_level()
-  var magnet_range = GameManager.get_magnet_range()
   var grass_quality = GameManager.get_grass_quality_level()
 
   if grass_density >= GameManager.MAX_DENSITY_LEVEL:
     grass_density_label.text = "풀 밀도: Lv.%d (MAX)" % (grass_density + 1)
   else:
     grass_density_label.text = "풀 밀도: Lv.%d" % (grass_density + 1)
-  magnet_range_label.text = "수집 범위: %.0f" % magnet_range
   grass_quality_label.text = "풀 등급: Lv.%d" % (grass_quality + 1)
+
+const POWERUP_NAMES = {
+  "attack_speed": "어택 부스트",
+  "attack_range": "와이드 어택",
+  "magnet_range": "메가 마그넷",
+}
+const POWERUP_COLORS = {
+  "attack_speed": Color(1.0, 0.5, 0.2),
+  "attack_range": Color(0.3, 0.6, 1.0),
+  "magnet_range": Color(0.2, 1.0, 0.8),
+}
+
+func _on_powerup_acquired(type: String, level: int) -> void:
+  var pname = POWERUP_NAMES.get(type, type)
+  var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
+  var label = Label.new()
+  label.text = "%s Lv.%d!" % [pname, level]
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  label.add_theme_font_size_override("font_size", 72)
+  label.add_theme_color_override("font_color", pcolor)
+  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  label.add_theme_constant_override("outline_size", 3)
+  item_notif_container.add_child(label)
+
+  var tween = create_tween()
+  tween.tween_interval(1.5)
+  tween.tween_property(label, "modulate:a", 0.0, 0.5)
+  tween.tween_callback(label.queue_free)
 
 const WORLD_NAMES: Array = ["슬라임 늪", "들판", "마법의 숲", "용의 봉우리"]
 

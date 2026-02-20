@@ -90,13 +90,6 @@ theme_override_font_sizes/font_size = 28
 text = "풀 밀도 Lv.1
 $100"
 
-[node name="MagnetRangeBtn" type="Button" parent="Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "수집 범위 Lv.1
-$100"
-
 [node name="GrassQualityBtn" type="Button" parent="Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2

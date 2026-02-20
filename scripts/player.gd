@@ -72,6 +72,7 @@ func _ready() -> void:
   update_attack_range()
   create_weapon_visual()
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
+  GameManager.powerup_acquired.connect(_on_powerup_acquired)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
   queue_redraw()  # For debug drawing
   # Find grass spawner
@@ -188,7 +189,7 @@ func try_attack() -> void:
     return
 
   can_attack = false
-  var weapon_speed = WeaponManager.get_weapon_speed()
+  var weapon_speed = WeaponManager.get_weapon_speed() * GameManager.get_session_attack_speed_mult()
   var wait = 0.2 / weapon_speed
   if is_stunned:
     wait *= 2.0
@@ -345,7 +346,7 @@ func world_attack() -> void:
 
 func update_attack_range() -> void:
   const BASE_ATTACK_RANGE: float = 80.0
-  var weapon_range = WeaponManager.get_weapon_range()
+  var weapon_range = WeaponManager.get_weapon_range() * GameManager.get_session_attack_range_mult()
   attack_radius = BASE_ATTACK_RANGE * weapon_range
 
 func create_weapon_visual() -> void:
@@ -669,9 +670,14 @@ func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
 func _on_attack_timer_timeout() -> void:
   can_attack = true
 
-func _on_upgrade_purchased(upgrade_type: String, _level: int) -> void:
-  if upgrade_type == "magnet_range":
-    queue_redraw()  # Update debug circle
+func _on_upgrade_purchased(_upgrade_type: String, _level: int) -> void:
+  pass
+
+func _on_powerup_acquired(type: String, _level: int) -> void:
+  if type == "attack_range":
+    update_attack_range()
+  if type == "magnet_range":
+    queue_redraw()
 
 func _on_weapon_changed(_level: int) -> void:
   update_attack_range()
