@@ -193,7 +193,7 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[2]  # 완전 센풀
 
 func add_money(amount: int) -> void:
-  session_money += amount
+  session_money = max(0, session_money + amount)
   session_money_changed.emit(session_money)
 
 # Returns grass quality level for spawning calculations

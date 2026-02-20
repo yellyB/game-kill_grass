@@ -26,6 +26,9 @@ func _ready() -> void:
   update_money_display()
   update_stats_display()
 
+  # Connect player_hit signal (deferred to ensure player exists)
+  call_deferred("_connect_player_hit")
+
 func _process(delta: float) -> void:
   # Smooth money counter
   if displayed_money != target_money:
@@ -119,5 +122,25 @@ func _on_item_added(item_id: String, _total_count: int) -> void:
   # Fade out and remove
   var tween = create_tween()
   tween.tween_interval(1.5)
+  tween.tween_property(label, "modulate:a", 0.0, 0.5)
+  tween.tween_callback(label.queue_free)
+
+func _connect_player_hit() -> void:
+  var player = get_tree().get_first_node_in_group("player")
+  if player and player.has_signal("player_hit"):
+    player.player_hit.connect(_on_player_hit)
+
+func _on_player_hit() -> void:
+  var label = Label.new()
+  label.text = "STUNNED!"
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  label.add_theme_font_size_override("font_size", 80)
+  label.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
+  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  label.add_theme_constant_override("outline_size", 4)
+  item_notif_container.add_child(label)
+
+  var tween = create_tween()
+  tween.tween_interval(2.0)
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)

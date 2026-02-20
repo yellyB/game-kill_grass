@@ -76,6 +76,11 @@ func bump_animation() -> void:
 	tween.tween_property(self, "scale", Vector2(1.3, 1.3), 0.05).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.08).set_ease(Tween.EASE_IN)
 
+func setup_penalty(amount: int) -> void:
+	if amount_label:
+		amount_label.text = "-%s" % format_number(amount)
+		amount_label.modulate = Color(1, 0.3, 0.3)
+
 func apply_color(amount: int) -> void:
 	if not amount_label:
 		return
