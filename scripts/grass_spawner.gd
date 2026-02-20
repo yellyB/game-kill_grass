@@ -51,6 +51,9 @@ func _ready() -> void:
   setup_sparkle_multimesh()
   call_deferred("find_player")
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
+  GameManager.golden_bloom_requested.connect(_on_golden_bloom)
+  GameManager.field_clear_requested.connect(_on_field_clear)
+  GameManager.blackhole_requested.connect(_on_blackhole)
 
 func setup_multimesh() -> void:
   # Create MultiMesh for efficient grass rendering
@@ -364,3 +367,38 @@ func spawn_powerup(pos: Vector2) -> void:
   var powerup = PowerupScene.instantiate()
   powerup.position = pos
   get_parent().add_child(powerup)
+
+func _on_golden_bloom() -> void:
+  if not player:
+    return
+  var center = player.global_position - global_position
+  var bloom_radius = chunk_size * 0.5  # ~1/4 of a grid area
+  var golden_data = GameManager.grass_data_list[3]
+  for grid_pos in grass_data:
+    var data = grass_data[grid_pos]
+    if data.cut or data.type == 3:
+      continue
+    var world_pos = Vector2(grid_pos.x, grid_pos.y)
+    if center.distance_to(world_pos) <= bloom_radius:
+      data.type = 3
+      data.health = golden_data.max_health
+      data.max_health = golden_data.max_health
+      data.value = randi_range(golden_data.min_drop_value, golden_data.max_drop_value)
+
+func _on_field_clear() -> void:
+  for grid_pos in grass_data:
+    var data = grass_data[grid_pos]
+    if data.cut:
+      continue
+    data.cut = true
+    data.regen_timer = 0.0
+    var pos = Vector2(grid_pos.x, grid_pos.y)
+    # Spawn coins for valuable grass
+    if data.type == 3 or randf() < 0.2:
+      spawn_coin(pos, data.value)
+
+func _on_blackhole() -> void:
+  var coins = get_tree().get_nodes_in_group("coins")
+  for coin in coins:
+    if is_instance_valid(coin) and not coin.is_collected:
+      coin.is_being_collected = true

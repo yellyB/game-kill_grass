@@ -73,6 +73,8 @@ func _ready() -> void:
   create_weapon_visual()
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
+  GameManager.timed_buff_started.connect(_on_timed_buff_changed)
+  GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
   queue_redraw()  # For debug drawing
   # Find grass spawner
@@ -678,6 +680,14 @@ func _on_powerup_acquired(type: String, _level: int) -> void:
     update_attack_range()
   if type == "magnet_range":
     queue_redraw()
+
+func _on_timed_buff_changed(_type: String, _duration: float) -> void:
+  update_attack_range()
+  queue_redraw()
+
+func _on_timed_buff_ended(_type: String) -> void:
+  update_attack_range()
+  queue_redraw()
 
 func _on_weapon_changed(_level: int) -> void:
   update_attack_range()

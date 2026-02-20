@@ -180,8 +180,10 @@ func die() -> void:
 
   await tween2.finished
 
-  # Drop item
-  _drop_item()
+  # Drop item (3x during beast rush)
+  var drop_count = 3 if GameManager.is_beast_rush_active() else 1
+  for i in drop_count:
+    _drop_item()
 
   queue_free()
 

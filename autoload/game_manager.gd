@@ -28,6 +28,11 @@ var upgrade_grass_regen: int = 0  # 풀 재생 속도 업그레이드 (0-10)
 var session_buff_attack_speed: int = 0
 var session_buff_attack_range: int = 0
 var session_buff_magnet_range: int = 0
+var session_buff_move_speed: int = 0
+var session_buff_overdrive: bool = false
+
+# Timed buffs: { "gold_rush": remaining_seconds, ... }
+var timed_buffs: Dictionary = {}
 
 # Upgrade costs (increases each level)
 const BASE_UPGRADE_COST: int = 100
@@ -52,6 +57,12 @@ signal upgrade_purchased(upgrade_type: String, level: int)
 signal item_added(item_id: String, count: int)
 signal inventory_changed()
 signal powerup_acquired(type: String, level: int)
+signal timed_buff_started(type: String, duration: float)
+signal timed_buff_ended(type: String)
+signal extra_time_requested(seconds: float)
+signal golden_bloom_requested()
+signal field_clear_requested()
+signal blackhole_requested()
 
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
@@ -106,6 +117,19 @@ func play_skill_upgrade_sound() -> void:
 func play_unlock_sound() -> void:
   _sfx_unlock.play()
 
+
+func _process(delta: float) -> void:
+  # Don't tick timed buffs while game is paused
+  if get_tree().paused:
+    return
+  var expired: Array = []
+  for buff_type in timed_buffs:
+    timed_buffs[buff_type] -= delta
+    if timed_buffs[buff_type] <= 0:
+      expired.append(buff_type)
+  for buff_type in expired:
+    timed_buffs.erase(buff_type)
+    timed_buff_ended.emit(buff_type)
 
 func _init_grass_data() -> void:
   # 0: 기본풀 - 체력 낮음, 보상 적음 (첫 무기로 4번 베기)
@@ -218,13 +242,43 @@ func get_grass_density_level() -> int:
   return upgrade_grass_density
 
 func get_magnet_range() -> float:
-  return base_magnet_range * (1.0 + session_buff_magnet_range * 0.3)
+  var mult = 1.0 + session_buff_magnet_range * 0.3
+  if timed_buffs.has("harvest_madness"):
+    mult *= 2.0
+  return base_magnet_range * mult
 
 func get_session_attack_speed_mult() -> float:
-  return 1.0 + session_buff_attack_speed * 0.25
+  var mult = 1.0 + session_buff_attack_speed * 0.25
+  if session_buff_overdrive:
+    mult *= 4.0  # +300%
+  if timed_buffs.has("harvest_madness"):
+    mult *= 2.0
+  return mult
 
 func get_session_attack_range_mult() -> float:
-  return 1.0 + session_buff_attack_range * 0.25
+  var mult = 1.0 + session_buff_attack_range * 0.25
+  if timed_buffs.has("harvest_madness"):
+    mult *= 1.5
+  return mult
+
+func get_session_move_speed_mult() -> float:
+  var mult = 1.0 + session_buff_move_speed * 0.25
+  if session_buff_overdrive:
+    mult *= 0.5  # -50%
+  if timed_buffs.has("harvest_madness"):
+    mult *= 2.0
+  return mult
+
+func get_coin_multiplier() -> int:
+  if timed_buffs.has("gold_rush"):
+    return 2
+  return 1
+
+func is_beast_rush_active() -> bool:
+  return timed_buffs.has("beast_rush")
+
+func get_timed_buff_remaining(type: String) -> float:
+  return timed_buffs.get(type, 0.0)
 
 func apply_powerup(type: String) -> void:
   match type:
@@ -237,6 +291,51 @@ func apply_powerup(type: String) -> void:
     "magnet_range":
       session_buff_magnet_range += 1
       powerup_acquired.emit(type, session_buff_magnet_range)
+    "move_speed":
+      session_buff_move_speed += 1
+      powerup_acquired.emit(type, session_buff_move_speed)
+    "overdrive":
+      session_buff_overdrive = true
+      powerup_acquired.emit(type, 1)
+    "extra_time":
+      extra_time_requested.emit(5.0)
+      powerup_acquired.emit(type, 0)
+    "gold_rush":
+      _start_timed_buff("gold_rush", 10.0)
+      powerup_acquired.emit(type, 0)
+    "golden_bloom":
+      golden_bloom_requested.emit()
+      powerup_acquired.emit(type, 0)
+    "double_or_dust":
+      _apply_double_or_dust()
+    "beast_rush":
+      _start_timed_buff("beast_rush", 5.0)
+      powerup_acquired.emit(type, 0)
+    "harvest_madness":
+      _start_timed_buff("harvest_madness", 5.0)
+      powerup_acquired.emit(type, 0)
+    "field_clear":
+      field_clear_requested.emit()
+      powerup_acquired.emit(type, 0)
+    "blackhole":
+      blackhole_requested.emit()
+      powerup_acquired.emit(type, 0)
+
+func _start_timed_buff(type: String, duration: float) -> void:
+  timed_buffs[type] = duration
+  timed_buff_started.emit(type, duration)
+
+func _apply_double_or_dust() -> void:
+  if randf() < 0.5:
+    # Double!
+    var bonus = session_money
+    add_money(bonus)
+    powerup_acquired.emit("double_or_dust", 1)  # 1 = success
+  else:
+    # Dust!
+    var lost = session_money
+    add_money(-lost)
+    powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
 func get_grass_regen_time(base_time: float) -> float:
   # 매 레벨마다 2초씩 감소
@@ -379,4 +478,7 @@ func reset_session_data() -> void:
   session_buff_attack_speed = 0
   session_buff_attack_range = 0
   session_buff_magnet_range = 0
+  session_buff_move_speed = 0
+  session_buff_overdrive = false
+  timed_buffs.clear()
   session_money_changed.emit(0)

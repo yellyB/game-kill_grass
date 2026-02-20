@@ -11,6 +11,7 @@ extends CanvasLayer
 
 var displayed_money: int = 0
 var target_money: int = 0
+var buff_labels: Dictionary = {}  # type -> Label
 
 func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
@@ -18,7 +19,12 @@ func _ready() -> void:
   GameManager.item_added.connect(_on_item_added)
   GameManager.key_acquired.connect(_on_key_acquired)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
+  GameManager.timed_buff_started.connect(_on_timed_buff_started)
+  GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
+
+  # Create buff timer container (below timer, centered)
+  _create_buff_container()
 
   # Initialize display (session earnings)
   displayed_money = GameManager.session_money
@@ -30,6 +36,9 @@ func _ready() -> void:
   call_deferred("_connect_player_hit")
 
 func _process(delta: float) -> void:
+  # Update timed buff countdowns
+  _update_buff_timers()
+
   # Smooth money counter
   if displayed_money != target_money:
     var diff = target_money - displayed_money
@@ -93,18 +102,51 @@ const POWERUP_NAMES = {
   "attack_speed": "어택 부스트",
   "attack_range": "와이드 어택",
   "magnet_range": "메가 마그넷",
+  "move_speed": "라이트닝 대시",
+  "extra_time": "엑스트라 타임",
+  "gold_rush": "골드 러시",
+  "golden_bloom": "골든 블룸",
+  "double_or_dust": "더블 오어 더스트",
+  "beast_rush": "비스트 러시",
+  "overdrive": "오버드라이브",
+  "harvest_madness": "하베스트 매드니스",
+  "field_clear": "필드 클리어",
+  "blackhole": "블랙홀",
 }
 const POWERUP_COLORS = {
   "attack_speed": Color(1.0, 0.5, 0.2),
   "attack_range": Color(0.3, 0.6, 1.0),
   "magnet_range": Color(0.2, 1.0, 0.8),
+  "move_speed": Color(1.0, 1.0, 0.3),
+  "extra_time": Color(0.4, 1.0, 0.4),
+  "gold_rush": Color(1.0, 0.85, 0.0),
+  "golden_bloom": Color(1.0, 0.9, 0.2),
+  "double_or_dust": Color(0.8, 0.2, 0.8),
+  "beast_rush": Color(0.9, 0.2, 0.2),
+  "overdrive": Color(1.0, 0.3, 0.5),
+  "harvest_madness": Color(1.0, 0.5, 1.0),
+  "field_clear": Color(0.3, 1.0, 0.3),
+  "blackhole": Color(0.5, 0.2, 0.8),
 }
 
 func _on_powerup_acquired(type: String, level: int) -> void:
   var pname = POWERUP_NAMES.get(type, type)
   var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
   var label = Label.new()
-  label.text = "%s Lv.%d!" % [pname, level]
+
+  # Special display for different powerup types
+  if type == "double_or_dust":
+    if level == 1:
+      label.text = "DOUBLE! 코인 2배!"
+      pcolor = Color(1.0, 0.85, 0.0)
+    else:
+      label.text = "DUST! 코인 증발..."
+      pcolor = Color(0.5, 0.1, 0.1)
+  elif level > 0 and type in ["attack_speed", "attack_range", "magnet_range", "move_speed"]:
+    label.text = "%s Lv.%d!" % [pname, level]
+  else:
+    label.text = "%s!" % pname
+
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
   label.add_theme_font_size_override("font_size", 72)
   label.add_theme_color_override("font_color", pcolor)
@@ -170,3 +212,50 @@ func _on_player_hit() -> void:
   tween.tween_interval(2.0)
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)
+
+var buff_container: VBoxContainer
+
+func _create_buff_container() -> void:
+  buff_container = VBoxContainer.new()
+  buff_container.anchors_preset = Control.PRESET_CENTER_TOP
+  buff_container.anchor_left = 0.5
+  buff_container.anchor_right = 0.5
+  buff_container.offset_left = -120.0
+  buff_container.offset_top = 120.0
+  buff_container.offset_right = 120.0
+  buff_container.offset_bottom = 300.0
+  buff_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
+  buff_container.add_theme_constant_override("separation", 4)
+  add_child(buff_container)
+
+const TIMED_BUFF_NAMES = {
+  "gold_rush": "골드 러시",
+  "beast_rush": "비스트 러시",
+  "harvest_madness": "하베스트 매드니스",
+}
+
+func _on_timed_buff_started(type: String, _duration: float) -> void:
+  if buff_labels.has(type):
+    return
+  var label = Label.new()
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  label.add_theme_font_size_override("font_size", 28)
+  label.add_theme_color_override("font_color", POWERUP_COLORS.get(type, Color.WHITE))
+  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  label.add_theme_constant_override("outline_size", 3)
+  buff_container.add_child(label)
+  buff_labels[type] = label
+
+func _on_timed_buff_ended(type: String) -> void:
+  if buff_labels.has(type):
+    buff_labels[type].queue_free()
+    buff_labels.erase(type)
+
+func _update_buff_timers() -> void:
+  for type in buff_labels:
+    var label = buff_labels[type]
+    if not is_instance_valid(label):
+      continue
+    var remaining = GameManager.get_timed_buff_remaining(type)
+    var buff_name = TIMED_BUFF_NAMES.get(type, type)
+    label.text = "%s %.1fs" % [buff_name, remaining]

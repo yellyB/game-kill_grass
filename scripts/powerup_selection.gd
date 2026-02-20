@@ -6,18 +6,91 @@ const POWERUP_DATA = [
 		"name": "어택 부스트",
 		"desc": "공격 속도 +25%",
 		"color": Color(1.0, 0.5, 0.2),
+		"stackable": true,
 	},
 	{
 		"type": "attack_range",
 		"name": "와이드 어택",
 		"desc": "공격 범위 +25%",
 		"color": Color(0.3, 0.6, 1.0),
+		"stackable": true,
 	},
 	{
 		"type": "magnet_range",
 		"name": "메가 마그넷",
 		"desc": "수집 범위 +30%",
 		"color": Color(0.2, 1.0, 0.8),
+		"stackable": true,
+	},
+	{
+		"type": "move_speed",
+		"name": "라이트닝 대시",
+		"desc": "이동 속도 +25%",
+		"color": Color(1.0, 1.0, 0.3),
+		"stackable": true,
+	},
+	{
+		"type": "extra_time",
+		"name": "엑스트라 타임",
+		"desc": "세션 시간 +5초",
+		"color": Color(0.4, 1.0, 0.4),
+		"stackable": false,
+	},
+	{
+		"type": "gold_rush",
+		"name": "골드 러시",
+		"desc": "10초간 코인 2배",
+		"color": Color(1.0, 0.85, 0.0),
+		"stackable": false,
+	},
+	{
+		"type": "golden_bloom",
+		"name": "골든 블룸",
+		"desc": "주변 풀을 황금풀로",
+		"color": Color(1.0, 0.9, 0.2),
+		"stackable": false,
+	},
+	{
+		"type": "double_or_dust",
+		"name": "더블 오어 더스트",
+		"desc": "50% 코인 2배 / 50% 전부 증발",
+		"color": Color(0.8, 0.2, 0.8),
+		"stackable": false,
+	},
+	{
+		"type": "beast_rush",
+		"name": "비스트 러시",
+		"desc": "5초간 몬스터 대량 스폰, 드롭 3배",
+		"color": Color(0.9, 0.2, 0.2),
+		"stackable": false,
+	},
+	{
+		"type": "overdrive",
+		"name": "오버드라이브",
+		"desc": "공속 +300%, 이속 -50%",
+		"color": Color(1.0, 0.3, 0.5),
+		"stackable": false,
+	},
+	{
+		"type": "harvest_madness",
+		"name": "하베스트 매드니스",
+		"desc": "5초간 모든 스탯 대폭 증가",
+		"color": Color(1.0, 0.5, 1.0),
+		"stackable": false,
+	},
+	{
+		"type": "field_clear",
+		"name": "필드 클리어",
+		"desc": "맵 전체 풀 클리어",
+		"color": Color(0.3, 1.0, 0.3),
+		"stackable": false,
+	},
+	{
+		"type": "blackhole",
+		"name": "블랙홀",
+		"desc": "모든 드롭 코인 흡수",
+		"color": Color(0.2, 0.0, 0.4),
+		"stackable": false,
 	},
 ]
 
@@ -26,7 +99,22 @@ func _ready() -> void:
 	get_tree().paused = true
 	_build_ui()
 
+func _pick_random_powerups(count: int) -> Array:
+	var pool = POWERUP_DATA.duplicate()
+	# Filter out non-stackable powerups already active
+	var filtered: Array = []
+	for data in pool:
+		if not data.stackable:
+			# Overdrive: once per session
+			if data.type == "overdrive" and GameManager.session_buff_overdrive:
+				continue
+		filtered.append(data)
+	filtered.shuffle()
+	return filtered.slice(0, count)
+
 func _build_ui() -> void:
+	var selected = _pick_random_powerups(3)
+
 	# Full-screen root
 	var root = Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -60,14 +148,17 @@ func _build_ui() -> void:
 	center.add_child(title)
 
 	# Buttons
-	for data in POWERUP_DATA:
+	for data in selected:
 		var btn = Button.new()
 		btn.custom_minimum_size = Vector2(400, 120)
 		btn.add_theme_font_size_override("font_size", 26)
 
-		var level = _get_current_level(data.type)
-		var next_level = level + 1
-		btn.text = "%s\nLv.%d → Lv.%d  (%s)" % [data.name, level, next_level, data.desc]
+		if data.stackable:
+			var level = _get_current_level(data.type)
+			var next_level = level + 1
+			btn.text = "%s\nLv.%d → Lv.%d  (%s)" % [data.name, level, next_level, data.desc]
+		else:
+			btn.text = "%s\n%s" % [data.name, data.desc]
 
 		# Color tint via stylebox
 		var style = StyleBoxFlat.new()
@@ -102,6 +193,8 @@ func _get_current_level(type: String) -> int:
 			return GameManager.session_buff_attack_range
 		"magnet_range":
 			return GameManager.session_buff_magnet_range
+		"move_speed":
+			return GameManager.session_buff_move_speed
 	return 0
 
 func _on_selected(type: String) -> void:

@@ -111,6 +111,7 @@ var spawned: bool = false
 
 func _ready() -> void:
 	call_deferred("_find_player_and_spawn")
+	GameManager.timed_buff_started.connect(_on_timed_buff_started)
 
 func _find_player_and_spawn() -> void:
 	player = get_tree().get_first_node_in_group("player")
@@ -189,3 +190,18 @@ func _spawn_chest() -> void:
 	var dist = randf_range(min_distance, spawn_radius)
 	chest.position = Vector2(cos(angle), sin(angle)) * dist
 	get_parent().add_child(chest)
+
+func _on_timed_buff_started(type: String, _duration: float) -> void:
+	if type == "beast_rush":
+		_spawn_beast_rush_monsters()
+
+func _spawn_beast_rush_monsters() -> void:
+	var rush_count = spawn_count * 2
+	for i in rush_count:
+		var config = _pick_random_type()
+		var monster = MonsterScene.instantiate()
+		monster.setup(config)
+		var angle = randf() * TAU
+		var dist = randf_range(min_distance, spawn_radius)
+		monster.position = Vector2(cos(angle), sin(angle)) * dist
+		get_parent().add_child(monster)

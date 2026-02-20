@@ -80,12 +80,13 @@ func collect() -> void:
 		return
 	is_collected = true
 
-	# Add money
-	GameManager.add_money(value)
+	# Add money (gold rush doubles coins)
+	var actual_value = value * GameManager.get_coin_multiplier()
+	GameManager.add_money(actual_value)
 
 	# Accumulate floating text on player
 	if player and player.has_method("accumulate_coin_text"):
-		player.accumulate_coin_text(value)
+		player.accumulate_coin_text(actual_value)
 
 	# Collect effect
 	if visual:

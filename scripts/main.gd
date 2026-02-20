@@ -46,6 +46,9 @@ func _ready() -> void:
 	# Setup session end overlay
 	touch_button.pressed.connect(_on_session_end_touch)
 
+	# Extra time powerup
+	GameManager.extra_time_requested.connect(_on_extra_time)
+
 	# Initialize timer display
 	update_timer_display()
 
@@ -209,6 +212,9 @@ func _on_cancel_back_to_menu() -> void:
 	GameManager.play_button_click()
 	confirm_dialog.visible = false
 	get_tree().paused = false
+
+func _on_extra_time(seconds: float) -> void:
+	session_time_remaining += seconds
 
 func format_number(num: int) -> String:
 	var str_num = str(num)
