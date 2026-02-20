@@ -1,6 +1,7 @@
 extends Node2D
 
 const SFX_PICK_KEY = preload("res://resources/sounds/effect/pick_key.wav")
+const SFX_PICK_ITEM = preload("res://resources/sounds/effect/pick_item.wav")
 
 var item_id: String = ""
 var item_texture: ImageTexture = null
@@ -162,7 +163,7 @@ func _build_key_visual() -> void:
 func _collect() -> void:
 	# Play pickup sound (on root so it persists after queue_free)
 	var sfx = AudioStreamPlayer.new()
-	sfx.stream = SFX_PICK_KEY
+	sfx.stream = SFX_PICK_KEY if is_key else SFX_PICK_ITEM
 	sfx.volume_db = -3.0
 	get_tree().root.add_child(sfx)
 	sfx.play()
