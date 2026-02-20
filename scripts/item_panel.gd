@@ -107,7 +107,7 @@ const CRAFTED_ITEMS: Array = [
 # ── Final assembly recipe ──
 const FINAL_RECIPE: Dictionary = {
   "id": "이세계 트럭",
-  "icon": "🚛",
+  "image": "res://resources/images/product/이세계 트럭.png",
   "ingredients": [
     {"item_id": "개념상 바퀴", "count": 4},
     {"item_id": "폭발하는 엔진 코어", "count": 10},
@@ -412,7 +412,7 @@ func _create_final_assembly_card() -> PanelContainer:
   var can_craft = _can_craft(FINAL_RECIPE)
 
   var card = PanelContainer.new()
-  card.custom_minimum_size = Vector2(816, 0)
+  card.custom_minimum_size = Vector2(816, 121)
 
   var style = StyleBoxFlat.new()
   if can_craft:
@@ -423,54 +423,64 @@ func _create_final_assembly_card() -> PanelContainer:
     # 주황 (재료 부족)
     style.bg_color = Color(0.12, 0.12, 0.08)
     style.border_color = Color(0.5, 0.4, 0.15)
-  style.corner_radius_top_left = 16
-  style.corner_radius_top_right = 16
-  style.corner_radius_bottom_left = 16
-  style.corner_radius_bottom_right = 16
-  style.border_width_top = 3
-  style.border_width_bottom = 3
-  style.border_width_left = 3
-  style.border_width_right = 3
-  style.content_margin_left = 20
-  style.content_margin_right = 20
-  style.content_margin_top = 16
-  style.content_margin_bottom = 16
+  style.corner_radius_top_left = 14
+  style.corner_radius_top_right = 14
+  style.corner_radius_bottom_left = 14
+  style.corner_radius_bottom_right = 14
+  style.border_width_top = 2
+  style.border_width_bottom = 2
+  style.border_width_left = 2
+  style.border_width_right = 2
+  style.content_margin_left = 16
+  style.content_margin_right = 16
+  style.content_margin_top = 12
+  style.content_margin_bottom = 12
   card.add_theme_stylebox_override("panel", style)
 
   if not all_parts_ready:
     card.modulate = Color(1, 1, 1, 0.5)
 
-  var main_vbox = VBoxContainer.new()
-  main_vbox.add_theme_constant_override("separation", 10)
-  card.add_child(main_vbox)
+  # [이미지] [이름 + 수량] - 부품 카드와 동일 구조
+  var row_hbox = HBoxContainer.new()
+  row_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
+  row_hbox.add_theme_constant_override("separation", 12)
+  card.add_child(row_hbox)
 
-  # 첫째 줄: [아이콘][이름]
-  var top_hbox = HBoxContainer.new()
-  top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  top_hbox.add_theme_constant_override("separation", 10)
-  main_vbox.add_child(top_hbox)
-
+  # 이미지 컬럼
   if not all_parts_ready:
     var icon_label = Label.new()
     icon_label.text = "?"
     icon_label.add_theme_font_size_override("font_size", 56)
     icon_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
-    top_hbox.add_child(icon_label)
+    icon_label.custom_minimum_size = Vector2(80, 80)
+    icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    row_hbox.add_child(icon_label)
   else:
-    var icon_label = Label.new()
-    icon_label.text = FINAL_RECIPE.icon
-    icon_label.add_theme_font_size_override("font_size", 56)
-    top_hbox.add_child(icon_label)
+    var truck_tex_rect = TextureRect.new()
+    truck_tex_rect.custom_minimum_size = Vector2(80, 80)
+    truck_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    truck_tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+    var truck_tex = _load_texture(FINAL_RECIPE.image)
+    if truck_tex:
+      truck_tex_rect.texture = truck_tex
+    row_hbox.add_child(truck_tex_rect)
+
+  # 이름 + 수량 컬럼 (세로 가운데 정렬)
+  var info_vbox = VBoxContainer.new()
+  info_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+  info_vbox.add_theme_constant_override("separation", 4)
+  row_hbox.add_child(info_vbox)
 
   var name_label = Label.new()
   name_label.text = "???" if not all_parts_ready else FINAL_RECIPE.id
-  name_label.add_theme_font_size_override("font_size", 30)
-  name_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4) if not all_parts_ready else Color(1, 0.9, 0.5))
-  name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  name_label.add_theme_constant_override("outline_size", 2)
-  top_hbox.add_child(name_label)
+  name_label.add_theme_font_size_override("font_size", 28)
+  if not all_parts_ready:
+    name_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
+  else:
+    name_label.add_theme_color_override("font_color", Color(1, 0.9, 0.5))
+  info_vbox.add_child(name_label)
 
-  # 둘째 줄: [수량]
   var summary = Label.new()
   if not all_parts_ready:
     summary.text = "부품을 모두 모으면 해금"
@@ -478,9 +488,8 @@ func _create_final_assembly_card() -> PanelContainer:
   else:
     summary.text = "부품 %d/%d" % [parts_fulfilled, parts_total]
     summary.add_theme_color_override("font_color", Color(0.5, 0.4, 0.3))
-  summary.add_theme_font_size_override("font_size", 20)
-  summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  main_vbox.add_child(summary)
+  summary.add_theme_font_size_override("font_size", 22)
+  info_vbox.add_child(summary)
 
   # Clickable overlay (only when all parts ready)
   if all_parts_ready:
@@ -654,10 +663,14 @@ func _show_recipe_detail(recipe: Dictionary) -> void:
       detail_tex_rect.texture = detail_tex
     title_hbox.add_child(detail_tex_rect)
   else:
-    var icon_label = Label.new()
-    icon_label.text = FINAL_RECIPE.icon
-    icon_label.add_theme_font_size_override("font_size", 56)
-    title_hbox.add_child(icon_label)
+    var final_tex_rect = TextureRect.new()
+    final_tex_rect.custom_minimum_size = Vector2(56, 56)
+    final_tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    final_tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+    var final_tex = _load_texture(FINAL_RECIPE.image)
+    if final_tex:
+      final_tex_rect.texture = final_tex
+    title_hbox.add_child(final_tex_rect)
 
   var title_label = Label.new()
   title_label.text = recipe.id
