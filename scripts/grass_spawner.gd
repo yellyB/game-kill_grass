@@ -9,6 +9,12 @@ signal grass_cut(position: Vector2, value: int)
 var multimesh_instance: MultiMeshInstance2D
 var multimesh: MultiMesh
 
+# 황금풀 주변 반짝이 파티클
+var sparkle_mm_instance: MultiMeshInstance2D
+var sparkle_mm: MultiMesh
+const SPARKLES_PER_GOLDEN: int = 3
+const SPARKLE_RADIUS: float = 30.0
+
 # Grass data storage (no nodes, just data)
 var grass_data: Dictionary = {}  # Key: Vector2i (grid pos), Value: {cut: bool, type: int, regen_time: float}
 var loaded_chunks: Dictionary = {}  # Key: Vector2i, Value: Array of grid positions
@@ -42,6 +48,7 @@ var player_attack_area: Area2D = null
 
 func _ready() -> void:
   setup_multimesh()
+  setup_sparkle_multimesh()
   call_deferred("find_player")
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
 
@@ -64,6 +71,42 @@ func setup_multimesh() -> void:
     multimesh_instance.material = shader_mat
 
   add_child(multimesh_instance)
+
+func setup_sparkle_multimesh() -> void:
+  sparkle_mm = MultiMesh.new()
+  sparkle_mm.transform_format = MultiMesh.TRANSFORM_2D
+  sparkle_mm.use_colors = true
+  sparkle_mm.mesh = create_sparkle_mesh()
+  sparkle_mm.instance_count = 0
+
+  sparkle_mm_instance = MultiMeshInstance2D.new()
+  sparkle_mm_instance.multimesh = sparkle_mm
+
+  var sparkle_shader = load("res://resources/shaders/golden_sparkle.gdshader")
+  if sparkle_shader:
+    var mat = ShaderMaterial.new()
+    mat.shader = sparkle_shader
+    sparkle_mm_instance.material = mat
+
+  add_child(sparkle_mm_instance)
+
+func create_sparkle_mesh() -> ArrayMesh:
+  var mesh = ArrayMesh.new()
+  var s = 5.0  # 반짝이 크기
+  var vertices = PackedVector2Array([
+    Vector2(-s, -s), Vector2(s, -s), Vector2(s, s),
+    Vector2(-s, -s), Vector2(s, s), Vector2(-s, s),
+  ])
+  var colors = PackedColorArray([
+    Color.WHITE, Color.WHITE, Color.WHITE,
+    Color.WHITE, Color.WHITE, Color.WHITE,
+  ])
+  var arrays = []
+  arrays.resize(Mesh.ARRAY_MAX)
+  arrays[Mesh.ARRAY_VERTEX] = vertices
+  arrays[Mesh.ARRAY_COLOR] = colors
+  mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+  return mesh
 
 func create_grass_mesh() -> ArrayMesh:
   # Simple triangle mesh for grass blade
@@ -209,6 +252,9 @@ func process_regen(delta: float) -> void:
         data.value = randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1
 
 func _get_grass_color(grass_type: int) -> Color:
+  # 황금풀(3): 월드 무관 샛노란색 + alpha 마커(셰이더 반짝이용)
+  if grass_type == 3:
+    return Color(1.0, 0.95, 0.1, 0.5)
   var world = GameManager.selected_world
   if world < WORLD_GRASS_COLORS.size() and WORLD_GRASS_COLORS[world] != null:
     var world_colors = WORLD_GRASS_COLORS[world]
@@ -221,6 +267,7 @@ func _get_grass_color(grass_type: int) -> Color:
 func update_multimesh() -> void:
   var visible_grass: Array = []
   var colors_list: Array = []
+  var golden_positions: Array = []
 
   for grid_pos in grass_data:
     var data = grass_data[grid_pos]
@@ -231,11 +278,15 @@ func update_multimesh() -> void:
     var world_pos = Vector2(grid_pos.x, grid_pos.y)
     visible_grass.append(world_pos)
 
-    # Check if grass was recently hit - show white flash
+    # Check if grass was recently hit - show white flash (preserve golden alpha marker)
     if data.has("hit_timer") and data.hit_timer > 0:
-      colors_list.append(Color(1.0, 1.0, 1.0, 1.0))  # White flash
+      var flash_alpha = 0.5 if data.type == 3 else 1.0
+      colors_list.append(Color(1.0, 1.0, 1.0, flash_alpha))
     else:
       colors_list.append(_get_grass_color(data.type))
+
+    if data.type == 3:
+      golden_positions.append(world_pos)
 
   multimesh.instance_count = visible_grass.size()
 
@@ -244,6 +295,26 @@ func update_multimesh() -> void:
     t.origin = visible_grass[i]
     multimesh.set_instance_transform_2d(i, t)
     multimesh.set_instance_color(i, colors_list[i])
+
+  # 황금풀 주변 반짝이 업데이트
+  update_sparkles(golden_positions)
+
+func update_sparkles(golden_positions: Array) -> void:
+  var total = golden_positions.size() * SPARKLES_PER_GOLDEN
+  sparkle_mm.instance_count = total
+  var idx = 0
+  for gpos in golden_positions:
+    # 위치 기반 시드로 안정적인 랜덤 오프셋
+    var seed_val = hash(Vector2i(int(gpos.x), int(gpos.y)))
+    for j in SPARKLES_PER_GOLDEN:
+      var angle = fmod(float(seed_val + j * 2654435761) / 2147483647.0, 1.0) * TAU
+      var dist = fmod(float(seed_val + j * 1013904223) / 2147483647.0, 1.0) * SPARKLE_RADIUS + 10.0
+      var offset = Vector2(cos(angle) * dist, sin(angle) * dist - 20.0)
+      var t = Transform2D()
+      t.origin = gpos + offset
+      sparkle_mm.set_instance_transform_2d(idx, t)
+      sparkle_mm.set_instance_color(idx, Color(1.0, 1.0, 0.7, 1.0))
+      idx += 1
 
 # Called by player to attack grass in range
 func attack_grass_in_area(center: Vector2, radius: float) -> int:
