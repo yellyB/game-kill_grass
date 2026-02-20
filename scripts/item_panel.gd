@@ -312,7 +312,7 @@ func _refresh_final_assembly() -> void:
 
 func _create_undiscovered_slot() -> PanelContainer:
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(130, 160)
+  slot.custom_minimum_size = Vector2(200, 160)
 
   var style = StyleBoxFlat.new()
   style.bg_color = Color(0.08, 0.08, 0.12)
@@ -350,7 +350,7 @@ func _create_active_slot(item_id: String, image_path: String, count: int) -> Pan
 
 func _create_base_material_slot(item_id: String, image_path: String, count: int) -> PanelContainer:
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(130, 160)
+  slot.custom_minimum_size = Vector2(200, 160)
 
   var style = StyleBoxFlat.new()
   style.bg_color = Color(0.15, 0.15, 0.22)
@@ -418,7 +418,7 @@ func _create_final_assembly_card() -> PanelContainer:
   var can_craft = _can_craft(FINAL_RECIPE)
 
   var card = PanelContainer.new()
-  card.custom_minimum_size = Vector2(400, 0)
+  card.custom_minimum_size = Vector2(816, 0)
 
   var style = StyleBoxFlat.new()
   if can_craft:
@@ -450,24 +450,18 @@ func _create_final_assembly_card() -> PanelContainer:
   main_vbox.add_theme_constant_override("separation", 10)
   card.add_child(main_vbox)
 
-  var hbox = HBoxContainer.new()
-  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  hbox.add_theme_constant_override("separation", 16)
-  main_vbox.add_child(hbox)
+  # 첫째 줄: [아이콘][이름]
+  var top_hbox = HBoxContainer.new()
+  top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  top_hbox.add_theme_constant_override("separation", 10)
+  main_vbox.add_child(top_hbox)
 
-  # Icon
   var icon_label = Label.new()
   icon_label.text = "?" if not all_parts_ready else FINAL_RECIPE.icon
   icon_label.add_theme_font_size_override("font_size", 56)
   if not all_parts_ready:
     icon_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4))
-  hbox.add_child(icon_label)
-
-  # Info
-  var info_vbox = VBoxContainer.new()
-  info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  info_vbox.add_theme_constant_override("separation", 6)
-  hbox.add_child(info_vbox)
+  top_hbox.add_child(icon_label)
 
   var name_label = Label.new()
   name_label.text = "???" if not all_parts_ready else FINAL_RECIPE.id
@@ -475,8 +469,9 @@ func _create_final_assembly_card() -> PanelContainer:
   name_label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.4) if not all_parts_ready else Color(1, 0.9, 0.5))
   name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   name_label.add_theme_constant_override("outline_size", 2)
-  info_vbox.add_child(name_label)
+  top_hbox.add_child(name_label)
 
+  # 둘째 줄: [수량]
   var summary = Label.new()
   if not all_parts_ready:
     summary.text = "부품을 모두 모으면 해금"
@@ -485,7 +480,8 @@ func _create_final_assembly_card() -> PanelContainer:
     summary.text = "부품 %d/%d" % [parts_fulfilled, parts_total]
     summary.add_theme_color_override("font_color", Color(0.5, 0.4, 0.3))
   summary.add_theme_font_size_override("font_size", 20)
-  info_vbox.add_child(summary)
+  summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  main_vbox.add_child(summary)
 
   # Clickable overlay (only when all parts ready)
   if all_parts_ready:
@@ -508,7 +504,7 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   var complete: bool = count >= needed
 
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(260, 110)
+  slot.custom_minimum_size = Vector2(400, 110)
 
   var style = StyleBoxFlat.new()
   if complete or can_craft:
@@ -536,36 +532,38 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   if complete:
     slot.modulate = Color(1, 1, 1, 0.5)
 
-  var hbox = HBoxContainer.new()
-  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  hbox.add_theme_constant_override("separation", 14)
-  slot.add_child(hbox)
+  var main_vbox = VBoxContainer.new()
+  main_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  main_vbox.add_theme_constant_override("separation", 4)
+  slot.add_child(main_vbox)
 
-  # Icon emoji
+  # 첫째 줄: [아이콘][이름]
+  var top_hbox = HBoxContainer.new()
+  top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  top_hbox.add_theme_constant_override("separation", 8)
+  main_vbox.add_child(top_hbox)
+
   var icon_label = Label.new()
   icon_label.text = recipe.icon
   icon_label.add_theme_font_size_override("font_size", 44)
-  hbox.add_child(icon_label)
+  top_hbox.add_child(icon_label)
 
-  # Info column
-  var info_vbox = VBoxContainer.new()
-  info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  info_vbox.add_theme_constant_override("separation", 4)
-  hbox.add_child(info_vbox)
+  var info_vbox = main_vbox
 
   var name_label = Label.new()
   name_label.text = item_id
-  name_label.add_theme_font_size_override("font_size", 22)
+  name_label.add_theme_font_size_override("font_size", 28)
   if complete:
     name_label.add_theme_color_override("font_color", Color(0.7, 0.6, 0.3))
   else:
     name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
-  info_vbox.add_child(name_label)
+  top_hbox.add_child(name_label)
 
   # Count: 보유/필요
   var count_label = Label.new()
   count_label.text = "%d/%d" % [count, needed]
-  count_label.add_theme_font_size_override("font_size", 20)
+  count_label.add_theme_font_size_override("font_size", 22)
+  count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   if complete:
     count_label.add_theme_color_override("font_color", Color(0.6, 0.5, 0.2))
   elif can_craft:
