@@ -359,11 +359,8 @@ func spawn_coin(pos: Vector2, value: int) -> void:
   coin.set_value(value)
   get_parent().add_child(coin)
 
-const POWERUP_TYPES: Array = ["attack_speed", "attack_range", "magnet_range"]
-
 func spawn_powerup(pos: Vector2) -> void:
   var PowerupScene = preload("res://scenes/world/powerup.tscn")
   var powerup = PowerupScene.instantiate()
   powerup.position = pos
-  powerup.powerup_type = POWERUP_TYPES[randi() % POWERUP_TYPES.size()]
   get_parent().add_child(powerup)
