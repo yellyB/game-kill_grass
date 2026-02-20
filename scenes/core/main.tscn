@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cmain123"]
+[gd_scene load_steps=14 format=3 uid="uid://cmain123"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/world_root.gd" id="2_world"]
@@ -8,21 +8,14 @@
 [ext_resource type="Script" path="res://scripts/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" uid="uid://chud123" path="res://scenes/ui/hud.tscn" id="7_hud"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="8_upgrade"]
-[ext_resource type="PackedScene" uid="uid://cweaponshop" path="res://scenes/ui/weapon_shop.tscn" id="11_weaponshop"]
 [ext_resource type="PackedScene" uid="uid://cjoystick123" path="res://scenes/ui/virtual_joystick.tscn" id="10_joystick"]
+[ext_resource type="PackedScene" uid="uid://cweaponshop" path="res://scenes/ui/weapon_shop.tscn" id="11_weaponshop"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 30.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_attack"]
 radius = 80.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.1, 0.1, 0.15, 0.95)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
 bg_color = Color(0.15, 0.15, 0.2, 0.98)
@@ -46,14 +39,11 @@ color = Color(0.18, 0.35, 0.18, 1)
 
 [node name="GrassSpawner" type="Node2D" parent="WorldRoot" groups=["grass_spawner"]]
 script = ExtResource("3_spawner")
-chunk_size = 400.0
-render_distance = 2
 
 [node name="MonsterSpawner" type="Node2D" parent="WorldRoot"]
 script = ExtResource("4_mspawner")
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
-collision_layer = 1
 collision_mask = 2
 script = ExtResource("5_player")
 
@@ -78,7 +68,6 @@ color = Color(0.32, 0.32, 0.35, 1)
 polygon = PackedVector2Array(-4, -5, 4, -5, 3, 15, -3, 15)
 
 [node name="Body" type="Polygon2D" parent="Player/PlayerVisual"]
-position = Vector2(0, 0)
 color = Color(0.45, 0.55, 0.45, 1)
 polygon = PackedVector2Array(-12, -12, 12, -12, 10, 22, -10, 22)
 
@@ -124,7 +113,6 @@ wait_time = 0.2
 one_shot = true
 
 [node name="WeaponPivot" type="Node2D" parent="Player"]
-position = Vector2(0, 0)
 
 [node name="GameCamera" type="Camera2D" parent="Player"]
 script = ExtResource("6_camera")
@@ -136,6 +124,7 @@ script = ExtResource("6_camera")
 [node name="WeaponShop" parent="." instance=ExtResource("11_weaponshop")]
 
 [node name="VirtualJoystick" parent="." instance=ExtResource("10_joystick")]
+layout_mode = 3
 
 [node name="BackToMenuUI" type="CanvasLayer" parent="."]
 
@@ -155,8 +144,8 @@ theme_override_font_sizes/font_size = 28
 text = "처음으로"
 
 [node name="ConfirmDialog" type="Control" parent="BackToMenuUI"]
-visible = false
 process_mode = 3
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -218,8 +207,8 @@ theme_override_font_sizes/font_size = 22
 text = "게임 계속하기"
 
 [node name="SessionEndOverlay" type="Control" parent="BackToMenuUI"]
-visible = false
 process_mode = 3
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
