@@ -51,7 +51,8 @@ signal inventory_changed()
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
 var _sfx_craft: AudioStreamPlayer
-var _sfx_upgrade: AudioStreamPlayer
+var _sfx_weapon_upgrade: AudioStreamPlayer
+var _sfx_skill_upgrade: AudioStreamPlayer
 var _sfx_unlock: AudioStreamPlayer
 
 func _ready() -> void:
@@ -70,10 +71,14 @@ func _ready() -> void:
 	_sfx_craft.stream = preload("res://resources/sounds/effect/item_craft_short_hammer.wav")
 	_sfx_craft.volume_db = -3.0
 	add_child(_sfx_craft)
-	_sfx_upgrade = AudioStreamPlayer.new()
-	_sfx_upgrade.stream = preload("res://resources/sounds/effect/upgrade_success.wav")
-	_sfx_upgrade.volume_db = -3.0
-	add_child(_sfx_upgrade)
+	_sfx_weapon_upgrade = AudioStreamPlayer.new()
+	_sfx_weapon_upgrade.stream = preload("res://resources/sounds/effect/weapon_upgrade_success.wav")
+	_sfx_weapon_upgrade.volume_db = -3.0
+	add_child(_sfx_weapon_upgrade)
+	_sfx_skill_upgrade = AudioStreamPlayer.new()
+	_sfx_skill_upgrade.stream = preload("res://resources/sounds/effect/skill_upgrade_success.wav")
+	_sfx_skill_upgrade.volume_db = -3.0
+	add_child(_sfx_skill_upgrade)
 	_sfx_unlock = AudioStreamPlayer.new()
 	_sfx_unlock.stream = preload("res://resources/sounds/effect/unlock_world.wav")
 	_sfx_unlock.volume_db = -3.0
@@ -88,8 +93,11 @@ func play_confirm_click() -> void:
 func play_craft_sound() -> void:
 	_sfx_craft.play()
 
-func play_upgrade_sound() -> void:
-	_sfx_upgrade.play()
+func play_weapon_upgrade_sound() -> void:
+	_sfx_weapon_upgrade.play()
+
+func play_skill_upgrade_sound() -> void:
+	_sfx_skill_upgrade.play()
 
 func play_unlock_sound() -> void:
 	_sfx_unlock.play()

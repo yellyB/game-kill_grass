@@ -241,7 +241,7 @@ func _on_confirm_pressed() -> void:
     return
 
   if GameManager.purchase_upgrade(selected_upgrade):
-    GameManager.play_upgrade_sound()
+    GameManager.play_skill_upgrade_sound()
     SaveManager.save_game()
     update_button_texts()
     update_description()
