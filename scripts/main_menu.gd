@@ -53,11 +53,21 @@ func _ready() -> void:
     _build_debug_buttons()
 
   # 버튼 스타일 적용
-  _apply_button_style(play_btn, Color(0.3, 0.75, 0.45), Color(0.2, 0.55, 0.3), "▶", "PLAY")
+  _apply_button_style(play_btn, Color(0.3, 0.75, 0.45), Color(0.2, 0.55, 0.3), "▶", "PLAY", 122)
   _apply_button_style(weapon_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "⚔", "무기")
   _apply_button_style(upgrade_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "⬆", "강화")
   _apply_button_style(item_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "🎒", "아이템")
   _apply_button_style(quit_btn, Color(0.5, 0.5, 0.55), Color(0.35, 0.35, 0.4), "✕", "QUIT")
+
+  # PLAY 버튼: 화면 너비의 50%
+  var viewport_w = get_viewport_rect().size.x
+  play_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+  play_btn.custom_minimum_size.x = viewport_w * 0.5
+
+  # 나머지 버튼 오른쪽 정렬 + 고정 너비
+  for btn in [weapon_btn, upgrade_btn, item_btn, quit_btn]:
+    btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+    btn.custom_minimum_size.x = 360
 
   # Title animation
   animate_title()
@@ -75,7 +85,7 @@ func _start_menu_bgm() -> void:
   add_child(_menu_bgm)
   _menu_bgm.play()
 
-func _apply_button_style(btn: Button, main_color: Color, shadow_color: Color, icon: String, label_text: String) -> void:
+func _apply_button_style(btn: Button, main_color: Color, shadow_color: Color, icon: String, label_text: String, font_size: int = 28) -> void:
   # 버튼 기본 텍스트 제거
   btn.text = ""
   btn.clip_text = false
@@ -134,14 +144,14 @@ func _apply_button_style(btn: Button, main_color: Color, shadow_color: Color, ic
 
   var icon_label = Label.new()
   icon_label.text = icon
-  icon_label.add_theme_font_size_override("font_size", 30)
+  icon_label.add_theme_font_size_override("font_size", font_size + 2)
   icon_label.add_theme_color_override("font_color", Color(1, 1, 1))
   icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
   hbox.add_child(icon_label)
 
   var text_label = Label.new()
   text_label.text = label_text
-  text_label.add_theme_font_size_override("font_size", 28)
+  text_label.add_theme_font_size_override("font_size", font_size)
   text_label.add_theme_color_override("font_color", Color(1, 1, 1))
   text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.3))
   text_label.add_theme_constant_override("outline_size", 3)

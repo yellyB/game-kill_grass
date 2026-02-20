@@ -18,6 +18,7 @@ script = ExtResource("1_menu")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -200.0
@@ -31,13 +32,14 @@ stretch_mode = 6
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 50.0
-offset_bottom = 750.0
+offset_left = -216.0
+offset_top = 107.0
+offset_right = 216.0
+offset_bottom = 1087.0
 grow_horizontal = 2
 texture = ExtResource("6_title")
 expand_mode = 1
 stretch_mode = 5
-
 
 [node name="MoneyLabel" type="Label" parent="."]
 layout_mode = 1
@@ -59,42 +61,45 @@ vertical_alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 5
+anchors_preset = 7
 anchor_left = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-offset_left = -150.0
-offset_top = 870.0
-offset_right = 150.0
-offset_bottom = 1200.0
+anchor_bottom = 1.0
+offset_left = -490.0
+offset_top = -680.0
+offset_right = 490.0
+offset_bottom = -80.0
 grow_horizontal = 2
+grow_vertical = 0
 theme_override_constants/separation = 20
 
 [node name="PlayBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 80)
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "PLAY"
 
 [node name="WeaponBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "무기"
 
 [node name="UpgradeBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "강화"
 
 [node name="ItemBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "아이템"
 
 [node name="QuitBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "QUIT"

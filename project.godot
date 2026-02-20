@@ -26,8 +26,8 @@ WeaponManager="*res://autoload/weapon_manager.gd"
 
 window/size/viewport_width=1080
 window/size/viewport_height=1920
-window/size/window_width_override=405
-window/size/window_height_override=720
+window/size/window_width_override=1215
+window/size/window_height_override=2160
 window/stretch/mode="viewport"
 window/stretch/aspect="keep_width"
 window/handheld/orientation=1
