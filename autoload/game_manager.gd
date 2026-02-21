@@ -123,6 +123,57 @@ func play_skill_upgrade_sound() -> void:
 func play_unlock_sound() -> void:
   _sfx_unlock.play()
 
+# ── Shared Button Style ──
+
+func style_button(btn: Button, main_color: Color) -> void:
+  var shadow_color = main_color.darkened(0.3)
+
+  # Normal
+  var style_n = StyleBoxFlat.new()
+  style_n.bg_color = main_color
+  style_n.corner_radius_top_left = 18
+  style_n.corner_radius_top_right = 18
+  style_n.corner_radius_bottom_left = 18
+  style_n.corner_radius_bottom_right = 18
+  style_n.border_width_bottom = 6
+  style_n.border_color = shadow_color
+  style_n.content_margin_left = 24
+  style_n.content_margin_right = 24
+  style_n.content_margin_top = 12
+  style_n.content_margin_bottom = 14
+  btn.add_theme_stylebox_override("normal", style_n)
+
+  # Hover
+  var style_h = style_n.duplicate()
+  style_h.bg_color = main_color.lightened(0.1)
+  btn.add_theme_stylebox_override("hover", style_h)
+
+  # Pressed
+  var style_p = StyleBoxFlat.new()
+  style_p.bg_color = main_color.darkened(0.1)
+  style_p.corner_radius_top_left = 18
+  style_p.corner_radius_top_right = 18
+  style_p.corner_radius_bottom_left = 18
+  style_p.corner_radius_bottom_right = 18
+  style_p.border_width_bottom = 2
+  style_p.border_color = shadow_color
+  style_p.content_margin_left = 24
+  style_p.content_margin_right = 24
+  style_p.content_margin_top = 16
+  style_p.content_margin_bottom = 10
+  btn.add_theme_stylebox_override("pressed", style_p)
+
+  # Disabled
+  var style_d = style_n.duplicate()
+  style_d.bg_color = main_color.darkened(0.4)
+  style_d.border_color = shadow_color.darkened(0.4)
+  btn.add_theme_stylebox_override("disabled", style_d)
+
+  # Font colors
+  btn.add_theme_color_override("font_color", Color.WHITE)
+  btn.add_theme_color_override("font_hover_color", Color.WHITE)
+  btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+  btn.add_theme_color_override("font_disabled_color", Color(0.65, 0.65, 0.7))
 
 func _process(delta: float) -> void:
   # Don't tick timed buffs while game is paused

@@ -15,7 +15,7 @@ var is_dead: bool = false
 func _ready() -> void:
 	add_to_group("monsters")
 
-func take_damage(_amount: int) -> void:
+func take_damage(_amount: int, _from_global_pos: Variant = null) -> void:
 	if is_dead:
 		return
 	health -= 1

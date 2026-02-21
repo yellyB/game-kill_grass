@@ -229,12 +229,14 @@ func _show_quit_confirm() -> void:
   confirm.text = "확인"
   confirm.custom_minimum_size = Vector2(120, 50)
   confirm.add_theme_font_size_override("font_size", 22)
+  GameManager.style_button(confirm, Color(0.7, 0.3, 0.25))
   btn_row.add_child(confirm)
 
   var cancel = Button.new()
   cancel.text = "취소"
   cancel.custom_minimum_size = Vector2(120, 50)
   cancel.add_theme_font_size_override("font_size", 22)
+  GameManager.style_button(cancel, Color(0.45, 0.45, 0.5))
   btn_row.add_child(cancel)
 
   confirm.pressed.connect(func():
@@ -343,6 +345,7 @@ func _open_world_select() -> void:
   _ws_action_btn.custom_minimum_size = Vector2(350, 75)
   _ws_action_btn.add_theme_font_size_override("font_size", 35)
   _ws_action_btn.pressed.connect(_on_action_btn_pressed)
+  GameManager.style_button(_ws_action_btn, Color(0.3, 0.75, 0.45))
   action_center.add_child(_ws_action_btn)
   _ws_update_action_btn()
 
@@ -356,6 +359,7 @@ func _open_world_select() -> void:
   close_btn.custom_minimum_size = Vector2(240, 62)
   close_btn.add_theme_font_size_override("font_size", 30)
   close_btn.pressed.connect(_close_world_select)
+  GameManager.style_button(close_btn, Color(0.45, 0.45, 0.5))
   close_center.add_child(close_btn)
 
 func _ws_rebuild_cards() -> void:
@@ -567,22 +571,22 @@ func _build_debug_buttons() -> void:
   var reset_btn = Button.new()
   reset_btn.text = "초기화"
   reset_btn.add_theme_font_size_override("font_size", 18)
-  reset_btn.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
   reset_btn.pressed.connect(_on_debug_reset)
+  GameManager.style_button(reset_btn, Color(0.7, 0.3, 0.25))
   container.add_child(reset_btn)
 
   var money_btn = Button.new()
   money_btn.text = "+$100000"
   money_btn.add_theme_font_size_override("font_size", 18)
-  money_btn.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
   money_btn.pressed.connect(_on_debug_add_money)
+  GameManager.style_button(money_btn, Color(0.7, 0.6, 0.15))
   container.add_child(money_btn)
 
   var items_btn = Button.new()
   items_btn.text = "아이템+10"
   items_btn.add_theme_font_size_override("font_size", 18)
-  items_btn.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
   items_btn.pressed.connect(_on_debug_add_items)
+  GameManager.style_button(items_btn, Color(0.2, 0.55, 0.7))
   container.add_child(items_btn)
 
 func _on_debug_reset() -> void:

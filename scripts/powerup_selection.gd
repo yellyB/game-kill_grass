@@ -160,22 +160,39 @@ func _build_ui() -> void:
 		else:
 			btn.text = "%s\n%s" % [data.name, data.desc]
 
-		# Color tint via stylebox
+		# Color tint via stylebox (main menu button style)
+		var main_color = Color(data.color, 0.35)
+		var shadow_color = data.color.darkened(0.4)
+
 		var style = StyleBoxFlat.new()
-		style.bg_color = Color(data.color, 0.25)
-		style.border_color = data.color
-		style.set_border_width_all(3)
-		style.set_corner_radius_all(12)
-		style.set_content_margin_all(12)
+		style.bg_color = main_color
+		style.set_corner_radius_all(18)
+		style.border_width_bottom = 6
+		style.border_color = shadow_color
+		style.content_margin_left = 24
+		style.content_margin_right = 24
+		style.content_margin_top = 12
+		style.content_margin_bottom = 14
 		btn.add_theme_stylebox_override("normal", style)
 
 		var hover_style = style.duplicate()
-		hover_style.bg_color = Color(data.color, 0.45)
+		hover_style.bg_color = Color(data.color, 0.5)
 		btn.add_theme_stylebox_override("hover", hover_style)
 
-		var pressed_style = style.duplicate()
+		var pressed_style = StyleBoxFlat.new()
 		pressed_style.bg_color = Color(data.color, 0.6)
+		pressed_style.set_corner_radius_all(18)
+		pressed_style.border_width_bottom = 2
+		pressed_style.border_color = shadow_color
+		pressed_style.content_margin_left = 24
+		pressed_style.content_margin_right = 24
+		pressed_style.content_margin_top = 16
+		pressed_style.content_margin_bottom = 10
 		btn.add_theme_stylebox_override("pressed", pressed_style)
+
+		btn.add_theme_color_override("font_color", Color.WHITE)
+		btn.add_theme_color_override("font_hover_color", Color.WHITE)
+		btn.add_theme_color_override("font_pressed_color", Color.WHITE)
 
 		btn.pressed.connect(_on_selected.bind(data.type))
 		center.add_child(btn)
