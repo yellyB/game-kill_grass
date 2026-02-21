@@ -45,6 +45,7 @@ const WORLD_GRASS_COLORS: Array = [
 
 var player: Node2D = null
 var player_attack_area: Area2D = null
+var _has_active_hp_bars: bool = false
 
 func _ready() -> void:
   setup_multimesh()
@@ -150,9 +151,12 @@ func _process(delta: float) -> void:
   if not player:
     return
 
+  _has_active_hp_bars = false
   update_chunks()
   process_regen(delta)
   update_multimesh()
+  if _has_active_hp_bars:
+    queue_redraw()
 
 func get_chunk_coord(world_pos: Vector2) -> Vector2i:
   return Vector2i(floori(world_pos.x / chunk_size), floori(world_pos.y / chunk_size))
@@ -240,6 +244,10 @@ func process_regen(delta: float) -> void:
     # Process hit flash timer
     if data.has("hit_timer") and data.hit_timer > 0:
       data.hit_timer -= delta
+    # Process health bar display timer
+    if data.has("hp_bar_timer") and data.hp_bar_timer > 0:
+      data.hp_bar_timer -= delta
+      _has_active_hp_bars = true
     if data.cut:
       data.regen_timer += delta
       if data.regen_timer >= data.regen_time:
@@ -336,6 +344,8 @@ func attack_grass_in_area(center: Vector2, radius: float) -> int:
     if distance <= radius:
       data.health -= damage
       data.hit_timer = 0.1  # White flash for 0.1 seconds
+      if data.health > 0:
+        data.hp_bar_timer = 1.5  # Show health bar for 1.5 seconds
       if data.health <= 0:
         data.cut = true
         data.regen_timer = 0.0
@@ -403,3 +413,32 @@ func _on_blackhole() -> void:
   for coin in coins:
     if is_instance_valid(coin) and not coin.is_collected:
       coin.is_being_collected = true
+
+func _draw() -> void:
+  if not _has_active_hp_bars:
+    return
+  var bar_width: float = 60.0
+  var bar_height: float = 9.0
+  var y_offset: float = -45.0
+  for grid_pos in grass_data:
+    var data = grass_data[grid_pos]
+    if data.cut:
+      continue
+    if not data.has("hp_bar_timer") or data.hp_bar_timer <= 0:
+      continue
+    if data.health >= data.max_health:
+      continue
+    var hp_ratio: float = clampf(float(data.health) / float(data.max_health), 0.0, 1.0)
+    var alpha: float = 1.0
+    if data.hp_bar_timer < 0.5:
+      alpha = data.hp_bar_timer / 0.5
+    var world_pos = Vector2(grid_pos.x, grid_pos.y)
+    var bar_pos = world_pos + Vector2(-bar_width * 0.5, y_offset)
+    # Background
+    var bg_color = Color(0.2, 0.2, 0.2, alpha * 0.8)
+    draw_rect(Rect2(bar_pos, Vector2(bar_width, bar_height)), bg_color)
+    # Fill — green to red based on health
+    var fill_color = Color(1.0 - hp_ratio, hp_ratio, 0.0, alpha)
+    var fill_width = bar_width * hp_ratio
+    if fill_width > 0:
+      draw_rect(Rect2(bar_pos, Vector2(fill_width, bar_height)), fill_color)
