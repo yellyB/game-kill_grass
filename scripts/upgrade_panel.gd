@@ -14,9 +14,7 @@ signal panel_closed
 
 # Weapon nodes
 @onready var weapon_image: TextureRect = $Panel/WeaponSection/WeaponHBox/WeaponImage
-@onready var weapon_name_label: Label = $Panel/WeaponSection/WeaponHBox/WeaponInfo/WeaponNameLabel
-@onready var weapon_stats_label: Label = $Panel/WeaponSection/WeaponHBox/WeaponInfo/WeaponStatsLabel
-@onready var weapon_upgrade_btn: Button = $Panel/WeaponSection/WeaponHBox/WeaponInfo/WeaponUpgradeBtn
+@onready var weapon_info_vbox: VBoxContainer = $Panel/WeaponSection/WeaponHBox/WeaponInfo
 
 var is_open: bool = false
 var show_toggle_button: bool = true
@@ -69,8 +67,6 @@ func _ready() -> void:
   toggle_btn.pressed.connect(_on_toggle_pressed)
   close_btn.pressed.connect(_on_close_pressed)
   confirm_btn.pressed.connect(_on_confirm_pressed)
-
-  weapon_upgrade_btn.pressed.connect(_on_weapon_select_pressed)
 
   GameManager.money_changed.connect(_on_money_changed)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
@@ -128,37 +124,240 @@ func _on_other_panel_closed() -> void:
 
 # ── Weapon ──
 
-func _on_weapon_select_pressed() -> void:
-  GameManager.play_button_click()
-  selected_type = "weapon"
-  selected_level = -1
-  update_description()
-  update_confirm_button()
-
 func _on_weapon_changed(_level: int) -> void:
   update_weapon_display()
-  if selected_type == "weapon":
-    update_description()
-    update_confirm_button()
+
+var current_weapon_title: Label = null
+var current_weapon_label: Label = null
+var next_weapon_arrow: Label = null
+var next_weapon_panel: PanelContainer = null
+var next_weapon_image: TextureRect = null
+var next_weapon_title: Label = null
+var next_weapon_label: Label = null
+var next_weapon_vbox: VBoxContainer = null
+var weapon_price_label: Label = null
+var weapon_buy_btn: Button = null
+var weapon_right_vbox: VBoxContainer = null
+var weapon_hbox: HBoxContainer = null
+
+func _ensure_next_weapon_nodes() -> void:
+  if next_weapon_arrow:
+    return
+  weapon_hbox = weapon_image.get_parent()
+  var img_index = weapon_image.get_index()
+
+  # Remove original WeaponInfo (replaced by image labels)
+  weapon_info_vbox.queue_free()
+
+  # Wrap current weapon image in PanelContainer with border
+  var current_panel = PanelContainer.new()
+  var current_style = StyleBoxFlat.new()
+  current_style.bg_color = Color(0.12, 0.12, 0.18)
+  current_style.corner_radius_top_left = 10
+  current_style.corner_radius_top_right = 10
+  current_style.corner_radius_bottom_left = 10
+  current_style.corner_radius_bottom_right = 10
+  current_style.border_width_top = 2
+  current_style.border_width_bottom = 2
+  current_style.border_width_left = 2
+  current_style.border_width_right = 2
+  current_style.border_color = Color(0.3, 0.5, 0.7)
+  current_style.content_margin_left = 8
+  current_style.content_margin_right = 8
+  current_style.content_margin_top = 8
+  current_style.content_margin_bottom = 8
+  current_panel.add_theme_stylebox_override("panel", current_style)
+  weapon_hbox.add_child(current_panel)
+  weapon_hbox.move_child(current_panel, img_index)
+  var current_vbox = VBoxContainer.new()
+  current_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  current_vbox.add_theme_constant_override("separation", 2)
+  current_panel.add_child(current_vbox)
+  current_weapon_title = Label.new()
+  current_weapon_title.text = "보유 무기"
+  current_weapon_title.add_theme_font_size_override("font_size", 22)
+  current_weapon_title.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
+  current_weapon_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  current_vbox.add_child(current_weapon_title)
+  weapon_image.reparent(current_vbox)
+  current_weapon_label = Label.new()
+  current_weapon_label.add_theme_font_size_override("font_size", 20)
+  current_weapon_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))
+  current_weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  current_vbox.add_child(current_weapon_label)
+
+  # Arrow
+  next_weapon_arrow = Label.new()
+  next_weapon_arrow.text = "→"
+  next_weapon_arrow.add_theme_font_size_override("font_size", 40)
+  next_weapon_arrow.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+  next_weapon_arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+  weapon_hbox.add_child(next_weapon_arrow)
+  weapon_hbox.move_child(next_weapon_arrow, current_panel.get_index() + 1)
+
+  # Next weapon card with border
+  var next_panel = PanelContainer.new()
+  var next_style = StyleBoxFlat.new()
+  next_style.bg_color = Color(0.15, 0.13, 0.1)
+  next_style.corner_radius_top_left = 10
+  next_style.corner_radius_top_right = 10
+  next_style.corner_radius_bottom_left = 10
+  next_style.corner_radius_bottom_right = 10
+  next_style.border_width_top = 2
+  next_style.border_width_bottom = 2
+  next_style.border_width_left = 2
+  next_style.border_width_right = 2
+  next_style.border_color = Color(0.7, 0.55, 0.15)
+  next_style.content_margin_left = 8
+  next_style.content_margin_right = 8
+  next_style.content_margin_top = 8
+  next_style.content_margin_bottom = 8
+  next_panel.add_theme_stylebox_override("panel", next_style)
+  next_weapon_panel = next_panel
+  weapon_hbox.add_child(next_panel)
+  weapon_hbox.move_child(next_panel, next_weapon_arrow.get_index() + 1)
+
+  next_weapon_vbox = VBoxContainer.new()
+  next_weapon_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  next_weapon_vbox.add_theme_constant_override("separation", 2)
+  next_panel.add_child(next_weapon_vbox)
+
+  next_weapon_title = Label.new()
+  next_weapon_title.text = "다음 무기"
+  next_weapon_title.add_theme_font_size_override("font_size", 22)
+  next_weapon_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+  next_weapon_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  next_weapon_vbox.add_child(next_weapon_title)
+
+  next_weapon_image = TextureRect.new()
+  next_weapon_image.custom_minimum_size = Vector2(150, 150)
+  next_weapon_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+  next_weapon_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  next_weapon_vbox.add_child(next_weapon_image)
+
+  next_weapon_label = Label.new()
+  next_weapon_label.add_theme_font_size_override("font_size", 20)
+  next_weapon_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+  next_weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  next_weapon_vbox.add_child(next_weapon_label)
+
+  # Right side: price + buy button
+  weapon_right_vbox = VBoxContainer.new()
+  weapon_right_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  weapon_right_vbox.add_theme_constant_override("separation", 10)
+  weapon_right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  weapon_hbox.add_child(weapon_right_vbox)
+
+  weapon_buy_btn = Button.new()
+  weapon_buy_btn.text = "구매"
+  weapon_buy_btn.custom_minimum_size = Vector2(0, 60)
+  weapon_buy_btn.add_theme_font_size_override("font_size", 26)
+  weapon_buy_btn.pressed.connect(_on_weapon_buy_pressed)
+  weapon_right_vbox.add_child(weapon_buy_btn)
+
+func _on_weapon_buy_pressed() -> void:
+  GameManager.play_confirm_click()
+  if WeaponManager.purchase_next_weapon():
+    GameManager.play_weapon_upgrade_sound()
+    SaveManager.save_game()
+    _animate_weapon_upgrade()
+    update_money_display()
+
+func _animate_weapon_upgrade() -> void:
+  # Current weapon already updated in WeaponManager
+  var current = WeaponManager.get_current_weapon()
+  var next = WeaponManager.get_next_weapon()
+
+  # Update current weapon card immediately
+  weapon_image.texture = WeaponManager.get_weapon_texture()
+  current_weapon_label.text = "%s\n대미지 %d" % [current.name, current.damage]
+
+  # Slide current card: slight scale pop
+  var tween = create_tween()
+  weapon_image.scale = Vector2(1.3, 1.3)
+  tween.tween_property(weapon_image, "scale", Vector2(1.0, 1.0), 0.2)
+
+  # Update and animate next weapon card sliding in from right
+  if not next.is_empty():
+    var next_level = WeaponManager.current_weapon_level + 1
+    if next_level < WeaponManager.weapon_textures.size():
+      next_weapon_image.texture = WeaponManager.weapon_textures[next_level]
+    next_weapon_label.text = "%s\n대미지 %d" % [next.name, next.damage]
+    # Slide in from right
+    next_weapon_panel.modulate = Color(1, 1, 1, 0)
+    var slide_tween = create_tween()
+    slide_tween.tween_property(next_weapon_panel, "modulate:a", 1.0, 0.3).set_delay(0.15)
+  else:
+    next_weapon_arrow.visible = false
+    next_weapon_panel.visible = false
+
+  _update_weapon_buy_button()
 
 func update_weapon_display() -> void:
+  _ensure_next_weapon_nodes()
   var current = WeaponManager.get_current_weapon()
   weapon_image.texture = WeaponManager.get_weapon_texture()
-  weapon_name_label.text = current.name
-  weapon_stats_label.text = "대미지: %d" % current.damage
+  current_weapon_label.text = "%s\n대미지 %d" % [current.name, current.damage]
 
   var next = WeaponManager.get_next_weapon()
   if next.is_empty():
-    weapon_upgrade_btn.text = "최고 단계"
-    weapon_upgrade_btn.disabled = true
+    next_weapon_arrow.visible = false
+    next_weapon_panel.visible = false
+    weapon_right_vbox.visible = false
   else:
+    next_weapon_arrow.visible = true
+    next_weapon_panel.visible = true
+    weapon_right_vbox.visible = true
+    var next_level = WeaponManager.current_weapon_level + 1
+    if next_level < WeaponManager.weapon_textures.size():
+      next_weapon_image.texture = WeaponManager.weapon_textures[next_level]
+    next_weapon_label.text = "%s\n대미지 %d" % [next.name, next.damage]
+  _update_weapon_buy_button()
+
+func _update_weapon_buy_button() -> void:
+  var next = WeaponManager.get_next_weapon()
+  if next.is_empty():
+    weapon_right_vbox.visible = false
+    _update_next_weapon_card_style(false)
+    return
+  if not WeaponManager.has_enough_skill_points():
     var skill_req = WeaponManager.get_next_weapon_skill_requirement()
     var total_skill = GameManager.get_total_skill_level()
-    if not WeaponManager.has_enough_skill_points():
-      weapon_upgrade_btn.text = "%s  $%s\n(스킬 %d/%d 필요)" % [next.name, format_number(next.price), total_skill, skill_req]
-    else:
-      weapon_upgrade_btn.text = "다음 무기: %s  $%s" % [next.name, format_number(next.price)]
-    weapon_upgrade_btn.disabled = false
+    weapon_buy_btn.disabled = true
+    weapon_buy_btn.text = "스킬 부족\n(%d/%d)" % [total_skill, skill_req]
+    _update_next_weapon_card_style(false)
+  elif not WeaponManager.can_upgrade():
+    weapon_buy_btn.disabled = true
+    weapon_buy_btn.text = "돈 부족"
+    _update_next_weapon_card_style(false)
+  else:
+    weapon_buy_btn.disabled = false
+    weapon_buy_btn.text = "다음 무기 구매\n$%s" % format_number(next.price)
+    _update_next_weapon_card_style(true)
+
+func _update_next_weapon_card_style(can_buy: bool) -> void:
+  if not next_weapon_panel:
+    return
+  var style = StyleBoxFlat.new()
+  style.corner_radius_top_left = 10
+  style.corner_radius_top_right = 10
+  style.corner_radius_bottom_left = 10
+  style.corner_radius_bottom_right = 10
+  style.border_width_top = 2
+  style.border_width_bottom = 2
+  style.border_width_left = 2
+  style.border_width_right = 2
+  style.content_margin_left = 8
+  style.content_margin_right = 8
+  style.content_margin_top = 8
+  style.content_margin_bottom = 8
+  if can_buy:
+    style.bg_color = Color(0.1, 0.18, 0.12)
+    style.border_color = Color(0.25, 0.6, 0.35)
+  else:
+    style.bg_color = Color(0.15, 0.13, 0.1)
+    style.border_color = Color(0.7, 0.55, 0.15)
+  next_weapon_panel.add_theme_stylebox_override("panel", style)
 
 # ── Skill Tree ──
 
@@ -291,34 +490,13 @@ func clear_selection() -> void:
   selected_level = -1
   description_label.text = "강화할 항목을 선택하세요"
   confirm_btn.disabled = true
-  confirm_btn.text = "구매"
+  confirm_btn.text = "업그레이드 하기"
 
 func update_description() -> void:
   if selected_type.is_empty():
     description_label.text = "강화할 항목을 선택하세요"
     return
-
-  if selected_type == "weapon":
-    _update_weapon_description()
-  else:
-    _update_skill_description()
-
-func _update_weapon_description() -> void:
-  var next = WeaponManager.get_next_weapon()
-  if next.is_empty():
-    description_label.text = "무기\n\n최고 단계에 도달했습니다."
-    return
-
-  var current = WeaponManager.get_current_weapon()
-  var skill_req = WeaponManager.get_next_weapon_skill_requirement()
-  var total_skill = GameManager.get_total_skill_level()
-
-  var text = "무기 업그레이드\n\n%s → %s\n대미지: %d → %d\n\n비용: $%s" % [
-    current.name, next.name, current.damage, next.damage, format_number(next.price)
-  ]
-  if not WeaponManager.has_enough_skill_points():
-    text += "\n\n스킬 부족 (%d/%d)" % [total_skill, skill_req]
-  description_label.text = text
+  _update_skill_description()
 
 func _update_skill_description() -> void:
   var chain_info: Dictionary
@@ -361,32 +539,9 @@ func _update_skill_description() -> void:
 func update_confirm_button() -> void:
   if selected_type.is_empty():
     confirm_btn.disabled = true
-    confirm_btn.text = "구매"
+    confirm_btn.text = "업그레이드 하기"
     return
 
-  if selected_type == "weapon":
-    _update_weapon_confirm()
-  else:
-    _update_skill_confirm()
-
-func _update_weapon_confirm() -> void:
-  var next = WeaponManager.get_next_weapon()
-  if next.is_empty():
-    confirm_btn.disabled = true
-    confirm_btn.text = "최대 레벨"
-    return
-
-  if not WeaponManager.has_enough_skill_points():
-    confirm_btn.disabled = true
-    confirm_btn.text = "스킬 부족"
-  elif not WeaponManager.can_upgrade():
-    confirm_btn.disabled = true
-    confirm_btn.text = "돈 부족 ($%s)" % format_number(next.price)
-  else:
-    confirm_btn.disabled = false
-    confirm_btn.text = "구매 ($%s)" % format_number(next.price)
-
-func _update_skill_confirm() -> void:
   var current_level = _get_current_level(selected_type)
   var cost = GameManager.get_upgrade_cost(current_level)
 
@@ -395,38 +550,27 @@ func _update_skill_confirm() -> void:
     confirm_btn.text = "돈 부족 ($%s)" % format_number(cost)
   else:
     confirm_btn.disabled = false
-    confirm_btn.text = "구매 ($%s)" % format_number(cost)
+    confirm_btn.text = "업그레이드 하기 ($%s)" % format_number(cost)
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
   if selected_type.is_empty():
     return
 
-  if selected_type == "weapon":
-    if WeaponManager.purchase_next_weapon():
-      GameManager.play_weapon_upgrade_sound()
-      SaveManager.save_game()
-      update_weapon_display()
-      update_money_display()
-      var tween = create_tween()
-      weapon_image.scale = Vector2(1.3, 1.3)
-      tween.tween_property(weapon_image, "scale", Vector2(1.0, 1.0), 0.2)
-      clear_selection()
-  else:
-    if GameManager.purchase_upgrade(selected_type):
-      GameManager.play_skill_upgrade_sound()
-      SaveManager.save_game()
-      update_total_skill_label()
-      build_skill_tree()
-      update_weapon_display()
-      update_money_display()
-      clear_selection()
+  if GameManager.purchase_upgrade(selected_type):
+    GameManager.play_skill_upgrade_sound()
+    SaveManager.save_game()
+    update_total_skill_label()
+    build_skill_tree()
+    update_weapon_display()
+    update_money_display()
+    clear_selection()
 
 func _on_money_changed(_amount: int) -> void:
   update_money_display()
   if is_open:
     update_confirm_button()
-    update_weapon_display()
+    _update_weapon_buy_button()
 
 func _on_upgrade_purchased(_type: String, _level: int) -> void:
   update_total_skill_label()
