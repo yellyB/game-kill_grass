@@ -20,6 +20,7 @@ var invincible_timer: float = 0.0
 const HIT_DEBUFF_DURATION: float = 1.5
 const INVINCIBLE_DURATION: float = 3.0
 const MONSTER_HIT_RADIUS: float = 45.0
+var _hit_overlay_canvas: CanvasLayer = null
 
 @onready var attack_area: Area2D = $AttackArea
 @onready var attack_shape: CollisionShape2D = $AttackArea/CollisionShape2D
@@ -94,14 +95,13 @@ func _process(delta: float) -> void:
     if hit_debuff_timer <= 0:
       is_hit_debuffed = false
       GameManager.hit_penalty_active = false
+      _remove_hit_overlay()
 
-  # Invincible timer + blinking
+  # Invincible timer
   if is_invincible:
     invincible_timer -= delta
-    player_visual.modulate.a = 0.3 if fmod(invincible_timer, 0.2) < 0.1 else 1.0
     if invincible_timer <= 0:
       is_invincible = false
-      player_visual.modulate.a = 1.0
 
   input_direction = get_input_direction()
   input_direction_changed.emit(input_direction)
@@ -366,10 +366,8 @@ func _on_monster_hit() -> void:
   GameManager.hit_penalty_active = true
   player_hit.emit()
   _drop_penalty_coins()
-  # Red flash
-  player_visual.modulate = Color(1, 0.3, 0.3)
-  var tween = create_tween()
-  tween.tween_property(player_visual, "modulate", Color(1, 1, 1, 1), 0.15)
+  # Red screen overlay for debuff duration
+  _show_hit_overlay()
 
 func _drop_penalty_coins() -> void:
   var penalty = int(GameManager.session_money * 0.05)
@@ -412,6 +410,21 @@ func _spawn_scatter_coin() -> void:
   tw.tween_property(coin, "position", target, 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
   tw.tween_property(coin, "modulate:a", 0.0, 0.3)
   tw.tween_callback(coin.queue_free)
+
+func _show_hit_overlay() -> void:
+  _remove_hit_overlay()
+  _hit_overlay_canvas = CanvasLayer.new()
+  _hit_overlay_canvas.layer = 90
+  get_tree().root.add_child(_hit_overlay_canvas)
+  var overlay = ColorRect.new()
+  overlay.color = Color(1, 0, 0, 0.15)
+  overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+  _hit_overlay_canvas.add_child(overlay)
+
+func _remove_hit_overlay() -> void:
+  if is_instance_valid(_hit_overlay_canvas):
+    _hit_overlay_canvas.queue_free()
+    _hit_overlay_canvas = null
 
 # ── Weapon Effects ──────────────────────────────────────────────
 

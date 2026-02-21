@@ -210,20 +210,6 @@ func _on_player_hit() -> void:
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)
 
-  # Hit screen blink overlay
-  var dim = ColorRect.new()
-  dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  dim.color = Color(0, 0, 0, 0)
-  dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  add_child(dim)
-
-  var blink_tween = create_tween()
-  # 1.5초 동안 빠르게 깜박임 (10회)
-  for i in 10:
-    blink_tween.tween_property(dim, "color:a", 0.4, 0.04)
-    blink_tween.tween_property(dim, "color:a", 0.0, 0.04)
-    blink_tween.tween_interval(0.07)
-  blink_tween.tween_callback(dim.queue_free)
 
 var buff_container: VBoxContainer
 
