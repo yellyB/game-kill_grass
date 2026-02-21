@@ -21,6 +21,7 @@ func _ready() -> void:
 	upgrade_btn.pressed.connect(_on_upgrade_pressed)
 
 	GameManager.money_changed.connect(_on_money_changed)
+	GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
 	WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
 	update_display()
@@ -79,6 +80,10 @@ func _on_money_changed(_amount: int) -> void:
 func _on_weapon_changed(_level: int) -> void:
 	update_display()
 
+func _on_upgrade_purchased(_type: String, _level: int) -> void:
+	if is_open:
+		update_display()
+
 func update_display() -> void:
 	var next = WeaponManager.get_next_weapon()
 
@@ -97,8 +102,15 @@ func update_display() -> void:
 
 		next_weapon_label.text = next.name
 		stats_label.text = "대미지: %d" % next.damage
-		upgrade_btn.text = "업그레이드\n$%s" % format_number(next.price)
-		upgrade_btn.disabled = not WeaponManager.can_upgrade()
+
+		var skill_req = WeaponManager.get_next_weapon_skill_requirement()
+		var total_skill = GameManager.get_total_skill_level()
+		if not WeaponManager.has_enough_skill_points():
+			upgrade_btn.text = "업그레이드\n$%s\n(스킬 %d/%d 필요)" % [format_number(next.price), total_skill, skill_req]
+			upgrade_btn.disabled = true
+		else:
+			upgrade_btn.text = "업그레이드\n$%s" % format_number(next.price)
+			upgrade_btn.disabled = not WeaponManager.can_upgrade()
 
 	# Update toggle button with current weapon level
 	toggle_btn.text = "무기\nLv.%d" % (WeaponManager.current_weapon_level + 1)

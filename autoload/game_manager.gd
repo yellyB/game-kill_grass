@@ -21,7 +21,7 @@ signal key_acquired(world_index: int)
 
 # Upgrades
 var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
-var upgrade_grass_quality: int = 0  # 풀 등급 업그레이드 (고급 풀 등장 확률 증가)
+var upgrade_grass_quality: int = 0  # 풀 등급 업그레이드 (0-16, 고급 풀 등장 확률 증가)
 var upgrade_grass_regen: int = 0  # 풀 재생 속도 업그레이드 (0-10)
 
 # Session powerup buffs (reset each session)
@@ -46,6 +46,7 @@ var base_magnet_range: float = 75.0  # Half of original 150
 
 # Grass density settings
 const MAX_DENSITY_LEVEL: int = 10
+const MAX_QUALITY_LEVEL: int = 16
 const MAX_REGEN_LEVEL: int = 10
 const BASE_GRASS_PER_CHUNK: int = 8
 const BASE_MIN_SPACING: float = 60.0
@@ -194,32 +195,28 @@ func get_random_grass_data() -> GrassData:
   if roll < GOLDEN_CHANCE:
     return grass_data_list[3]  # 황금풀
 
-  # 나머지 확률에서 3단계 풀 분배
-  # Lv.0: 기본풀 100%
-  # Lv.9: 기본풀 50%, 강한풀 50%
-  # Lv.18: 강한풀 50%, 완전 센풀 50%
-  # Lv.27+: 완전 센풀 100%
-  var progress = min(quality_level / 27.0, 1.0)  # 0.0 ~ 1.0
-
-  # 3단계 전환: 기본 -> 강한 -> 완전 센
-  var normal_chance: float
-  var tough_chance: float
-
-  if progress < 0.5:
-    # 전반부: 기본풀에서 강한풀로 전환
-    var t = progress * 2.0  # 0 ~ 1
-    normal_chance = 1.0 - t
-    tough_chance = t
+  # 가중치 기반 3종 풀 분배 (겹치는 구간 있음)
+  # 기본풀: Lv.0에서 100%, Lv.12에서 ~1%, Lv.13+ 등장 안 함
+  # 완전 센풀: Lv.3 이하 등장 안 함, Lv.4에서 ~1%, Lv.16에서 100%
+  # 강한풀: 나머지 (중반에 60% 정도로 피크)
+  var normal_w: float
+  if quality_level >= 13:
+    normal_w = 0.0
   else:
-    # 후반부: 강한풀에서 완전 센풀로 전환
-    var t = (progress - 0.5) * 2.0  # 0 ~ 1
-    normal_chance = 0.0
-    tough_chance = 1.0 - t
+    normal_w = pow((13.0 - quality_level) / 13.0, 1.8)
+
+  var strong_w: float
+  if quality_level <= 3:
+    strong_w = 0.0
+  else:
+    strong_w = pow((quality_level - 3.0) / 13.0, 1.8)
+
+  var tough_w = max(0.0, 1.0 - normal_w - strong_w)
 
   var remaining_roll = randf()
-  if remaining_roll < normal_chance:
+  if remaining_roll < normal_w:
     return grass_data_list[0]  # 기본풀
-  elif remaining_roll < normal_chance + tough_chance:
+  elif remaining_roll < normal_w + tough_w:
     return grass_data_list[1]  # 강한풀
   else:
     return grass_data_list[2]  # 완전 센풀
@@ -344,6 +341,20 @@ func _apply_double_or_dust() -> void:
     add_money(-lost)
     powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
+func get_total_skill_level() -> int:
+  return upgrade_grass_density + upgrade_grass_quality + upgrade_grass_regen
+
+# 무기 레벨별 필요 스킬 포인트 (수동 튜닝)
+# Lv0 나뭇가지, Lv1 녹슨식칼, Lv2 피자커터, Lv3 전기파리채,
+# Lv4 뜨거운다리미, Lv5 매우화난고양이, Lv6 체인소,
+# Lv7 마법지팡이, Lv8 날개달린선풍기, Lv9 위성레이저제초기
+const WEAPON_SKILL_REQUIREMENTS = [0, 0, 1, 2, 4, 6, 9, 12, 15, 18]
+
+func get_weapon_skill_requirement(weapon_level: int) -> int:
+  if weapon_level < 0 or weapon_level >= WEAPON_SKILL_REQUIREMENTS.size():
+    return 0
+  return WEAPON_SKILL_REQUIREMENTS[weapon_level]
+
 func get_grass_regen_time(base_time: float) -> float:
   # 매 레벨마다 2초씩 감소
   return base_time - (upgrade_grass_regen * 2.0)
@@ -360,6 +371,7 @@ func purchase_upgrade(upgrade_type: String) -> bool:
       max_level = MAX_DENSITY_LEVEL
     "grass_quality":
       current_level = upgrade_grass_quality
+      max_level = MAX_QUALITY_LEVEL
     "grass_regen":
       current_level = upgrade_grass_regen
       max_level = MAX_REGEN_LEVEL

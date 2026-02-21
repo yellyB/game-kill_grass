@@ -73,44 +73,101 @@ theme_override_font_sizes/font_size = 42
 text = "강화"
 horizontal_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel"]
+[node name="TotalSkillLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 185.0
+offset_bottom = 215.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.7, 1)
+theme_override_font_sizes/font_size = 24
+text = "스킬 포인트: 0"
+horizontal_alignment = 1
+
+[node name="WeaponSection" type="PanelContainer" parent="Control/Panel"]
 layout_mode = 1
 anchor_right = 1.0
 offset_left = 40.0
-offset_top = 220.0
+offset_top = 230.0
 offset_right = -40.0
-offset_bottom = 860.0
+offset_bottom = 490.0
 grow_horizontal = 2
-theme_override_constants/separation = 16
 
-[node name="GrassDensityBtn" type="Button" parent="Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 100)
+[node name="WeaponHBox" type="HBoxContainer" parent="Control/Panel/WeaponSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "풀 밀도 Lv.1
-$100"
+theme_override_constants/separation = 20
 
-[node name="GrassQualityBtn" type="Button" parent="Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 100)
+[node name="WeaponImage" type="TextureRect" parent="Control/Panel/WeaponSection/WeaponHBox"]
+custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "풀 등급 Lv.1
-$100"
+expand_mode = 1
+stretch_mode = 5
 
-[node name="GrassRegenBtn" type="Button" parent="Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 100)
+[node name="WeaponInfo" type="VBoxContainer" parent="Control/Panel/WeaponSection/WeaponHBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "풀 재생 Lv.1
-$100"
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CurrentWeaponLabel" type="Label" parent="Control/Panel/WeaponSection/WeaponHBox/WeaponInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 22
+text = "현재 무기"
+
+[node name="WeaponNameLabel" type="Label" parent="Control/Panel/WeaponSection/WeaponHBox/WeaponInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "나뭇가지"
+
+[node name="WeaponStatsLabel" type="Label" parent="Control/Panel/WeaponSection/WeaponHBox/WeaponInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "대미지: 1"
+
+[node name="WeaponUpgradeBtn" type="Button" parent="Control/Panel/WeaponSection/WeaponHBox/WeaponInfo"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "업그레이드 $100"
+
+[node name="SectionLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 515.0
+offset_right = -40.0
+offset_bottom = 555.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 24
+text = "── 스킬 ──"
+horizontal_alignment = 1
+
+[node name="SkillTreeScroll" type="ScrollContainer" parent="Control/Panel"]
+layout_mode = 1
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 565.0
+offset_right = -40.0
+offset_bottom = 1280.0
+grow_horizontal = 2
+horizontal_scroll_mode = 0
+
+[node name="SkillTreeVBox" type="VBoxContainer" parent="Control/Panel/SkillTreeScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
 
 [node name="DescriptionPanel" type="Panel" parent="Control/Panel"]
 layout_mode = 1
 anchor_right = 1.0
 offset_left = 40.0
-offset_top = 900.0
+offset_top = 1300.0
 offset_right = -40.0
-offset_bottom = 1280.0
+offset_bottom = 1580.0
 grow_horizontal = 2
 
 [node name="DescriptionLabel" type="Label" parent="Control/Panel/DescriptionPanel"]
@@ -125,7 +182,7 @@ offset_bottom = -15.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 26
-text = "강화할 항목을 선택하세요"
+text = "노드를 선택하세요"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
@@ -134,9 +191,9 @@ autowrap_mode = 2
 layout_mode = 1
 anchor_right = 1.0
 offset_left = 40.0
-offset_top = 1320.0
+offset_top = 1600.0
 offset_right = -40.0
-offset_bottom = 1440.0
+offset_bottom = 1720.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 34
 disabled = true

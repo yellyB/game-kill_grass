@@ -52,7 +52,22 @@ func can_upgrade() -> bool:
   var price = get_next_weapon_price()
   if price < 0:
     return false
+  if not has_enough_skill_points():
+    return false
   return GameManager.money >= price
+
+func has_enough_skill_points() -> bool:
+  var next_level = current_weapon_level + 1
+  if next_level >= WEAPONS.size():
+    return true
+  var required = GameManager.get_weapon_skill_requirement(next_level)
+  return GameManager.get_total_skill_level() >= required
+
+func get_next_weapon_skill_requirement() -> int:
+  var next_level = current_weapon_level + 1
+  if next_level >= WEAPONS.size():
+    return 0
+  return GameManager.get_weapon_skill_requirement(next_level)
 
 func purchase_next_weapon() -> bool:
   if not can_upgrade():
