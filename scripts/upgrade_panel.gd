@@ -10,7 +10,7 @@ signal panel_closed
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var toggle_btn: Button = $ToggleBtn
 @onready var money_label: Label = $Panel/MoneyLabel
-@onready var skill_tree_vbox: VBoxContainer = $Panel/SkillTreeScroll/SkillTreeVBox
+@onready var skill_tree_hbox: HBoxContainer = $Panel/SkillTreeScroll/SkillTreeHBox
 
 # Weapon nodes
 @onready var weapon_image: TextureRect = $Panel/WeaponSection/WeaponHBox/WeaponImage
@@ -19,9 +19,11 @@ signal panel_closed
 @onready var weapon_upgrade_btn: Button = $Panel/WeaponSection/WeaponHBox/WeaponInfo/WeaponUpgradeBtn
 
 var is_open: bool = false
-var selected_upgrade: String = ""
-var selected_level: int = -1
 var show_toggle_button: bool = true
+
+# Selection: "weapon" or skill type ("grass_density" etc), "" = none
+var selected_type: String = ""
+var selected_level: int = -1
 
 # Skill tree definitions
 const SKILL_CHAINS = [
@@ -35,21 +37,25 @@ const SKILL_CHAINS = [
     "type": "grass_quality",
     "name": "풀 등급",
     "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다.",
-    "max_level": 16
+    "max_level": 10
   },
   {
     "type": "grass_regen",
-    "name": "풀 재생 속도",
+    "name": "풀 재생",
     "description": "베어진 풀이 더 빨리 다시 자랍니다.",
+    "max_level": 10
+  },
+  {
+    "type": "grass_reward",
+    "name": "풀 보상",
+    "description": "풀에서 떨어지는 코인이 증가합니다.",
     "max_level": 10
   }
 ]
 
 # Node visual settings
 const NODE_SIZE: int = 55
-const NODE_SPACING: int = 12
-const CONNECTOR_WIDTH: int = 20
-const PREVIEW_LOCKED: int = 2
+const CONNECTOR_HEIGHT: int = 16
 
 # Colors
 const COLOR_COMPLETED = Color(0.2, 0.55, 0.3)
@@ -64,7 +70,7 @@ func _ready() -> void:
   close_btn.pressed.connect(_on_close_pressed)
   confirm_btn.pressed.connect(_on_confirm_pressed)
 
-  weapon_upgrade_btn.pressed.connect(_on_weapon_upgrade_pressed)
+  weapon_upgrade_btn.pressed.connect(_on_weapon_select_pressed)
 
   GameManager.money_changed.connect(_on_money_changed)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
@@ -122,19 +128,18 @@ func _on_other_panel_closed() -> void:
 
 # ── Weapon ──
 
-func _on_weapon_upgrade_pressed() -> void:
-  GameManager.play_confirm_click()
-  if WeaponManager.purchase_next_weapon():
-    GameManager.play_weapon_upgrade_sound()
-    SaveManager.save_game()
-    update_weapon_display()
-    update_money_display()
-    var tween = create_tween()
-    weapon_image.scale = Vector2(1.3, 1.3)
-    tween.tween_property(weapon_image, "scale", Vector2(1.0, 1.0), 0.2)
+func _on_weapon_select_pressed() -> void:
+  GameManager.play_button_click()
+  selected_type = "weapon"
+  selected_level = -1
+  update_description()
+  update_confirm_button()
 
 func _on_weapon_changed(_level: int) -> void:
   update_weapon_display()
+  if selected_type == "weapon":
+    update_description()
+    update_confirm_button()
 
 func update_weapon_display() -> void:
   var current = WeaponManager.get_current_weapon()
@@ -151,10 +156,9 @@ func update_weapon_display() -> void:
     var total_skill = GameManager.get_total_skill_level()
     if not WeaponManager.has_enough_skill_points():
       weapon_upgrade_btn.text = "%s  $%s\n(스킬 %d/%d 필요)" % [next.name, format_number(next.price), total_skill, skill_req]
-      weapon_upgrade_btn.disabled = true
     else:
       weapon_upgrade_btn.text = "다음 무기: %s  $%s" % [next.name, format_number(next.price)]
-      weapon_upgrade_btn.disabled = not WeaponManager.can_upgrade()
+    weapon_upgrade_btn.disabled = false
 
 # ── Skill Tree ──
 
@@ -166,70 +170,66 @@ func _get_current_level(skill_type: String) -> int:
       return GameManager.upgrade_grass_quality
     "grass_regen":
       return GameManager.upgrade_grass_regen
+    "grass_reward":
+      return GameManager.upgrade_grass_reward
   return 0
 
 func build_skill_tree() -> void:
-  # Clear existing
-  for child in skill_tree_vbox.get_children():
+  for child in skill_tree_hbox.get_children():
     child.queue_free()
 
   for chain in SKILL_CHAINS:
-    var row = _create_chain_row(chain)
-    skill_tree_vbox.add_child(row)
+    var col = _create_chain_column(chain)
+    skill_tree_hbox.add_child(col)
 
-func _create_chain_row(chain: Dictionary) -> HBoxContainer:
+func _create_chain_column(chain: Dictionary) -> VBoxContainer:
   var current_level = _get_current_level(chain.type)
   var max_level = chain.max_level
   var is_maxed = max_level >= 0 and current_level >= max_level
+  var total_nodes = max_level if max_level >= 0 else current_level + 1
 
-  # How many nodes to show: completed + 1 purchasable (if not maxed) + PREVIEW_LOCKED
-  var completed_count = current_level
-  var purchasable_count = 0 if is_maxed else 1
-  var locked_count = PREVIEW_LOCKED
-  if max_level >= 0:
-    var remaining_after_purchasable = max_level - current_level - purchasable_count
-    locked_count = min(PREVIEW_LOCKED, max(0, remaining_after_purchasable))
-  var total_nodes = completed_count + purchasable_count + locked_count
-
-  var row = HBoxContainer.new()
-  row.add_theme_constant_override("separation", 0)
+  var col = VBoxContainer.new()
+  col.add_theme_constant_override("separation", 0)
+  col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
   # Chain label
   var label = Label.new()
   label.text = chain.name
-  label.custom_minimum_size = Vector2(100, NODE_SIZE)
-  label.add_theme_font_size_override("font_size", 20)
+  label.add_theme_font_size_override("font_size", 22)
   label.add_theme_color_override("font_color", COLOR_LABEL)
-  label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-  row.add_child(label)
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  col.add_child(label)
 
-  # Nodes
+  # Nodes going downward
   for i in range(total_nodes):
-    var level = i + 1  # 1-based level
+    var level = i + 1
     var state: String
 
-    if i < completed_count:
+    if i < current_level:
       state = "completed"
-    elif i == completed_count and purchasable_count > 0:
+    elif i == current_level and not is_maxed:
       state = "purchasable"
     else:
       state = "locked"
 
-    # Add connector arrow before node (except first)
+    # Connector line between nodes
     if i > 0:
       var connector = Label.new()
-      connector.text = ">"
-      connector.custom_minimum_size = Vector2(CONNECTOR_WIDTH, NODE_SIZE)
-      connector.add_theme_font_size_override("font_size", 18)
+      connector.text = "|"
+      connector.custom_minimum_size = Vector2(0, CONNECTOR_HEIGHT)
+      connector.add_theme_font_size_override("font_size", 14)
       connector.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
       connector.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
       connector.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-      row.add_child(connector)
+      col.add_child(connector)
 
+    # Center the node button
+    var center = CenterContainer.new()
     var node_btn = _create_skill_node(chain.type, level, state)
-    row.add_child(node_btn)
+    center.add_child(node_btn)
+    col.add_child(center)
 
-  return row
+  return col
 
 func _create_skill_node(skill_type: String, level: int, state: String) -> Button:
   var btn = Button.new()
@@ -279,34 +279,59 @@ func _create_skill_node(skill_type: String, level: int, state: String) -> Button
 
 func _on_skill_node_pressed(skill_type: String, level: int) -> void:
   GameManager.play_button_click()
-  selected_upgrade = skill_type
+  selected_type = skill_type
   selected_level = level
   update_description()
   update_confirm_button()
 
+# ── Selection / Confirm ──
+
 func clear_selection() -> void:
-  selected_upgrade = ""
+  selected_type = ""
   selected_level = -1
-  description_label.text = "노드를 선택하세요"
+  description_label.text = "강화할 항목을 선택하세요"
   confirm_btn.disabled = true
-  confirm_btn.text = "강화하기"
+  confirm_btn.text = "구매"
 
 func update_description() -> void:
-  if selected_upgrade.is_empty():
-    description_label.text = "노드를 선택하세요"
+  if selected_type.is_empty():
+    description_label.text = "강화할 항목을 선택하세요"
     return
 
+  if selected_type == "weapon":
+    _update_weapon_description()
+  else:
+    _update_skill_description()
+
+func _update_weapon_description() -> void:
+  var next = WeaponManager.get_next_weapon()
+  if next.is_empty():
+    description_label.text = "무기\n\n최고 단계에 도달했습니다."
+    return
+
+  var current = WeaponManager.get_current_weapon()
+  var skill_req = WeaponManager.get_next_weapon_skill_requirement()
+  var total_skill = GameManager.get_total_skill_level()
+
+  var text = "무기 업그레이드\n\n%s → %s\n대미지: %d → %d\n\n비용: $%s" % [
+    current.name, next.name, current.damage, next.damage, format_number(next.price)
+  ]
+  if not WeaponManager.has_enough_skill_points():
+    text += "\n\n스킬 부족 (%d/%d)" % [total_skill, skill_req]
+  description_label.text = text
+
+func _update_skill_description() -> void:
   var chain_info: Dictionary
   for chain in SKILL_CHAINS:
-    if chain.type == selected_upgrade:
+    if chain.type == selected_type:
       chain_info = chain
       break
 
-  var current_level = _get_current_level(selected_upgrade)
+  var current_level = _get_current_level(selected_type)
   var cost = GameManager.get_upgrade_cost(current_level)
 
   var stat_text = ""
-  match selected_upgrade:
+  match selected_type:
     "grass_density":
       var current_val = GameManager.get_grass_min_spacing()
       var temp = GameManager.upgrade_grass_density
@@ -323,16 +348,46 @@ func update_description() -> void:
       var next_val = GameManager.get_grass_regen_time(22.0)
       GameManager.upgrade_grass_regen = temp
       stat_text = "재생 시간: %.1f초 → %.1f초" % [current_val, next_val]
+    "grass_reward":
+      var current_mult = GameManager.get_grass_reward_multiplier()
+      var temp = GameManager.upgrade_grass_reward
+      GameManager.upgrade_grass_reward += 1
+      var next_mult = GameManager.get_grass_reward_multiplier()
+      GameManager.upgrade_grass_reward = temp
+      stat_text = "보상 배율: x%.1f → x%.1f" % [current_mult, next_mult]
 
   description_label.text = "%s Lv.%d\n\n%s\n\n%s\n\n비용: $%s" % [chain_info.name, selected_level, chain_info.description, stat_text, format_number(cost)]
 
 func update_confirm_button() -> void:
-  if selected_upgrade.is_empty():
+  if selected_type.is_empty():
     confirm_btn.disabled = true
-    confirm_btn.text = "강화하기"
+    confirm_btn.text = "구매"
     return
 
-  var current_level = _get_current_level(selected_upgrade)
+  if selected_type == "weapon":
+    _update_weapon_confirm()
+  else:
+    _update_skill_confirm()
+
+func _update_weapon_confirm() -> void:
+  var next = WeaponManager.get_next_weapon()
+  if next.is_empty():
+    confirm_btn.disabled = true
+    confirm_btn.text = "최대 레벨"
+    return
+
+  if not WeaponManager.has_enough_skill_points():
+    confirm_btn.disabled = true
+    confirm_btn.text = "스킬 부족"
+  elif not WeaponManager.can_upgrade():
+    confirm_btn.disabled = true
+    confirm_btn.text = "돈 부족 ($%s)" % format_number(next.price)
+  else:
+    confirm_btn.disabled = false
+    confirm_btn.text = "구매 ($%s)" % format_number(next.price)
+
+func _update_skill_confirm() -> void:
+  var current_level = _get_current_level(selected_type)
   var cost = GameManager.get_upgrade_cost(current_level)
 
   if GameManager.money < cost:
@@ -340,20 +395,32 @@ func update_confirm_button() -> void:
     confirm_btn.text = "돈 부족 ($%s)" % format_number(cost)
   else:
     confirm_btn.disabled = false
-    confirm_btn.text = "강화하기 ($%s)" % format_number(cost)
+    confirm_btn.text = "구매 ($%s)" % format_number(cost)
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
-  if selected_upgrade.is_empty():
+  if selected_type.is_empty():
     return
 
-  if GameManager.purchase_upgrade(selected_upgrade):
-    GameManager.play_skill_upgrade_sound()
-    SaveManager.save_game()
-    update_total_skill_label()
-    build_skill_tree()
-    update_weapon_display()
-    clear_selection()
+  if selected_type == "weapon":
+    if WeaponManager.purchase_next_weapon():
+      GameManager.play_weapon_upgrade_sound()
+      SaveManager.save_game()
+      update_weapon_display()
+      update_money_display()
+      var tween = create_tween()
+      weapon_image.scale = Vector2(1.3, 1.3)
+      tween.tween_property(weapon_image, "scale", Vector2(1.0, 1.0), 0.2)
+      clear_selection()
+  else:
+    if GameManager.purchase_upgrade(selected_type):
+      GameManager.play_skill_upgrade_sound()
+      SaveManager.save_game()
+      update_total_skill_label()
+      build_skill_tree()
+      update_weapon_display()
+      update_money_display()
+      clear_selection()
 
 func _on_money_changed(_amount: int) -> void:
   update_money_display()
@@ -371,7 +438,7 @@ func update_money_display() -> void:
   money_label.text = "$%s" % format_number(GameManager.money)
 
 func update_total_skill_label() -> void:
-  total_skill_label.text = "스킬 포인트: %d" % GameManager.get_total_skill_level()
+  total_skill_label.text = "스킬: %d" % GameManager.get_total_skill_level()
 
 func format_number(num: int) -> String:
   var str_num = str(num)

@@ -23,6 +23,7 @@ signal key_acquired(world_index: int)
 var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
 var upgrade_grass_quality: int = 0  # 풀 등급 업그레이드 (0-16, 고급 풀 등장 확률 증가)
 var upgrade_grass_regen: int = 0  # 풀 재생 속도 업그레이드 (0-10)
+var upgrade_grass_reward: int = 0  # 풀 보상 업그레이드 (0-10, 코인 드롭량 증가)
 
 # Session powerup buffs (reset each session)
 var session_buff_attack_speed: int = 0
@@ -46,8 +47,9 @@ var base_magnet_range: float = 75.0  # Half of original 150
 
 # Grass density settings
 const MAX_DENSITY_LEVEL: int = 10
-const MAX_QUALITY_LEVEL: int = 16
+const MAX_QUALITY_LEVEL: int = 10
 const MAX_REGEN_LEVEL: int = 10
+const MAX_REWARD_LEVEL: int = 10
 const BASE_GRASS_PER_CHUNK: int = 8
 const BASE_MIN_SPACING: float = 60.0
 
@@ -196,20 +198,20 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[3]  # 황금풀
 
   # 가중치 기반 3종 풀 분배 (겹치는 구간 있음)
-  # 기본풀: Lv.0에서 100%, Lv.12에서 ~1%, Lv.13+ 등장 안 함
-  # 완전 센풀: Lv.3 이하 등장 안 함, Lv.4에서 ~1%, Lv.16에서 100%
-  # 강한풀: 나머지 (중반에 60% 정도로 피크)
+  # 기본풀: Lv.0에서 100%, Lv.7에서 ~2%, Lv.8+ 등장 안 함
+  # 완전 센풀: Lv.2 이하 등장 안 함, Lv.3에서 ~2%, Lv.10에서 100%
+  # 강한풀: 나머지 (중반에 70% 정도로 피크)
   var normal_w: float
-  if quality_level >= 13:
+  if quality_level >= 8:
     normal_w = 0.0
   else:
-    normal_w = pow((13.0 - quality_level) / 13.0, 1.8)
+    normal_w = pow((8.0 - quality_level) / 8.0, 1.8)
 
   var strong_w: float
-  if quality_level <= 3:
+  if quality_level <= 2:
     strong_w = 0.0
   else:
-    strong_w = pow((quality_level - 3.0) / 13.0, 1.8)
+    strong_w = pow((quality_level - 2.0) / 8.0, 1.8)
 
   var tough_w = max(0.0, 1.0 - normal_w - strong_w)
 
@@ -231,12 +233,12 @@ func get_grass_quality_level() -> int:
   return upgrade_grass_quality
 
 func get_grass_per_chunk() -> int:
-  # Level 0: 8, Level 10: 80 (very dense)
-  return int(BASE_GRASS_PER_CHUNK * (1.0 + upgrade_grass_density * 0.9))
+  # Level 0: 8, Level 10: 80 (레벨당 +7.2)
+  return int(BASE_GRASS_PER_CHUNK + upgrade_grass_density * 7.2)
 
 func get_grass_min_spacing() -> float:
-  # Level 0: 60, Level 10: 12 (almost no space between grass)
-  return BASE_MIN_SPACING / (1.0 + upgrade_grass_density * 0.4)
+  # Level 0: 60, Level 10: 15 (레벨당 -4.5)
+  return BASE_MIN_SPACING - upgrade_grass_density * 4.5
 
 func get_grass_density_level() -> int:
   return upgrade_grass_density
@@ -342,7 +344,11 @@ func _apply_double_or_dust() -> void:
     powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
 func get_total_skill_level() -> int:
-  return upgrade_grass_density + upgrade_grass_quality + upgrade_grass_regen
+  return upgrade_grass_density + upgrade_grass_quality + upgrade_grass_regen + upgrade_grass_reward
+
+func get_grass_reward_multiplier() -> float:
+  # 레벨당 30% 증가 (Lv.10 = x4.0)
+  return 1.0 + upgrade_grass_reward * 0.3
 
 # 무기 레벨별 필요 스킬 포인트 (수동 튜닝)
 # Lv0 나뭇가지, Lv1 녹슨식칼, Lv2 피자커터, Lv3 전기파리채,
@@ -375,6 +381,9 @@ func purchase_upgrade(upgrade_type: String) -> bool:
     "grass_regen":
       current_level = upgrade_grass_regen
       max_level = MAX_REGEN_LEVEL
+    "grass_reward":
+      current_level = upgrade_grass_reward
+      max_level = MAX_REWARD_LEVEL
     _:
       return false
 
@@ -396,6 +405,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
       upgrade_grass_quality += 1
     "grass_regen":
       upgrade_grass_regen += 1
+    "grass_reward":
+      upgrade_grass_reward += 1
 
   upgrade_purchased.emit(upgrade_type, current_level + 1)
   return true
@@ -457,6 +468,7 @@ func get_save_data() -> Dictionary:
     "upgrade_grass_density": upgrade_grass_density,
     "upgrade_grass_quality": upgrade_grass_quality,
     "upgrade_grass_regen": upgrade_grass_regen,
+    "upgrade_grass_reward": upgrade_grass_reward,
     "inventory": inventory,
     "discovered_items": discovered_items,
     "selected_world": selected_world,
@@ -470,6 +482,7 @@ func load_save_data(data: Dictionary) -> void:
   upgrade_grass_density = data.get("upgrade_grass_density", 0)
   upgrade_grass_quality = data.get("upgrade_grass_quality", 0)
   upgrade_grass_regen = data.get("upgrade_grass_regen", 0)
+  upgrade_grass_reward = data.get("upgrade_grass_reward", 0)
   inventory = data.get("inventory", {})
   discovered_items = data.get("discovered_items", [])
   selected_world = data.get("selected_world", 0)

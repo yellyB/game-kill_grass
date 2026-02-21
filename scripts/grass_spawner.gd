@@ -359,7 +359,8 @@ func spawn_coin(pos: Vector2, value: int) -> void:
   var CoinScene = preload("res://scenes/world/coin.tscn")
   var coin = CoinScene.instantiate()
   coin.position = pos
-  coin.set_value(value)
+  var final_value = int(round(value * GameManager.get_grass_reward_multiplier()))
+  coin.set_value(max(1, final_value))
   get_parent().add_child(coin)
 
 func spawn_powerup(pos: Vector2) -> void:
