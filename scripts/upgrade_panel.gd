@@ -135,8 +135,8 @@ var next_weapon_image: TextureRect = null
 var next_weapon_title: Label = null
 var next_weapon_label: Label = null
 var next_weapon_vbox: VBoxContainer = null
-var weapon_price_label: Label = null
 var weapon_buy_btn: Button = null
+var weapon_condition_vbox: VBoxContainer = null
 var weapon_right_vbox: VBoxContainer = null
 var weapon_hbox: HBoxContainer = null
 
@@ -241,15 +241,19 @@ func _ensure_next_weapon_nodes() -> void:
   next_weapon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   next_weapon_vbox.add_child(next_weapon_label)
 
-  # Right side: price + buy button
+  # Right side: conditions + buy button
   weapon_right_vbox = VBoxContainer.new()
   weapon_right_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  weapon_right_vbox.add_theme_constant_override("separation", 10)
+  weapon_right_vbox.add_theme_constant_override("separation", 8)
   weapon_right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   weapon_hbox.add_child(weapon_right_vbox)
 
+  weapon_condition_vbox = VBoxContainer.new()
+  weapon_condition_vbox.add_theme_constant_override("separation", 4)
+  weapon_right_vbox.add_child(weapon_condition_vbox)
+
   weapon_buy_btn = Button.new()
-  weapon_buy_btn.text = "구매"
+  weapon_buy_btn.text = "다음 무기 구매"
   weapon_buy_btn.custom_minimum_size = Vector2(0, 60)
   weapon_buy_btn.add_theme_font_size_override("font_size", 26)
   weapon_buy_btn.pressed.connect(_on_weapon_buy_pressed)
@@ -320,20 +324,40 @@ func _update_weapon_buy_button() -> void:
     weapon_right_vbox.visible = false
     _update_next_weapon_card_style(false)
     return
-  if not WeaponManager.has_enough_skill_points():
-    var skill_req = WeaponManager.get_next_weapon_skill_requirement()
-    var total_skill = GameManager.get_total_skill_level()
-    weapon_buy_btn.disabled = true
-    weapon_buy_btn.text = "스킬 부족\n(%d/%d)" % [total_skill, skill_req]
-    _update_next_weapon_card_style(false)
-  elif not WeaponManager.can_upgrade():
-    weapon_buy_btn.disabled = true
-    weapon_buy_btn.text = "돈 부족"
-    _update_next_weapon_card_style(false)
-  else:
+  var skill_req = WeaponManager.get_next_weapon_skill_requirement()
+  var total_skill = GameManager.get_total_skill_level()
+  var has_skill = WeaponManager.has_enough_skill_points()
+  var has_money = GameManager.money >= next.price
+
+  # Update condition indicators
+  _update_weapon_conditions(has_skill, total_skill, skill_req, has_money, next.price)
+
+  if has_skill and has_money:
     weapon_buy_btn.disabled = false
     weapon_buy_btn.text = "다음 무기 구매\n$%s" % format_number(next.price)
     _update_next_weapon_card_style(true)
+  else:
+    weapon_buy_btn.disabled = true
+    weapon_buy_btn.text = "구매 불가"
+    _update_next_weapon_card_style(false)
+
+func _update_weapon_conditions(has_skill: bool, total_skill: int, skill_req: int, has_money: bool, price: int) -> void:
+  for child in weapon_condition_vbox.get_children():
+    child.queue_free()
+
+  var skill_label = Label.new()
+  skill_label.text = "스킬 %d/%d" % [total_skill, skill_req]
+  skill_label.add_theme_font_size_override("font_size", 22)
+  skill_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if has_skill else Color(0.9, 0.3, 0.3))
+  skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  weapon_condition_vbox.add_child(skill_label)
+
+  var money_label_cond = Label.new()
+  money_label_cond.text = "$%s" % format_number(price)
+  money_label_cond.add_theme_font_size_override("font_size", 22)
+  money_label_cond.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if has_money else Color(0.9, 0.3, 0.3))
+  money_label_cond.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  weapon_condition_vbox.add_child(money_label_cond)
 
 func _update_next_weapon_card_style(can_buy: bool) -> void:
   if not next_weapon_panel:
