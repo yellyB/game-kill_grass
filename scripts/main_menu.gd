@@ -1,14 +1,12 @@
 extends Control
 
 @onready var play_btn: Button = $VBoxContainer/PlayBtn
-@onready var weapon_btn: Button = $VBoxContainer/WeaponBtn
 @onready var upgrade_btn: Button = $VBoxContainer/UpgradeBtn
 @onready var item_btn: Button = $VBoxContainer/ItemBtn
 @onready var quit_btn: Button = $VBoxContainer/QuitBtn
 @onready var title_image: TextureRect = $TitleImage
 @onready var money_label: Label = $MoneyLabel
 @onready var upgrade_panel: Control = $UpgradePanel/Control
-@onready var weapon_shop: Control = $WeaponShop/Control
 @onready var item_panel: Control = $ItemPanel/Control
 
 # World selection overlay (built dynamically)
@@ -26,21 +24,17 @@ const WORLD_DATA: Array = [
 
 func _ready() -> void:
   play_btn.pressed.connect(_on_play_pressed)
-  weapon_btn.pressed.connect(_on_weapon_pressed)
   upgrade_btn.pressed.connect(_on_upgrade_pressed)
   item_btn.pressed.connect(_on_item_pressed)
   quit_btn.pressed.connect(_on_quit_pressed)
 
   # Hide the toggle buttons on panels (we use menu buttons instead)
   upgrade_panel.set_toggle_button_visible(false)
-  weapon_shop.set_toggle_button_visible(false)
   item_panel.set_toggle_button_visible(false)
 
   # Connect panel signals for mutual exclusion
   upgrade_panel.panel_opened.connect(_on_panel_opened)
   upgrade_panel.panel_closed.connect(_on_panel_closed)
-  weapon_shop.panel_opened.connect(_on_panel_opened)
-  weapon_shop.panel_closed.connect(_on_panel_closed)
   item_panel.panel_opened.connect(_on_panel_opened)
   item_panel.panel_closed.connect(_on_panel_closed)
 
@@ -54,7 +48,6 @@ func _ready() -> void:
 
   # 버튼 스타일 적용
   _apply_button_style(play_btn, Color(0.3, 0.75, 0.45), Color(0.2, 0.55, 0.3), "▶", "PLAY", 122)
-  _apply_button_style(weapon_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "⚔", "무기")
   _apply_button_style(upgrade_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "⬆", "강화")
   _apply_button_style(item_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "🎒", "아이템")
   _apply_button_style(quit_btn, Color(0.5, 0.5, 0.55), Color(0.35, 0.35, 0.4), "✕", "QUIT")
@@ -65,7 +58,7 @@ func _ready() -> void:
   play_btn.custom_minimum_size.x = viewport_w * 0.5
 
   # 나머지 버튼 오른쪽 정렬 + 고정 너비
-  for btn in [weapon_btn, upgrade_btn, item_btn, quit_btn]:
+  for btn in [upgrade_btn, item_btn, quit_btn]:
     btn.size_flags_horizontal = Control.SIZE_SHRINK_END
     btn.custom_minimum_size.x = 360
 
@@ -174,10 +167,6 @@ func _start_game() -> void:
     _menu_bgm.stop()
   get_tree().change_scene_to_file("res://scenes/core/main.tscn")
 
-func _on_weapon_pressed() -> void:
-  GameManager.play_button_click()
-  weapon_shop.open_panel()
-
 func _on_upgrade_pressed() -> void:
   GameManager.play_button_click()
   upgrade_panel.open_panel()
@@ -259,14 +248,12 @@ func _show_quit_confirm() -> void:
 
 func _on_panel_opened() -> void:
   play_btn.disabled = true
-  weapon_btn.disabled = true
   upgrade_btn.disabled = true
   item_btn.disabled = true
   quit_btn.disabled = true
 
 func _on_panel_closed() -> void:
   play_btn.disabled = false
-  weapon_btn.disabled = false
   upgrade_btn.disabled = false
   item_btn.disabled = false
   quit_btn.disabled = false

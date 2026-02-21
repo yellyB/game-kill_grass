@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://cmenu123"]
+[gd_scene load_steps=6 format=3 uid="uid://cmenu123"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="2_upgrade"]
-[ext_resource type="PackedScene" uid="uid://cweaponshop" path="res://scenes/ui/weapon_shop.tscn" id="3_weapon"]
 [ext_resource type="PackedScene" uid="uid://citempanel" path="res://scenes/ui/item_panel.tscn" id="4_item"]
 [ext_resource type="Texture2D" uid="uid://muujnakyfyb1" path="res://resources/images/main.png" id="5_main_bg"]
 [ext_resource type="Texture2D" uid="uid://do3vq3o5qqsor" path="res://resources/images/title.png" id="6_title"]
@@ -67,7 +66,7 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -490.0
-offset_top = -680.0
+offset_top = -560.0
 offset_right = 490.0
 offset_bottom = -80.0
 grow_horizontal = 2
@@ -79,12 +78,6 @@ custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "PLAY"
-
-[node name="WeaponBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 120)
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "무기"
 
 [node name="UpgradeBtn" type="Button" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 120)
@@ -105,7 +98,5 @@ theme_override_font_sizes/font_size = 24
 text = "QUIT"
 
 [node name="UpgradePanel" parent="." instance=ExtResource("2_upgrade")]
-
-[node name="WeaponShop" parent="." instance=ExtResource("3_weapon")]
 
 [node name="ItemPanel" parent="." instance=ExtResource("4_item")]
