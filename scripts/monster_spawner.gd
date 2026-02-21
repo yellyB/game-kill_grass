@@ -3,9 +3,12 @@ extends Node2D
 const MonsterScene = preload("res://scenes/world/monster.tscn")
 const ChestScene = preload("res://scenes/world/chest.tscn")
 
-@export var spawn_count: int = 8
+@export var spawn_count: int = 2  # Alias for respawn_max (initial wave)
 @export var spawn_radius: float = 800.0
 @export var min_distance: float = 300.0  # Minimum distance from player
+@export var respawn_interval: float = 10.0  # Seconds between respawn waves
+@export var respawn_min: int = 1
+@export var respawn_max: int = 2
 
 const MONSTER_TYPES: Array = [
 	{
@@ -108,10 +111,19 @@ const CHEST_SPAWN_CHANCE: float = 1.0  # 디버깅용 100%, 나중에 낮춤
 
 var player: Node2D = null
 var spawned: bool = false
+var respawn_timer: float = 0.0
 
 func _ready() -> void:
 	call_deferred("_find_player_and_spawn")
 	GameManager.timed_buff_started.connect(_on_timed_buff_started)
+
+func _process(delta: float) -> void:
+	if not spawned:
+		return
+	respawn_timer += delta
+	if respawn_timer >= respawn_interval:
+		respawn_timer = 0.0
+		_spawn_wave(randi_range(respawn_min, respawn_max))
 
 func _find_player_and_spawn() -> void:
 	player = get_tree().get_first_node_in_group("player")
@@ -123,17 +135,26 @@ func spawn_monsters() -> void:
 		return
 	spawned = true
 
-	for i in spawn_count:
+	_spawn_wave(randi_range(respawn_min, respawn_max))
+	_spawn_chest()
+
+func _get_offscreen_position() -> Vector2:
+	var viewport_size = get_viewport().get_visible_rect().size
+	var half_diag = viewport_size.length() * 0.5
+	var margin = 80.0  # Extra margin outside screen edge
+	var dist = half_diag + margin + randf_range(0, 150)
+	var angle = randf() * TAU
+	# Player position in WorldRoot local coords
+	var player_local = get_parent().to_local(player.global_position) if player else Vector2.ZERO
+	return player_local + Vector2(cos(angle), sin(angle)) * dist
+
+func _spawn_wave(count: int) -> void:
+	for i in count:
 		var config = _pick_random_type()
 		var monster = MonsterScene.instantiate()
 		monster.setup(config)
-		# Random position around origin in WorldRoot coordinates
-		var angle = randf() * TAU
-		var dist = randf_range(min_distance, spawn_radius)
-		monster.position = Vector2(cos(angle), sin(angle)) * dist
+		monster.position = _get_offscreen_position()
 		get_parent().add_child(monster)
-
-	_spawn_chest()
 
 func _pick_random_type() -> Dictionary:
 	var world = GameManager.selected_world
@@ -196,12 +217,4 @@ func _on_timed_buff_started(type: String, _duration: float) -> void:
 		_spawn_beast_rush_monsters()
 
 func _spawn_beast_rush_monsters() -> void:
-	var rush_count = spawn_count * 2
-	for i in rush_count:
-		var config = _pick_random_type()
-		var monster = MonsterScene.instantiate()
-		monster.setup(config)
-		var angle = randf() * TAU
-		var dist = randf_range(min_distance, spawn_radius)
-		monster.position = Vector2(cos(angle), sin(angle)) * dist
-		get_parent().add_child(monster)
+	_spawn_wave(spawn_count * 2)

@@ -9,6 +9,7 @@ const SFX_DEATH = preload("res://resources/sounds/effect/monster_death.wav")
 @onready var shadow: Sprite2D = $Shadow
 @onready var lightning_effect: Node2D = $LightningEffect
 
+static var _texture_cache: Dictionary = {}
 var textures: Array[Texture2D] = []
 
 # Configurable via setup()
@@ -62,11 +63,15 @@ func _ready() -> void:
     lightning_effect.visible = false
 
 func _load_textures() -> void:
+  if _texture_cache.has(sprite_path):
+    textures = _texture_cache[sprite_path].duplicate()
+    return
   for i in range(1, 6):
     var path = "%s%d.png" % [sprite_path, i]
     var tex = _load_texture_from_file(path)
     if tex:
       textures.append(tex)
+  _texture_cache[sprite_path] = textures.duplicate()
 
 func _load_texture_from_file(res_path: String) -> ImageTexture:
   var abs_path = ProjectSettings.globalize_path(res_path)
@@ -82,6 +87,12 @@ func _process(delta: float) -> void:
   if frame_timer >= FRAME_DURATION:
     frame_timer = 0.0
     _advance_frame()
+
+  # Knockback
+  if knockback_velocity.length() > 1.0:
+    position += knockback_velocity * delta
+    knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, KNOCKBACK_FRICTION * delta)
+    return
 
   # Chase player
   var player = get_tree().get_first_node_in_group("player")
@@ -113,12 +124,19 @@ func _pick_new_wander() -> void:
   sequence_index = 0
 
 var is_dead: bool = false
+var knockback_velocity: Vector2 = Vector2.ZERO
+const KNOCKBACK_STRENGTH: float = 600.0
+const KNOCKBACK_FRICTION: float = 5.0
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, from_global_pos: Variant = null) -> void:
   if is_dead:
     return
   health -= amount
   sfx_hit.play()
+  # Knockback away from attacker
+  if from_global_pos is Vector2:
+    var knock_dir = (global_position - from_global_pos).normalized()
+    knockback_velocity = knock_dir * KNOCKBACK_STRENGTH
   # Hit flash
   sprite.modulate = Color(1, 0.3, 0.3)
   var tween = create_tween()

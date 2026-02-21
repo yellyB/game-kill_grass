@@ -181,7 +181,7 @@ func try_attack() -> void:
 
   can_attack = false
   var weapon_speed = GameManager.get_session_attack_speed_mult()
-  var wait = 0.2 / weapon_speed
+  var wait = 0.38 / weapon_speed
   attack_timer.wait_time = wait
   attack_timer.start()
 
@@ -272,7 +272,7 @@ func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
       continue
     var dist = monster.global_position.distance_to(center)
     if dist <= radius:
-      monster.take_damage(damage)
+      monster.take_damage(damage, global_position)
 
 func _on_attack_timer_timeout() -> void:
   can_attack = true

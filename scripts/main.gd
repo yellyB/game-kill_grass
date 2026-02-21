@@ -1,6 +1,6 @@
 extends Node2D
 
-const SESSION_TIME: float = 10.0  # TODO: 출시 시 60.0으로 변경
+const SESSION_TIME: float = 60.0
 
 const BGM_PATHS: Array = [
 	"res://resources/sounds/bgm_world_1.wav",
