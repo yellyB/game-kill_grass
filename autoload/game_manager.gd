@@ -252,7 +252,7 @@ func get_magnet_range() -> float:
 func get_session_attack_speed_mult() -> float:
   var mult = 1.0 + session_buff_attack_speed * 0.25
   if session_buff_overdrive:
-    mult *= 4.0  # +300%
+    mult *= 2.0  # +100%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
   if hit_penalty_active:
@@ -268,7 +268,7 @@ func get_session_attack_range_mult() -> float:
 func get_session_move_speed_mult() -> float:
   var mult = 1.0 + session_buff_move_speed * 0.25
   if session_buff_overdrive:
-    mult *= 0.5  # -50%
+    mult *= 0.2  # -80%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
   if hit_penalty_active:

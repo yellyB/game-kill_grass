@@ -1,7 +1,6 @@
 extends Node2D
 
 const SESSION_TIME: float = 10.0  # TODO: 출시 시 60.0으로 변경
-const BONUS_COINS: int = 100
 
 const BGM_PATHS: Array = [
 	"res://resources/sounds/bgm_world_1.wav",
@@ -93,17 +92,18 @@ func end_session() -> void:
 	get_tree().paused = true
 	back_to_menu_btn.visible = false
 
+	# Remove player hit overlay so it doesn't block session end touch
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.has_method("_remove_hit_overlay"):
+		player._remove_hit_overlay()
+
 	# Fade out BGM
 	if bgm_player:
 		var bgm_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 		bgm_tween.tween_property(bgm_player, "volume_db", -40.0, 1.5)
 		bgm_tween.tween_callback(bgm_player.stop)
 
-	# Capture session earnings before adding bonus
 	var earnings = GameManager.session_money
-
-	# Add bonus coins
-	GameManager.add_money(BONUS_COINS)
 
 	# Phase 1: Coins pop and disappear
 	await animate_coins_disappear()
@@ -147,13 +147,12 @@ func show_session_end_overlay(earnings: int) -> void:
 
 	# Hide elements initially
 	session_earnings_label.modulate = Color(1, 1, 1, 0)
-	bonus_label.modulate = Color(1, 1, 1, 0)
+	bonus_label.visible = false
 	tap_to_return_label.modulate = Color(1, 1, 1, 0)
 	touch_button.disabled = true
 
 	# Set texts
 	session_earnings_label.text = "획득: $%s" % format_number(earnings)
-	bonus_label.text = "세션 완료 보너스 +$%s" % format_number(BONUS_COINS)
 
 	# Show overlay
 	session_end_overlay.visible = true
@@ -162,12 +161,8 @@ func show_session_end_overlay(earnings: int) -> void:
 	var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_property(session_earnings_label, "modulate:a", 1.0, 0.4)
 
-	# After 1 second, fade in bonus
+	# Show tap to return
 	tween.tween_interval(0.6)
-	tween.tween_property(bonus_label, "modulate:a", 1.0, 0.5)
-
-	# After bonus appears, show tap to return
-	tween.tween_interval(0.3)
 	tween.tween_property(tap_to_return_label, "modulate:a", 1.0, 0.3)
 	tween.tween_callback(func():
 		touch_button.disabled = false

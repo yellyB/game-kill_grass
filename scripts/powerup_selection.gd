@@ -67,7 +67,7 @@ const POWERUP_DATA = [
 	{
 		"type": "overdrive",
 		"name": "오버드라이브",
-		"desc": "공속 +300%, 이속 -50%",
+		"desc": "공속 2배, 이속 -80%",
 		"color": Color(1.0, 0.3, 0.5),
 		"stackable": false,
 	},
