@@ -246,8 +246,8 @@ func _init_grass_data() -> void:
 func get_random_grass_data() -> GrassData:
   var quality_level = upgrade_grass_quality
 
-  # 황금풀: 모든 레벨에서 동일한 확률 (2%)
-  const GOLDEN_CHANCE = 0.02
+  # 황금풀: 모든 레벨에서 동일한 확률 (0.1%)
+  const GOLDEN_CHANCE = 0.001
 
   var roll = randf()
   if roll < GOLDEN_CHANCE:
