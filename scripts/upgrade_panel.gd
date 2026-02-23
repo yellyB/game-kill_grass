@@ -53,7 +53,7 @@ const SKILL_CHAINS = [
     "type": "monster_knockback",
     "name": "넉백 증가",
     "description": "몬스터를 더 멀리 밀어냅니다.",
-    "max_level": 5
+    "max_level": 3
   },
   {
     "type": "grass_drop",

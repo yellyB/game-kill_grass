@@ -52,7 +52,7 @@ const MAX_DENSITY_LEVEL: int = 10
 const MAX_QUALITY_LEVEL: int = 10
 const MAX_REGEN_LEVEL: int = 3
 const MAX_REWARD_LEVEL: int = 10
-const MAX_KNOCKBACK_LEVEL: int = 5
+const MAX_KNOCKBACK_LEVEL: int = 3
 const MAX_DROP_LEVEL: int = 5
 const MAX_GOLDEN_CHANCE_LEVEL: int = 5
 const BASE_GRASS_PER_CHUNK: int = 8
@@ -484,9 +484,17 @@ func get_grass_regen_time(base_time: float) -> float:
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
-  if upgrade_type == "golden_chance":
-    # Lv.1: 5x, Lv.2: 7x, Lv.3: 8x, Lv.4: 9x, Lv.5: 10x
-    var multiplier = 5.0 + current_level * 1.25
+  if upgrade_type in ["golden_chance", "grass_drop"]:
+    var multiplier = 5.0 + current_level * 16.2
+    return int(base * multiplier)
+  if upgrade_type in ["grass_density", "grass_reward"] and current_level > 0:
+    var multiplier = 1.0 + current_level * 0.3
+    return int(base * multiplier)
+  if upgrade_type == "grass_quality" and current_level > 0:
+    var multiplier = 1.0 + current_level * 0.15
+    return int(base * multiplier)
+  if upgrade_type in ["grass_regen", "monster_knockback"] and current_level > 0:
+    var multiplier = 1.0 + current_level * 7.0
     return int(base * multiplier)
   return base
 
