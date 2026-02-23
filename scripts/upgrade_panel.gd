@@ -503,7 +503,9 @@ func build_skill_tree() -> void:
 
   var container_width = skill_tree_container.size.x
   if container_width <= 0:
-    container_width = 680  # fallback
+    container_width = skill_tree_container.get_parent().size.x
+  if container_width <= 0:
+    container_width = panel.size.x - 40
 
   var y_offset: float = 0
   for row_idx in range(SKILL_GRID.size()):
