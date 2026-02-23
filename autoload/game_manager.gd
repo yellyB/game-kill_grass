@@ -52,6 +52,7 @@ const MAX_REGEN_LEVEL: int = 10
 const MAX_REWARD_LEVEL: int = 10
 const BASE_GRASS_PER_CHUNK: int = 8
 const BASE_MIN_SPACING: float = 60.0
+const GRASS_DROP_CHANCE: float = 0.2
 
 # Grass data
 var grass_data_list: Array[GrassData] = []
@@ -196,7 +197,7 @@ func _init_grass_data() -> void:
   normal_grass.regen_time = 22.0
   normal_grass.min_drop_value = 1
   normal_grass.max_drop_value = 1
-  normal_grass.drop_chance = 1.0
+  normal_grass.drop_chance = GRASS_DROP_CHANCE
   normal_grass.color = Color(0.3, 0.7, 0.3)
   normal_grass.cut_color = Color(0.5, 0.4, 0.2)
 
@@ -207,7 +208,7 @@ func _init_grass_data() -> void:
   tough_grass.regen_time = 23.0
   tough_grass.min_drop_value = 5
   tough_grass.max_drop_value = 5
-  tough_grass.drop_chance = 1.0
+  tough_grass.drop_chance = GRASS_DROP_CHANCE
   tough_grass.color = Color(0.15, 0.5, 0.35)
   tough_grass.cut_color = Color(0.3, 0.35, 0.25)
 
@@ -218,7 +219,7 @@ func _init_grass_data() -> void:
   strong_grass.regen_time = 24.0
   strong_grass.min_drop_value = 30
   strong_grass.max_drop_value = 30
-  strong_grass.drop_chance = 1.0
+  strong_grass.drop_chance = GRASS_DROP_CHANCE
   strong_grass.color = Color(0.1, 0.35, 0.5)
   strong_grass.cut_color = Color(0.2, 0.3, 0.35)
 
@@ -229,7 +230,7 @@ func _init_grass_data() -> void:
   golden_grass.regen_time = 25.0
   golden_grass.min_drop_value = 100
   golden_grass.max_drop_value = 500
-  golden_grass.drop_chance = 1.0
+  golden_grass.guaranteed_drop = true
   golden_grass.color = Color(1.0, 0.85, 0.1)
   golden_grass.cut_color = Color(0.7, 0.6, 0.1)
 

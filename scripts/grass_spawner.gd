@@ -352,12 +352,12 @@ func attack_grass_in_area(center: Vector2, radius: float) -> int:
         total_value += data.value
         attacked_positions.append(world_pos)
 
-  # Spawn coins for cut grass (20% drop chance, 황금풀 100%)
+  # Spawn coins for cut grass (GrassData.drop_chance / guaranteed_drop)
   for pos in attacked_positions:
     var grid_pos = Vector2i(int(pos.x), int(pos.y))
     if grass_data.has(grid_pos):
-      var is_golden = grass_data[grid_pos].type == 3
-      if is_golden or randf() < 0.2:
+      var gd = GameManager.grass_data_list[grass_data[grid_pos].type]
+      if gd.guaranteed_drop or randf() < gd.drop_chance:
         spawn_coin(pos, grass_data[grid_pos].value)
 
   return total_value
