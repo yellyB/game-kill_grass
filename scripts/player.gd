@@ -193,14 +193,15 @@ func try_attack() -> void:
   # Convert to grass spawner local coordinates
   var local_attack_center = attack_center - grass_spawner.global_position
 
-  # Attack grass and get total value
-  grass_spawner.attack_grass_in_area(local_attack_center, attack_radius)
+  # Attack grass
+  var result = grass_spawner.attack_grass_in_area(local_attack_center, attack_radius)
 
   # Attack monsters in range
   _attack_monsters_in_area(attack_center, attack_radius)
 
-  # Play attack sound
-  sfx_grass_player.play()
+  # Play sound when weapon hits grass
+  if result.hit:
+    sfx_grass_player.play()
 
   # Swing animation
   var target_pos = attack_center + input_direction * 30
