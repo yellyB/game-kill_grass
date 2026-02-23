@@ -21,6 +21,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 70},
 		],
 		"has_lightning": true,
+		"penalty_min": 5,
+		"penalty_max": 10,
 		"spawn_weight": 30,
 	},
 	{
@@ -34,6 +36,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "과성장 생체 응축체", "image_path": "res://resources/images/items/과성장 생체 응축체.png", "weight": 25},
 		],
 		"has_lightning": false,
+		"penalty_min": 80,
+		"penalty_max": 150,
 		"spawn_weight": 25,
 	},
 	{
@@ -46,6 +50,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 35},
 		],
 		"has_lightning": false,
+		"penalty_min": 100,
+		"penalty_max": 200,
 		"spawn_weight": 15,
 	},
 	{
@@ -59,6 +65,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "바람 머금은 잔디 섬유", "image_path": "res://resources/images/items/바람 머금은 잔디 섬유.png", "weight": 77},
 		],
 		"has_lightning": false,
+		"penalty_min": 400,
+		"penalty_max": 800,
 		"spawn_weight": 15,
 	},
 	{
@@ -71,6 +79,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 11},
 		],
 		"has_lightning": false,
+		"penalty_min": 500,
+		"penalty_max": 1000,
 		"spawn_weight": 5,
 	},
 	{
@@ -84,6 +94,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "침식된 백골 프레임", "image_path": "res://resources/images/items/침식된 백골 프레임.png", "weight": 39},
 		],
 		"has_lightning": false,
+		"penalty_min": 6000,
+		"penalty_max": 12000,
 		"spawn_weight": 5,
 	},
 	{
@@ -96,6 +108,8 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "드래곤 배기가스 결정", "image_path": "res://resources/images/items/드래곤 배기가스 결정.png", "weight": 67},
 		],
 		"has_lightning": false,
+		"penalty_min": 10000,
+		"penalty_max": 20000,
 		"spawn_weight": 3,
 	},
 ]

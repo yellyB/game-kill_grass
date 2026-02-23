@@ -377,28 +377,29 @@ func _check_monster_collision() -> void:
     if monster.get_script() and monster.get_script().resource_path.ends_with("chest.gd"):
       continue
     if global_position.distance_to(monster.global_position) < MONSTER_HIT_RADIUS:
-      _on_monster_hit()
+      _on_monster_hit(monster)
       return
 
-func _on_monster_hit() -> void:
+func _on_monster_hit(monster: Node2D) -> void:
   is_hit_debuffed = true
   is_invincible = true
   hit_debuff_timer = HIT_DEBUFF_DURATION
   invincible_timer = INVINCIBLE_DURATION
   GameManager.hit_penalty_active = true
   player_hit.emit()
-  _drop_penalty_coins()
+  var penalty_amount = randi_range(monster.penalty_min, monster.penalty_max)
+  _drop_penalty_coins(penalty_amount)
   # Red screen overlay for debuff duration
   _show_hit_overlay()
 
-func _drop_penalty_coins() -> void:
-  var penalty = int(GameManager.session_money * 0.05)
+func _drop_penalty_coins(penalty: int) -> void:
   # Always show scatter coins visual
   var coin_count = randi_range(7, 10)
   for i in coin_count:
     _spawn_scatter_coin()
-  if penalty <= 0:
+  if penalty <= 0 or GameManager.session_money <= 0:
     return
+  penalty = mini(penalty, GameManager.session_money)
   GameManager.add_money(-penalty)
   # Show penalty floating text
   var penalty_text = FloatingTextScene.instantiate()

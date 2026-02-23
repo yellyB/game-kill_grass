@@ -35,6 +35,8 @@ var wander_speed: float = 40.0
 # Health (placeholder)
 var max_health: int = 1
 var health: int = 1
+var penalty_min: int = 5
+var penalty_max: int = 10
 var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
@@ -44,6 +46,8 @@ func setup(config: Dictionary) -> void:
   wander_speed = config.wander_speed
   drop_table = config.drop_table
   has_lightning = config.get("has_lightning", false)
+  penalty_min = config.get("penalty_min", 5)
+  penalty_max = config.get("penalty_max", 10)
 
 func _ready() -> void:
   add_to_group("monsters")
