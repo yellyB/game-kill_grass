@@ -286,7 +286,7 @@ func create_weapon_sprite() -> Sprite2D:
 
 func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
   var monsters = get_tree().get_nodes_in_group("monsters")
-  var damage = int(WeaponManager.get_weapon_damage() + GameManager.get_part_bonus_damage())
+  var damage = WeaponManager.get_weapon_damage()
   for monster in monsters:
     if not is_instance_valid(monster):
       continue

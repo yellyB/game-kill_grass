@@ -94,13 +94,13 @@ const RECIPES: Array = [
   },
 ]
 
-const PART_BUFF_DESC: Dictionary = {
-  "개념상 바퀴": "이동속도 +8%",
-  "폭발하는 엔진 코어": "공격력 +0.5 / 공격범위 +10%",
-  "충격 무시 범퍼": "피격 패널티 -25%",
-  "이세계 내비게이션": "몬스터 탐지",
-  "강화 유리 모듈": "수집범위 +15%",
-  "운전기사": "공격속도 +20%",
+const PART_BUFFS: Dictionary = {
+  "개념상 바퀴": {"label": "이동 속도", "per": "+8%", "max": "+32%"},
+  "폭발하는 엔진 코어": {"label": "공격 범위", "per": "+10%", "max": "+100%"},
+  "충격 무시 범퍼": {"label": "패널티 감소", "per": "-25%", "max": "-50%"},
+  "이세계 내비게이션": {"label": "몬스터 탐지", "per": "", "max": ""},
+  "강화 유리 모듈": {"label": "수집 범위", "per": "+15%", "max": "+90%"},
+  "운전기사": {"label": "공격 속도", "per": "+20%", "max": "+20%"},
 }
 
 # ── Crafted items (parts) ──
@@ -319,7 +319,7 @@ func _refresh_final_assembly() -> void:
 
 func _create_undiscovered_slot() -> PanelContainer:
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(200, 160)
+  slot.custom_minimum_size = Vector2(200, 120)
 
   var style = StyleBoxFlat.new()
   style.bg_color = Color(0.08, 0.08, 0.12)
@@ -357,7 +357,7 @@ func _create_active_slot(item_id: String, image_path: String, count: int) -> Pan
 
 func _create_base_material_slot(item_id: String, image_path: String, count: int) -> PanelContainer:
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(200, 160)
+  slot.custom_minimum_size = Vector2(200, 120)
 
   var style = StyleBoxFlat.new()
   style.bg_color = Color(0.15, 0.15, 0.22)
@@ -374,12 +374,13 @@ func _create_base_material_slot(item_id: String, image_path: String, count: int)
 
   var vbox = VBoxContainer.new()
   vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  vbox.add_theme_constant_override("separation", 4)
+  vbox.add_theme_constant_override("separation", 2)
+  vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
   slot.add_child(vbox)
 
   # Item image
   var tex_rect = TextureRect.new()
-  tex_rect.custom_minimum_size = Vector2(80, 80)
+  tex_rect.custom_minimum_size = Vector2(56, 56)
   tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
   tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
   var tex = _load_texture(image_path)
@@ -525,7 +526,7 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   var complete: bool = count >= needed
 
   var slot = PanelContainer.new()
-  slot.custom_minimum_size = Vector2(400, 121)
+  slot.custom_minimum_size = Vector2(400, 200)
 
   var style = StyleBoxFlat.new()
   if complete or can_craft:
@@ -544,25 +545,31 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   style.border_width_bottom = 2
   style.border_width_left = 2
   style.border_width_right = 2
-  style.content_margin_left = 16
-  style.content_margin_right = 16
-  style.content_margin_top = 12
-  style.content_margin_bottom = 12
+  style.content_margin_left = 32
+  style.content_margin_right = 32
+  style.content_margin_top = 24
+  style.content_margin_bottom = 24
   slot.add_theme_stylebox_override("panel", style)
 
   if complete:
     slot.modulate = Color(1, 1, 1, 0.5)
 
+  # Main vertical layout: [row] + [progress bar]
+  var main_vbox = VBoxContainer.new()
+  main_vbox.add_theme_constant_override("separation", 15)
+  main_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+  slot.add_child(main_vbox)
+
   # [이미지] [이름 + 수량]
   var row_hbox = HBoxContainer.new()
   row_hbox.alignment = BoxContainer.ALIGNMENT_BEGIN
   row_hbox.add_theme_constant_override("separation", 12)
-  slot.add_child(row_hbox)
+  main_vbox.add_child(row_hbox)
 
   # 이미지 컬럼
   var part_image_path = _get_crafted_item_image(item_id)
   var tex_rect = TextureRect.new()
-  tex_rect.custom_minimum_size = Vector2(80, 80)
+  tex_rect.custom_minimum_size = Vector2(90, 90)
   tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
   tex_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
   var tex = _load_texture(part_image_path)
@@ -596,17 +603,73 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
     count_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
   info_vbox.add_child(count_label)
 
-  # Buff description
-  var buff_desc = PART_BUFF_DESC.get(item_id, "")
-  if buff_desc != "":
-    var buff_label = Label.new()
-    buff_label.text = buff_desc
-    buff_label.add_theme_font_size_override("font_size", 16)
+  # Divider + progress section with tighter spacing
+  var bottom_vbox = VBoxContainer.new()
+  bottom_vbox.add_theme_constant_override("separation", 15)
+  main_vbox.add_child(bottom_vbox)
+
+  var divider = ColorRect.new()
+  divider.custom_minimum_size = Vector2(0, 1)
+  divider.color = Color(0.45, 0.45, 0.55, 0.8)
+  bottom_vbox.add_child(divider)
+
+  # Buff progress bar
+  var buff_info = PART_BUFFS.get(item_id, {})
+  if not buff_info.is_empty():
+    var capped = mini(count, needed)
+    var progress = float(capped) / float(needed) if needed > 0 else 0.0
+
+    # Bar container (label left, bar center, label right)
+    var bar_hbox = HBoxContainer.new()
+    bar_hbox.add_theme_constant_override("separation", 8)
+    bottom_vbox.add_child(bar_hbox)
+
+    # Buff name label (left)
+    var buff_name = Label.new()
+    buff_name.text = buff_info.label
+    buff_name.add_theme_font_size_override("font_size", 21)
+    buff_name.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+    buff_name.custom_minimum_size = Vector2(90, 0)
+    bar_hbox.add_child(buff_name)
+
+    # Progress bar
+    var bar_bg = PanelContainer.new()
+    bar_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    bar_bg.custom_minimum_size = Vector2(0, 21)
+    var bg_style = StyleBoxFlat.new()
+    bg_style.bg_color = Color(0.1, 0.1, 0.15)
+    bg_style.corner_radius_top_left = 4
+    bg_style.corner_radius_top_right = 4
+    bg_style.corner_radius_bottom_left = 4
+    bg_style.corner_radius_bottom_right = 4
+    bar_bg.add_theme_stylebox_override("panel", bg_style)
+    bar_hbox.add_child(bar_bg)
+
+    var bar_fill = Panel.new()
+    bar_fill.anchor_right = progress
+    bar_fill.anchor_bottom = 1.0
+    var fill_style = StyleBoxFlat.new()
     if count > 0:
-      buff_label.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+      fill_style.bg_color = Color(0.25, 0.7, 0.9, 0.9)
     else:
-      buff_label.add_theme_color_override("font_color", Color(0.35, 0.35, 0.45))
-    info_vbox.add_child(buff_label)
+      fill_style.bg_color = Color(0.25, 0.25, 0.35, 0.5)
+    fill_style.corner_radius_top_left = 4
+    fill_style.corner_radius_top_right = 4
+    fill_style.corner_radius_bottom_left = 4
+    fill_style.corner_radius_bottom_right = 4
+    bar_fill.add_theme_stylebox_override("panel", fill_style)
+    bar_bg.add_child(bar_fill)
+
+    # Max value label (right)
+    if buff_info.max != "":
+      var max_label = Label.new()
+      max_label.text = buff_info.max
+      max_label.add_theme_font_size_override("font_size", 21)
+      if complete:
+        max_label.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+      else:
+        max_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
+      bar_hbox.add_child(max_label)
 
   # Clickable only if not complete
   if not complete:

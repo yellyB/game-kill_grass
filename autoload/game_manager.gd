@@ -591,9 +591,6 @@ func get_item_count(item_id: String) -> int:
 func get_part_count(part_id: String, max_count: int) -> int:
   return mini(get_item_count(part_id), max_count)
 
-func get_part_bonus_damage() -> float:
-  return get_part_count("폭발하는 엔진 코어", 10) * 0.5  # 개당 +0.5, 최대 +5
-
 func get_part_penalty_mult() -> float:
   return 1.0 - get_part_count("충격 무시 범퍼", 2) * 0.25  # 개당 -25%, 최대 -50%
 
