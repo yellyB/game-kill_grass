@@ -26,6 +26,7 @@ var upgrade_grass_regen: int = 0  # 풀 재생 속도 업그레이드 (0-10)
 var upgrade_grass_reward: int = 0  # 풀 보상 업그레이드 (0-10, 코인 드롭량 증가)
 var upgrade_monster_knockback: int = 0  # 몬스터 넉백 증가 (0-5)
 var upgrade_grass_drop: int = 0  # 풀 드롭률 증가 (0-5)
+var upgrade_golden_chance: int = 0  # 황금풀 확률 증가 (0-5)
 
 # Session powerup buffs (reset each session)
 var session_buff_attack_speed: int = 0
@@ -53,6 +54,7 @@ const MAX_REGEN_LEVEL: int = 5
 const MAX_REWARD_LEVEL: int = 10
 const MAX_KNOCKBACK_LEVEL: int = 5
 const MAX_DROP_LEVEL: int = 5
+const MAX_GOLDEN_CHANCE_LEVEL: int = 5
 const BASE_GRASS_PER_CHUNK: int = 8
 const BASE_MIN_SPACING: float = 60.0
 const GRASS_DROP_CHANCE: float = 0.2
@@ -229,10 +231,10 @@ func _init_grass_data() -> void:
   # 3: 황금풀 - 예외적 존재, 모든 레벨에서 동일 확률로 등장
   var golden_grass = GrassData.new()
   golden_grass.grass_name = "황금풀"
-  golden_grass.max_health = 60
+  golden_grass.max_health = 160
   golden_grass.regen_time = 25.0
-  golden_grass.min_drop_value = 100
-  golden_grass.max_drop_value = 500
+  golden_grass.min_drop_value = 300
+  golden_grass.max_drop_value = 300
   golden_grass.guaranteed_drop = true
   golden_grass.color = Color(1.0, 0.85, 0.1)
   golden_grass.cut_color = Color(0.7, 0.6, 0.1)
@@ -245,11 +247,8 @@ func _init_grass_data() -> void:
 func get_random_grass_data() -> GrassData:
   var quality_level = upgrade_grass_quality
 
-  # 황금풀: 모든 레벨에서 동일한 확률 (0.1%)
-  const GOLDEN_CHANCE = 0.001
-
   var roll = randf()
-  if roll < GOLDEN_CHANCE:
+  if roll < get_golden_grass_chance():
     return grass_data_list[3]  # 황금풀
 
   # 가중치 기반 3종 풀 분배 (겹치는 구간 있음)
@@ -408,8 +407,13 @@ func get_grass_drop_chance() -> float:
   # 레벨당 6% 증가 (Lv.5 = 50%)
   return GRASS_DROP_CHANCE + upgrade_grass_drop * 0.06
 
+func get_golden_grass_chance() -> float:
+  if upgrade_golden_chance == 0:
+    return 0.0002  # 기본 0.02%
+  return 0.002 * upgrade_golden_chance  # Lv.1=0.2%, Lv.5=1.0%
+
 func get_total_skill_level() -> int:
-  return upgrade_grass_density + upgrade_grass_quality + upgrade_grass_regen + upgrade_grass_reward + upgrade_monster_knockback + upgrade_grass_drop
+  return upgrade_grass_density + upgrade_grass_quality + upgrade_grass_regen + upgrade_grass_reward + upgrade_monster_knockback + upgrade_grass_drop + upgrade_golden_chance
 
 func get_grass_reward_multiplier() -> float:
   # 레벨당 30% 증가 (Lv.10 = x4.0)
@@ -436,6 +440,8 @@ const SKILL_PREREQS = {
   "monster_knockback:3": [{"type": "grass_regen", "level": 2}],
   "grass_drop:1": [{"type": "grass_reward", "level": 2}],
   "grass_drop:3": [{"type": "grass_quality", "level": 3}],
+  "golden_chance:1": [{"type": "grass_quality", "level": 3}],
+  "golden_chance:3": [{"type": "grass_reward", "level": 3}],
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
@@ -463,6 +469,8 @@ func _get_upgrade_level(type: String) -> int:
       return upgrade_monster_knockback
     "grass_drop":
       return upgrade_grass_drop
+    "golden_chance":
+      return upgrade_golden_chance
   return 0
 
 func get_weapon_skill_requirement(weapon_level: int) -> int:
@@ -499,6 +507,9 @@ func purchase_upgrade(upgrade_type: String) -> bool:
     "grass_drop":
       current_level = upgrade_grass_drop
       max_level = MAX_DROP_LEVEL
+    "golden_chance":
+      current_level = upgrade_golden_chance
+      max_level = MAX_GOLDEN_CHANCE_LEVEL
     _:
       return false
 
@@ -532,6 +543,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
       upgrade_monster_knockback += 1
     "grass_drop":
       upgrade_grass_drop += 1
+    "golden_chance":
+      upgrade_golden_chance += 1
 
   upgrade_purchased.emit(upgrade_type, current_level + 1)
   return true
@@ -596,6 +609,7 @@ func get_save_data() -> Dictionary:
     "upgrade_grass_reward": upgrade_grass_reward,
     "upgrade_monster_knockback": upgrade_monster_knockback,
     "upgrade_grass_drop": upgrade_grass_drop,
+    "upgrade_golden_chance": upgrade_golden_chance,
     "inventory": inventory,
     "discovered_items": discovered_items,
     "selected_world": selected_world,
@@ -612,6 +626,7 @@ func load_save_data(data: Dictionary) -> void:
   upgrade_grass_reward = data.get("upgrade_grass_reward", 0)
   upgrade_monster_knockback = data.get("upgrade_monster_knockback", 0)
   upgrade_grass_drop = data.get("upgrade_grass_drop", 0)
+  upgrade_golden_chance = data.get("upgrade_golden_chance", 0)
   inventory = data.get("inventory", {})
   discovered_items = data.get("discovered_items", [])
   selected_world = data.get("selected_world", 0)

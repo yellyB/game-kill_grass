@@ -61,6 +61,7 @@ func reset_all_data() -> void:
 	GameManager.upgrade_grass_reward = 0
 	GameManager.upgrade_monster_knockback = 0
 	GameManager.upgrade_grass_drop = 0
+	GameManager.upgrade_golden_chance = 0
 	GameManager.inventory = {}
 	GameManager.discovered_items = []
 	GameManager.selected_world = 0

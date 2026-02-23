@@ -60,6 +60,12 @@ const SKILL_CHAINS = [
     "name": "드롭률 증가",
     "description": "풀에서 코인이 떨어질 확률이 증가합니다.",
     "max_level": 5
+  },
+  {
+    "type": "golden_chance",
+    "name": "황금풀 확률",
+    "description": "황금풀이 등장할 확률이 증가합니다.",
+    "max_level": 5
   }
 ]
 
@@ -67,7 +73,7 @@ const SKILL_CHAINS = [
 const SKILL_GRID = [
   ["grass_density", "grass_quality"],   # Row 0: 기초
   ["grass_regen", "grass_reward"],      # Row 1: 효율
-  ["monster_knockback", "grass_drop"],  # Row 2: 특화
+  ["monster_knockback", "grass_drop", "golden_chance"],  # Row 2: 특화
 ]
 
 # Row labels
@@ -81,6 +87,7 @@ const SKILL_NAMES = {
   "grass_reward": "풀 보상",
   "monster_knockback": "넉백 증가",
   "grass_drop": "드롭률 증가",
+  "golden_chance": "황금풀 확률",
 }
 
 # Connection lines between skills (source -> target for prereq visualization)
@@ -93,6 +100,8 @@ const SKILL_CONNECTIONS = [
   {"from": "grass_reward", "to": "grass_drop"},
   {"from": "grass_density", "to": "grass_quality"},
   {"from": "grass_regen", "to": "grass_reward"},
+  {"from": "grass_quality", "to": "golden_chance"},
+  {"from": "grass_reward", "to": "golden_chance"},
 ]
 
 # Node visual settings
@@ -457,6 +466,8 @@ func _get_current_level(skill_type: String) -> int:
       return GameManager.upgrade_monster_knockback
     "grass_drop":
       return GameManager.upgrade_grass_drop
+    "golden_chance":
+      return GameManager.upgrade_golden_chance
   return 0
 
 func _get_skill_chain(skill_type: String) -> Dictionary:
@@ -510,7 +521,7 @@ func build_skill_tree() -> void:
     y_offset += 35
 
     # Create skill cards for this row
-    var col_width = container_width / 2.0
+    var col_width = container_width / float(row.size())
     for col_idx in range(row.size()):
       var skill_type = row[col_idx]
       var card = _create_skill_card(skill_type)
@@ -787,6 +798,13 @@ func _update_skill_description() -> void:
       var next_drop = GameManager.get_grass_drop_chance() * 100
       GameManager.upgrade_grass_drop = temp_drop
       stat_text = "드롭률: %.0f%% → %.0f%%" % [current_drop, next_drop]
+    "golden_chance":
+      var current_gc = GameManager.get_golden_grass_chance() * 100
+      var temp_gc = GameManager.upgrade_golden_chance
+      GameManager.upgrade_golden_chance += 1
+      var next_gc = GameManager.get_golden_grass_chance() * 100
+      GameManager.upgrade_golden_chance = temp_gc
+      stat_text = "황금풀 확률: %.2f%% → %.2f%%" % [current_gc, next_gc]
 
   # Build prereq text
   var prereq_text = ""

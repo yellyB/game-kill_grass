@@ -16,8 +16,8 @@ var textures: Array[Texture2D] = []
 var sprite_path: String = "res://resources/images/monster/slime/"
 var has_lightning: bool = true
 var drop_table: Array = [
-  {"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 70},
-  {"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 30},
+  {"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 30},
+  {"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 70},
 ]
 
 # Animation
@@ -126,6 +126,7 @@ func _pick_new_wander() -> void:
 var is_dead: bool = false
 var knockback_velocity: Vector2 = Vector2.ZERO
 const KNOCKBACK_FRICTION: float = 5.0
+const ITEM_DROP_CHANCE: float = 0.7
 
 func take_damage(amount: int, from_global_pos: Variant = null) -> void:
   if is_dead:
@@ -211,6 +212,8 @@ func die() -> void:
   queue_free()
 
 func _drop_item() -> void:
+  if randf() > ITEM_DROP_CHANCE:
+    return
   var drop = _roll_drop()
   if not drop:
     return

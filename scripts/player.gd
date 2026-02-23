@@ -440,6 +440,7 @@ func _show_hit_overlay() -> void:
   get_tree().root.add_child(_hit_overlay_canvas)
   var overlay = ColorRect.new()
   overlay.color = Color(1, 0, 0, 0.15)
+  overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
   overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
   _hit_overlay_canvas.add_child(overlay)
 
