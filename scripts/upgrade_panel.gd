@@ -48,6 +48,18 @@ const SKILL_CHAINS = [
     "name": "풀 보상",
     "description": "풀에서 떨어지는 코인이 증가합니다.",
     "max_level": 10
+  },
+  {
+    "type": "monster_knockback",
+    "name": "넉백 증가",
+    "description": "몬스터를 더 멀리 밀어냅니다.",
+    "max_level": 5
+  },
+  {
+    "type": "grass_drop",
+    "name": "드롭률 증가",
+    "description": "풀에서 코인이 떨어질 확률이 증가합니다.",
+    "max_level": 5
   }
 ]
 
@@ -401,6 +413,10 @@ func _get_current_level(skill_type: String) -> int:
       return GameManager.upgrade_grass_regen
     "grass_reward":
       return GameManager.upgrade_grass_reward
+    "monster_knockback":
+      return GameManager.upgrade_monster_knockback
+    "grass_drop":
+      return GameManager.upgrade_grass_drop
   return 0
 
 func build_skill_tree() -> void:
@@ -563,6 +579,20 @@ func _update_skill_description() -> void:
       var next_mult = GameManager.get_grass_reward_multiplier()
       GameManager.upgrade_grass_reward = temp
       stat_text = "보상 배율: x%.1f → x%.1f" % [current_mult, next_mult]
+    "monster_knockback":
+      var current_kb = GameManager.get_monster_knockback_strength()
+      var temp_kb = GameManager.upgrade_monster_knockback
+      GameManager.upgrade_monster_knockback += 1
+      var next_kb = GameManager.get_monster_knockback_strength()
+      GameManager.upgrade_monster_knockback = temp_kb
+      stat_text = "넉백: %.0f → %.0f" % [current_kb, next_kb]
+    "grass_drop":
+      var current_drop = GameManager.get_grass_drop_chance() * 100
+      var temp_drop = GameManager.upgrade_grass_drop
+      GameManager.upgrade_grass_drop += 1
+      var next_drop = GameManager.get_grass_drop_chance() * 100
+      GameManager.upgrade_grass_drop = temp_drop
+      stat_text = "드롭률: %.0f%% → %.0f%%" % [current_drop, next_drop]
 
   description_label.text = "%s Lv.%d\n\n%s\n\n%s\n\n비용: $%s" % [chain_info.name, selected_level, chain_info.description, stat_text, format_number(cost)]
 

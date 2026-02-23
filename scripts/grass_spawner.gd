@@ -359,7 +359,7 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
     var grid_pos = Vector2i(int(pos.x), int(pos.y))
     if grass_data.has(grid_pos):
       var gd = GameManager.grass_data_list[grass_data[grid_pos].type]
-      if gd.guaranteed_drop or randf() < gd.drop_chance:
+      if gd.guaranteed_drop or randf() < GameManager.get_grass_drop_chance():
         spawn_coin(pos, grass_data[grid_pos].value)
 
   return {"value": total_value, "hit": hit_count > 0}
@@ -399,7 +399,7 @@ func _on_field_clear() -> void:
     data.regen_timer = 0.0
     var pos = Vector2(grid_pos.x, grid_pos.y)
     # Spawn coins for valuable grass
-    if data.type == 3 or randf() < 0.2:
+    if data.type == 3 or randf() < GameManager.get_grass_drop_chance():
       spawn_coin(pos, data.value)
 
 func _on_blackhole() -> void:
