@@ -94,6 +94,15 @@ const RECIPES: Array = [
   },
 ]
 
+const PART_BUFF_DESC: Dictionary = {
+  "개념상 바퀴": "이동속도 +8%",
+  "폭발하는 엔진 코어": "공격력 +0.5 / 공격범위 +10%",
+  "충격 무시 범퍼": "피격 패널티 -25%",
+  "이세계 내비게이션": "몬스터 탐지",
+  "강화 유리 모듈": "수집범위 +15%",
+  "운전기사": "공격속도 +20%",
+}
+
 # ── Crafted items (parts) ──
 const CRAFTED_ITEMS: Array = [
   {"id": "개념상 바퀴", "image": "res://resources/images/product/개념상 바퀴.png"},
@@ -586,6 +595,18 @@ func _create_part_slot(recipe: Dictionary) -> PanelContainer:
   else:
     count_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
   info_vbox.add_child(count_label)
+
+  # Buff description
+  var buff_desc = PART_BUFF_DESC.get(item_id, "")
+  if buff_desc != "":
+    var buff_label = Label.new()
+    buff_label.text = buff_desc
+    buff_label.add_theme_font_size_override("font_size", 16)
+    if count > 0:
+      buff_label.add_theme_color_override("font_color", Color(0.4, 0.85, 1.0))
+    else:
+      buff_label.add_theme_color_override("font_color", Color(0.35, 0.35, 0.45))
+    info_vbox.add_child(buff_label)
 
   # Clickable only if not complete
   if not complete:

@@ -286,7 +286,7 @@ func create_weapon_sprite() -> Sprite2D:
 
 func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
   var monsters = get_tree().get_nodes_in_group("monsters")
-  var damage = WeaponManager.get_weapon_damage()
+  var damage = int(WeaponManager.get_weapon_damage() + GameManager.get_part_bonus_damage())
   for monster in monsters:
     if not is_instance_valid(monster):
       continue
@@ -387,7 +387,7 @@ func _on_monster_hit(monster: Node2D) -> void:
   invincible_timer = INVINCIBLE_DURATION
   GameManager.hit_penalty_active = true
   player_hit.emit()
-  var penalty_amount = randi_range(monster.penalty_min, monster.penalty_max)
+  var penalty_amount = int(randi_range(monster.penalty_min, monster.penalty_max) * GameManager.get_part_penalty_mult())
   _drop_penalty_coins(penalty_amount)
   # Red screen overlay for debuff duration
   _show_hit_overlay()
