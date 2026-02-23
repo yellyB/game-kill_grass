@@ -631,10 +631,6 @@ func _fx_wind_beam(pos: Vector2, dir: Vector2) -> void:
 
 # Lv9 위성 레이저 제초기 — red beam
 func _fx_satellite_laser(pos: Vector2) -> void:
-  # Camera shake
-  var cam = get_viewport().get_camera_2d()
-  if cam and cam.has_method("shake"):
-    cam.shake(0.5)
   # Red vertical beam
   var beam = Line2D.new()
   beam.position = pos
