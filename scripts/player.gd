@@ -195,14 +195,12 @@ func try_attack() -> void:
   attack_timer.wait_time = wait
   attack_timer.start()
 
-  # Convert to grass spawner local coordinates
-  var local_attack_center = attack_center - grass_spawner.global_position
-
-  # Attack grass
-  var result = grass_spawner.attack_grass_in_area(local_attack_center, attack_radius)
-
-  # Attack monsters in range
+  # Attack monsters first (priority)
   _attack_monsters_in_area(attack_center, attack_radius)
+
+  # Then attack grass
+  var local_attack_center = attack_center - grass_spawner.global_position
+  var result = grass_spawner.attack_grass_in_area(local_attack_center, attack_radius)
 
   # Play sound when weapon hits grass
   if result.hit:

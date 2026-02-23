@@ -12,6 +12,7 @@ extends CanvasLayer
 var displayed_money: int = 0
 var target_money: int = 0
 var buff_labels: Dictionary = {}  # type -> Label
+var perm_buff_labels: Dictionary = {}  # type -> Label
 
 func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
@@ -126,6 +127,8 @@ const POWERUP_COLORS = {
   "blackhole": Color(0.5, 0.2, 0.8),
 }
 
+const PERSISTENT_BUFFS = ["attack_speed", "attack_range", "magnet_range", "move_speed", "overdrive"]
+
 func _on_powerup_acquired(type: String, level: int) -> void:
   var pname = POWERUP_NAMES.get(type, type)
   var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
@@ -155,6 +158,10 @@ func _on_powerup_acquired(type: String, level: int) -> void:
   tween.tween_interval(1.5)
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)
+
+  # Update persistent buff display
+  if type in PERSISTENT_BUFFS:
+    _update_perm_buff(type, level)
 
 const WORLD_NAMES: Array = ["슬라임 늪", "들판", "마법의 숲", "용의 봉우리"]
 
@@ -257,3 +264,28 @@ func _update_buff_timers() -> void:
     var remaining = GameManager.get_timed_buff_remaining(type)
     var buff_name = TIMED_BUFF_NAMES.get(type, type)
     label.text = "%s %.1fs" % [buff_name, remaining]
+
+func _update_perm_buff(type: String, level: int) -> void:
+  var pname = POWERUP_NAMES.get(type, type)
+  var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
+
+  if perm_buff_labels.has(type) and is_instance_valid(perm_buff_labels[type]):
+    # Update existing label
+    if type == "overdrive":
+      perm_buff_labels[type].text = pname
+    else:
+      perm_buff_labels[type].text = "%s Lv.%d" % [pname, level]
+    return
+
+  var label = Label.new()
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  label.add_theme_font_size_override("font_size", 28)
+  label.add_theme_color_override("font_color", pcolor)
+  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  label.add_theme_constant_override("outline_size", 3)
+  if type == "overdrive":
+    label.text = pname
+  else:
+    label.text = "%s Lv.%d" % [pname, level]
+  buff_container.add_child(label)
+  perm_buff_labels[type] = label
