@@ -49,7 +49,7 @@ var base_magnet_range: float = 75.0  # Half of original 150
 # Grass density settings
 const MAX_DENSITY_LEVEL: int = 10
 const MAX_QUALITY_LEVEL: int = 10
-const MAX_REGEN_LEVEL: int = 10
+const MAX_REGEN_LEVEL: int = 5
 const MAX_REWARD_LEVEL: int = 10
 const MAX_KNOCKBACK_LEVEL: int = 5
 const MAX_DROP_LEVEL: int = 5
@@ -421,14 +421,58 @@ func get_grass_reward_multiplier() -> float:
 # Lv7 마법지팡이, Lv8 날개달린선풍기, Lv9 위성레이저제초기
 const WEAPON_SKILL_REQUIREMENTS = [0, 0, 1, 2, 4, 6, 9, 12, 15, 18]
 
+# Skill tree prerequisites: "type:level" -> Array of {type, level} (all AND)
+const SKILL_PREREQS = {
+  "grass_density:4": [{"type": "grass_quality", "level": 2}],
+  "grass_density:7": [{"type": "grass_regen", "level": 2}],
+  "grass_quality:4": [{"type": "grass_density", "level": 2}],
+  "grass_quality:7": [{"type": "grass_reward", "level": 3}],
+  "grass_regen:1": [{"type": "grass_density", "level": 2}],
+  "grass_regen:3": [{"type": "grass_quality", "level": 2}],
+  "grass_reward:1": [{"type": "grass_quality", "level": 2}],
+  "grass_reward:4": [{"type": "grass_density", "level": 3}],
+  "grass_reward:7": [{"type": "grass_regen", "level": 2}],
+  "monster_knockback:1": [{"type": "grass_density", "level": 3}],
+  "monster_knockback:3": [{"type": "grass_regen", "level": 2}],
+  "grass_drop:1": [{"type": "grass_reward", "level": 2}],
+  "grass_drop:3": [{"type": "grass_quality", "level": 3}],
+}
+
+func check_skill_prereqs(type: String, level: int) -> Dictionary:
+  var key = "%s:%d" % [type, level]
+  if not SKILL_PREREQS.has(key):
+    return {"met": true, "missing": []}
+  var missing: Array = []
+  for req in SKILL_PREREQS[key]:
+    var current = _get_upgrade_level(req.type)
+    if current < req.level:
+      missing.append({"type": req.type, "level": req.level, "current": current})
+  return {"met": missing.is_empty(), "missing": missing}
+
+func _get_upgrade_level(type: String) -> int:
+  match type:
+    "grass_density":
+      return upgrade_grass_density
+    "grass_quality":
+      return upgrade_grass_quality
+    "grass_regen":
+      return upgrade_grass_regen
+    "grass_reward":
+      return upgrade_grass_reward
+    "monster_knockback":
+      return upgrade_monster_knockback
+    "grass_drop":
+      return upgrade_grass_drop
+  return 0
+
 func get_weapon_skill_requirement(weapon_level: int) -> int:
   if weapon_level < 0 or weapon_level >= WEAPON_SKILL_REQUIREMENTS.size():
     return 0
   return WEAPON_SKILL_REQUIREMENTS[weapon_level]
 
 func get_grass_regen_time(base_time: float) -> float:
-  # 매 레벨마다 2초씩 감소
-  return base_time - (upgrade_grass_regen * 2.0)
+  # 매 레벨마다 3초씩 감소 (최대 Lv.5 = -15초)
+  return base_time - (upgrade_grass_regen * 3.0)
 
 func get_upgrade_cost(current_level: int) -> int:
   return int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
@@ -460,6 +504,12 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 
   # Check max level
   if max_level >= 0 and current_level >= max_level:
+    return false
+
+  # Check skill prerequisites
+  var next_level = current_level + 1
+  var prereq_result = check_skill_prereqs(upgrade_type, next_level)
+  if not prereq_result.met:
     return false
 
   var cost = get_upgrade_cost(current_level)

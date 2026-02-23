@@ -10,7 +10,7 @@ signal panel_closed
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var toggle_btn: Button = $ToggleBtn
 @onready var money_label: Label = $Panel/MoneyLabel
-@onready var skill_tree_hbox: HBoxContainer = $Panel/SkillTreeScroll/SkillTreeHBox
+@onready var skill_tree_container: Control = $Panel/SkillTreeScroll/SkillTreeContainer
 
 # Weapon nodes
 @onready var weapon_image: TextureRect = $Panel/WeaponSection/WeaponHBox/WeaponImage
@@ -41,7 +41,7 @@ const SKILL_CHAINS = [
     "type": "grass_regen",
     "name": "풀 재생",
     "description": "베어진 풀이 더 빨리 다시 자랍니다.",
-    "max_level": 10
+    "max_level": 5
   },
   {
     "type": "grass_reward",
@@ -63,16 +63,56 @@ const SKILL_CHAINS = [
   }
 ]
 
+# 3×2 grid layout: [row][col] = skill type
+const SKILL_GRID = [
+  ["grass_density", "grass_quality"],   # Row 0: 기초
+  ["grass_regen", "grass_reward"],      # Row 1: 효율
+  ["monster_knockback", "grass_drop"],  # Row 2: 특화
+]
+
+# Row labels
+const ROW_LABELS = ["기초", "효율", "특화"]
+
+# Skill display names (for prereq text)
+const SKILL_NAMES = {
+  "grass_density": "풀 밀도",
+  "grass_quality": "풀 등급",
+  "grass_regen": "풀 재생",
+  "grass_reward": "풀 보상",
+  "monster_knockback": "넉백 증가",
+  "grass_drop": "드롭률 증가",
+}
+
+# Connection lines between skills (source -> target for prereq visualization)
+const SKILL_CONNECTIONS = [
+  {"from": "grass_density", "to": "grass_regen"},
+  {"from": "grass_density", "to": "monster_knockback"},
+  {"from": "grass_quality", "to": "grass_reward"},
+  {"from": "grass_quality", "to": "grass_drop"},
+  {"from": "grass_regen", "to": "monster_knockback"},
+  {"from": "grass_reward", "to": "grass_drop"},
+  {"from": "grass_density", "to": "grass_quality"},
+  {"from": "grass_regen", "to": "grass_reward"},
+]
+
 # Node visual settings
-const NODE_SIZE: int = 55
-const CONNECTOR_HEIGHT: int = 16
+const NODE_SIZE: int = 42
+const NODE_GAP: int = 6
+const ROW_HEIGHT: int = 200
+const ROW_GAP: int = 40
 
 # Colors
 const COLOR_COMPLETED = Color(0.2, 0.55, 0.3)
 const COLOR_PURCHASABLE = Color(0.85, 0.7, 0.15)
 const COLOR_PURCHASABLE_BORDER = Color(1.0, 0.9, 0.3)
+const COLOR_PREREQ_LOCKED = Color(0.55, 0.25, 0.15)
 const COLOR_LOCKED = Color(0.25, 0.25, 0.3)
 const COLOR_LABEL = Color(0.7, 0.75, 0.8)
+const COLOR_LINE_MET = Color(0.3, 0.65, 0.4, 0.7)
+const COLOR_LINE_UNMET = Color(0.4, 0.4, 0.5, 0.4)
+
+# Stores center positions of skill cards for line drawing
+var _skill_card_centers: Dictionary = {}  # type -> Vector2
 
 func _ready() -> void:
   panel.visible = false
@@ -419,77 +459,164 @@ func _get_current_level(skill_type: String) -> int:
       return GameManager.upgrade_grass_drop
   return 0
 
-func build_skill_tree() -> void:
-  for child in skill_tree_hbox.get_children():
-    child.queue_free()
-
+func _get_skill_chain(skill_type: String) -> Dictionary:
   for chain in SKILL_CHAINS:
-    var col = _create_chain_column(chain)
-    skill_tree_hbox.add_child(col)
+    if chain.type == skill_type:
+      return chain
+  return {}
 
-func _create_chain_column(chain: Dictionary) -> VBoxContainer:
-  var current_level = _get_current_level(chain.type)
+func _get_node_state(skill_type: String, level: int) -> String:
+  var current_level = _get_current_level(skill_type)
+  var chain = _get_skill_chain(skill_type)
   var max_level = chain.max_level
   var is_maxed = max_level >= 0 and current_level >= max_level
-  var total_nodes = max_level if max_level >= 0 else current_level + 1
 
-  var col = VBoxContainer.new()
-  col.add_theme_constant_override("separation", 0)
-  col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-  # Chain label
-  var label = Label.new()
-  label.text = chain.name
-  label.add_theme_font_size_override("font_size", 22)
-  label.add_theme_color_override("font_color", COLOR_LABEL)
-  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  col.add_child(label)
-
-  # Nodes going downward
-  for i in range(total_nodes):
-    var level = i + 1
-    var state: String
-
-    if i < current_level:
-      state = "completed"
-    elif i == current_level and not is_maxed:
-      state = "purchasable"
+  if level <= current_level:
+    return "completed"
+  elif level == current_level + 1 and not is_maxed:
+    # Check prereqs for this level
+    var prereq = GameManager.check_skill_prereqs(skill_type, level)
+    if prereq.met:
+      return "purchasable"
     else:
-      state = "locked"
+      return "prereq_locked"
+  else:
+    # Check if any level between current+1 and this level has unmet prereqs
+    # For locked nodes, check if they would be prereq_locked if they were next
+    return "locked"
 
-    # Connector line between nodes
-    if i > 0:
-      var connector = Label.new()
-      connector.text = "|"
-      connector.custom_minimum_size = Vector2(0, CONNECTOR_HEIGHT)
-      connector.add_theme_font_size_override("font_size", 14)
-      connector.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
-      connector.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-      connector.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-      col.add_child(connector)
+func build_skill_tree() -> void:
+  for child in skill_tree_container.get_children():
+    child.queue_free()
+  _skill_card_centers.clear()
 
-    # Center the node button
-    var center = CenterContainer.new()
-    var node_btn = _create_skill_node(chain.type, level, state)
-    center.add_child(node_btn)
-    col.add_child(center)
+  var container_width = skill_tree_container.size.x
+  if container_width <= 0:
+    container_width = 680  # fallback
 
-  return col
+  var y_offset: float = 0
+  for row_idx in range(SKILL_GRID.size()):
+    var row = SKILL_GRID[row_idx]
+
+    # Row category label
+    var row_label = Label.new()
+    row_label.text = "── %s ──" % ROW_LABELS[row_idx]
+    row_label.add_theme_font_size_override("font_size", 20)
+    row_label.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65))
+    row_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    row_label.position = Vector2(0, y_offset)
+    row_label.size = Vector2(container_width, 30)
+    skill_tree_container.add_child(row_label)
+    y_offset += 35
+
+    # Create skill cards for this row
+    var col_width = container_width / 2.0
+    for col_idx in range(row.size()):
+      var skill_type = row[col_idx]
+      var card = _create_skill_card(skill_type)
+      var card_x = col_idx * col_width + 10
+      card.position = Vector2(card_x, y_offset)
+      card.size = Vector2(col_width - 20, 0)  # auto height
+      skill_tree_container.add_child(card)
+
+      # Store center for line drawing (calculated after layout)
+      _skill_card_centers[skill_type] = Vector2(card_x + (col_width - 20) / 2.0, y_offset + 70)
+
+    y_offset += ROW_HEIGHT
+
+    # Add connection indicators between rows
+    if row_idx < SKILL_GRID.size() - 1:
+      y_offset += ROW_GAP
+
+  # Update container minimum size
+  skill_tree_container.custom_minimum_size = Vector2(0, y_offset)
+
+  # Add connection lines between skills
+  _add_connection_lines()
+
+func _create_skill_card(skill_type: String) -> PanelContainer:
+  var chain = _get_skill_chain(skill_type)
+  var current_level = _get_current_level(skill_type)
+  var max_level = chain.max_level
+
+  var card = PanelContainer.new()
+  var card_style = StyleBoxFlat.new()
+  card_style.bg_color = Color(0.12, 0.12, 0.18, 0.8)
+  card_style.corner_radius_top_left = 12
+  card_style.corner_radius_top_right = 12
+  card_style.corner_radius_bottom_left = 12
+  card_style.corner_radius_bottom_right = 12
+  card_style.content_margin_left = 12
+  card_style.content_margin_right = 12
+  card_style.content_margin_top = 10
+  card_style.content_margin_bottom = 10
+  card.add_theme_stylebox_override("panel", card_style)
+
+  var vbox = VBoxContainer.new()
+  vbox.add_theme_constant_override("separation", 8)
+  card.add_child(vbox)
+
+  # Skill name + level
+  var header = HBoxContainer.new()
+  header.add_theme_constant_override("separation", 8)
+  vbox.add_child(header)
+
+  var name_label = Label.new()
+  name_label.text = chain.name
+  name_label.add_theme_font_size_override("font_size", 24)
+  name_label.add_theme_color_override("font_color", Color.WHITE)
+  name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  header.add_child(name_label)
+
+  var level_label = Label.new()
+  level_label.text = "%d/%d" % [current_level, max_level]
+  level_label.add_theme_font_size_override("font_size", 22)
+  level_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.7) if current_level > 0 else Color(0.5, 0.5, 0.55))
+  header.add_child(level_label)
+
+  # Level dots row
+  var dots_flow = HBoxContainer.new()
+  dots_flow.add_theme_constant_override("separation", NODE_GAP)
+  vbox.add_child(dots_flow)
+
+  for i in range(max_level):
+    var level = i + 1
+    var state = _get_node_state(skill_type, level)
+    var dot = _create_skill_node(skill_type, level, state)
+    dots_flow.add_child(dot)
+
+  # Prereq hint for next purchasable level (if prereq locked)
+  var next_level = current_level + 1
+  if next_level <= max_level:
+    var prereq_result = GameManager.check_skill_prereqs(skill_type, next_level)
+    if not prereq_result.met:
+      var hint = Label.new()
+      var missing_text = ""
+      for m in prereq_result.missing:
+        var req_name = SKILL_NAMES.get(m.type, m.type)
+        missing_text += "%s Lv.%d 필요  " % [req_name, m.level]
+      hint.text = missing_text.strip_edges()
+      hint.add_theme_font_size_override("font_size", 18)
+      hint.add_theme_color_override("font_color", Color(0.9, 0.5, 0.3))
+      hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+      vbox.add_child(hint)
+
+  return card
 
 func _create_skill_node(skill_type: String, level: int, state: String) -> Button:
   var btn = Button.new()
   btn.custom_minimum_size = Vector2(NODE_SIZE, NODE_SIZE)
 
-  # Create round StyleBoxFlat
   var style = StyleBoxFlat.new()
-  style.corner_radius_top_left = int(NODE_SIZE / 2)
-  style.corner_radius_top_right = int(NODE_SIZE / 2)
-  style.corner_radius_bottom_left = int(NODE_SIZE / 2)
-  style.corner_radius_bottom_right = int(NODE_SIZE / 2)
-  style.content_margin_left = 4
-  style.content_margin_right = 4
-  style.content_margin_top = 4
-  style.content_margin_bottom = 4
+  var radius = int(NODE_SIZE / 2)
+  style.corner_radius_top_left = radius
+  style.corner_radius_top_right = radius
+  style.corner_radius_bottom_left = radius
+  style.corner_radius_bottom_right = radius
+  style.content_margin_left = 2
+  style.content_margin_right = 2
+  style.content_margin_top = 2
+  style.content_margin_bottom = 2
 
   match state:
     "completed":
@@ -508,9 +635,20 @@ func _create_skill_node(skill_type: String, level: int, state: String) -> Button
       btn.disabled = false
       btn.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
       btn.pressed.connect(_on_skill_node_pressed.bind(skill_type, level))
+    "prereq_locked":
+      style.bg_color = COLOR_PREREQ_LOCKED
+      style.border_width_top = 2
+      style.border_width_bottom = 2
+      style.border_width_left = 2
+      style.border_width_right = 2
+      style.border_color = Color(0.7, 0.3, 0.2, 0.6)
+      btn.text = str(level)
+      btn.disabled = false
+      btn.add_theme_color_override("font_color", Color(0.9, 0.7, 0.5))
+      btn.pressed.connect(_on_skill_node_pressed.bind(skill_type, level))
     "locked":
       style.bg_color = COLOR_LOCKED
-      btn.text = "?"
+      btn.text = ""
       btn.disabled = true
       btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.55))
 
@@ -518,9 +656,67 @@ func _create_skill_node(skill_type: String, level: int, state: String) -> Button
   btn.add_theme_stylebox_override("hover", style)
   btn.add_theme_stylebox_override("pressed", style)
   btn.add_theme_stylebox_override("disabled", style)
-  btn.add_theme_font_size_override("font_size", 20)
+  btn.add_theme_font_size_override("font_size", 16)
 
   return btn
+
+func _add_connection_lines() -> void:
+  for conn in SKILL_CONNECTIONS:
+    var from_type: String = conn["from"]
+    var to_type: String = conn["to"]
+    if not _skill_card_centers.has(from_type) or not _skill_card_centers.has(to_type):
+      continue
+    var from_pos = _skill_card_centers[from_type]
+    var to_pos = _skill_card_centers[to_type]
+
+    var is_met = _is_connection_met(from_type, to_type)
+    var color = COLOR_LINE_MET if is_met else COLOR_LINE_UNMET
+    var width = 3.0 if is_met else 2.0
+
+    var line = Line2D.new()
+    line.z_index = -1
+    line.width = width
+    line.default_color = color
+    line.antialiased = true
+
+    if is_met:
+      line.add_point(from_pos)
+      line.add_point(to_pos)
+      skill_tree_container.add_child(line)
+    else:
+      line.queue_free()
+      # Dashed line: separate Line2D per dash segment
+      var length = from_pos.distance_to(to_pos)
+      var dir = (to_pos - from_pos).normalized()
+      var dash_len = 10.0
+      var gap_len = 8.0
+      var d = 0.0
+      while d < length:
+        var seg_start = from_pos + dir * d
+        var seg_end = from_pos + dir * min(d + dash_len, length)
+        var dash = Line2D.new()
+        dash.z_index = -1
+        dash.width = width
+        dash.default_color = color
+        dash.antialiased = true
+        dash.add_point(seg_start)
+        dash.add_point(seg_end)
+        skill_tree_container.add_child(dash)
+        d += dash_len + gap_len
+
+func _is_connection_met(from_type: String, to_type: String) -> bool:
+  var from_level = _get_current_level(from_type)
+  for key in GameManager.SKILL_PREREQS:
+    var parts = key.split(":")
+    if parts[0] == to_type:
+      var reqs = GameManager.SKILL_PREREQS[key]
+      for req in reqs:
+        if req.type == from_type:
+          if from_level >= req.level:
+            return true
+          else:
+            return false
+  return true
 
 func _on_skill_node_pressed(skill_type: String, level: int) -> void:
   GameManager.play_button_click()
@@ -545,11 +741,9 @@ func update_description() -> void:
   _update_skill_description()
 
 func _update_skill_description() -> void:
-  var chain_info: Dictionary
-  for chain in SKILL_CHAINS:
-    if chain.type == selected_type:
-      chain_info = chain
-      break
+  var chain_info = _get_skill_chain(selected_type)
+  if chain_info.is_empty():
+    return
 
   var current_level = _get_current_level(selected_type)
   var cost = GameManager.get_upgrade_cost(current_level)
@@ -594,7 +788,16 @@ func _update_skill_description() -> void:
       GameManager.upgrade_grass_drop = temp_drop
       stat_text = "드롭률: %.0f%% → %.0f%%" % [current_drop, next_drop]
 
-  description_label.text = "%s Lv.%d\n\n%s\n\n%s\n\n비용: $%s" % [chain_info.name, selected_level, chain_info.description, stat_text, format_number(cost)]
+  # Build prereq text
+  var prereq_text = ""
+  var prereq_result = GameManager.check_skill_prereqs(selected_type, selected_level)
+  if not prereq_result.met:
+    prereq_text = "\n[필요 조건]"
+    for m in prereq_result.missing:
+      var req_name = SKILL_NAMES.get(m.type, m.type)
+      prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]
+
+  description_label.text = "%s Lv.%d\n\n%s\n%s%s\n\n비용: $%s" % [chain_info.name, selected_level, chain_info.description, stat_text, prereq_text, format_number(cost)]
 
 func update_confirm_button() -> void:
   if selected_type.is_empty():
@@ -603,7 +806,23 @@ func update_confirm_button() -> void:
     return
 
   var current_level = _get_current_level(selected_type)
+  var next_level = current_level + 1
   var cost = GameManager.get_upgrade_cost(current_level)
+
+  # Check if this is the actual next level and prereqs are met
+  if selected_level != next_level:
+    confirm_btn.disabled = true
+    if selected_level <= current_level:
+      confirm_btn.text = "이미 습득함"
+    else:
+      confirm_btn.text = "이전 레벨 필요"
+    return
+
+  var prereq_result = GameManager.check_skill_prereqs(selected_type, next_level)
+  if not prereq_result.met:
+    confirm_btn.disabled = true
+    confirm_btn.text = "조건 미충족"
+    return
 
   if GameManager.money < cost:
     confirm_btn.disabled = true
