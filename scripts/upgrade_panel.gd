@@ -41,7 +41,7 @@ const SKILL_CHAINS = [
     "type": "grass_regen",
     "name": "풀 재생",
     "description": "베어진 풀이 더 빨리 다시 자랍니다.",
-    "max_level": 5
+    "max_level": 3
   },
   {
     "type": "grass_reward",
