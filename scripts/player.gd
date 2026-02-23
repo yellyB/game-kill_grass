@@ -374,6 +374,8 @@ func _check_monster_collision() -> void:
   for monster in get_tree().get_nodes_in_group("monsters"):
     if not is_instance_valid(monster):
       continue
+    if monster.get_script() and monster.get_script().resource_path.ends_with("chest.gd"):
+      continue
     if global_position.distance_to(monster.global_position) < MONSTER_HIT_RADIUS:
       _on_monster_hit()
       return
@@ -660,3 +662,9 @@ func _draw() -> void:
   # Draw coin magnet range (blue)
   var magnet_range = GameManager.get_magnet_range()
   draw_arc(Vector2.ZERO, magnet_range, 0, TAU, 32, Color(0.3, 0.5, 1.0, 0.5), 2.0)
+
+  # Draw attack range (red)
+  var attack_offset = Vector2.ZERO
+  if input_direction != Vector2.ZERO:
+    attack_offset = input_direction * (attack_radius * 0.5)
+  draw_arc(attack_offset, attack_radius, 0, TAU, 32, Color(1.0, 0.3, 0.3, 0.5), 2.0)
