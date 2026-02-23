@@ -757,7 +757,7 @@ func _update_skill_description() -> void:
     return
 
   var current_level = _get_current_level(selected_type)
-  var cost = GameManager.get_upgrade_cost(current_level)
+  var cost = GameManager.get_upgrade_cost(current_level, selected_type)
 
   var stat_text = ""
   match selected_type:
@@ -825,7 +825,7 @@ func update_confirm_button() -> void:
 
   var current_level = _get_current_level(selected_type)
   var next_level = current_level + 1
-  var cost = GameManager.get_upgrade_cost(current_level)
+  var cost = GameManager.get_upgrade_cost(current_level, selected_type)
 
   # Check if this is the actual next level and prereqs are met
   if selected_level != next_level:

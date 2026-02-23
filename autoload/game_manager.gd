@@ -482,8 +482,13 @@ func get_grass_regen_time(base_time: float) -> float:
   # 매 레벨마다 3초씩 감소 (최대 Lv.5 = -15초)
   return base_time - (upgrade_grass_regen * 3.0)
 
-func get_upgrade_cost(current_level: int) -> int:
-  return int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
+func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
+  var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
+  if upgrade_type == "golden_chance":
+    # Lv.1: 5x, Lv.2: 7x, Lv.3: 8x, Lv.4: 9x, Lv.5: 10x
+    var multiplier = 5.0 + current_level * 1.25
+    return int(base * multiplier)
+  return base
 
 func purchase_upgrade(upgrade_type: String) -> bool:
   var current_level: int
@@ -523,7 +528,7 @@ func purchase_upgrade(upgrade_type: String) -> bool:
   if not prereq_result.met:
     return false
 
-  var cost = get_upgrade_cost(current_level)
+  var cost = get_upgrade_cost(current_level, upgrade_type)
   if money < cost:
     return false
 
