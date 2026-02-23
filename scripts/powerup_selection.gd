@@ -7,6 +7,7 @@ const POWERUP_DATA = [
 		"desc": "공격 속도 +25%",
 		"color": Color(1.0, 0.5, 0.2),
 		"stackable": true,
+		"weight": 10,
 	},
 	{
 		"type": "attack_range",
@@ -14,6 +15,7 @@ const POWERUP_DATA = [
 		"desc": "공격 범위 +25%",
 		"color": Color(0.3, 0.6, 1.0),
 		"stackable": true,
+		"weight": 10,
 	},
 	{
 		"type": "magnet_range",
@@ -21,6 +23,7 @@ const POWERUP_DATA = [
 		"desc": "수집 범위 +30%",
 		"color": Color(0.2, 1.0, 0.8),
 		"stackable": true,
+		"weight": 10,
 	},
 	{
 		"type": "move_speed",
@@ -28,6 +31,7 @@ const POWERUP_DATA = [
 		"desc": "이동 속도 +25%",
 		"color": Color(1.0, 1.0, 0.3),
 		"stackable": true,
+		"weight": 10,
 	},
 	{
 		"type": "extra_time",
@@ -35,6 +39,7 @@ const POWERUP_DATA = [
 		"desc": "세션 시간 +5초",
 		"color": Color(0.4, 1.0, 0.4),
 		"stackable": false,
+		"weight": 5,
 	},
 	{
 		"type": "gold_rush",
@@ -42,6 +47,7 @@ const POWERUP_DATA = [
 		"desc": "10초간 코인 2배",
 		"color": Color(1.0, 0.85, 0.0),
 		"stackable": false,
+		"weight": 5,
 	},
 	{
 		"type": "golden_bloom",
@@ -49,6 +55,7 @@ const POWERUP_DATA = [
 		"desc": "주변 풀을 황금풀로",
 		"color": Color(1.0, 0.9, 0.2),
 		"stackable": false,
+		"weight": 5,
 	},
 	{
 		"type": "double_or_dust",
@@ -56,6 +63,7 @@ const POWERUP_DATA = [
 		"desc": "50% 코인 2배 / 50% 전부 증발",
 		"color": Color(0.8, 0.2, 0.8),
 		"stackable": false,
+		"weight": 5,
 	},
 	{
 		"type": "beast_rush",
@@ -63,13 +71,15 @@ const POWERUP_DATA = [
 		"desc": "5초간 몬스터 대량 스폰, 드롭 3배",
 		"color": Color(0.9, 0.2, 0.2),
 		"stackable": false,
+		"weight": 5,
 	},
 	{
 		"type": "overdrive",
 		"name": "오버드라이브",
-		"desc": "공속 2배, 이속 -80%",
+		"desc": "10초간 공속 2배, 이속 -80%",
 		"color": Color(1.0, 0.3, 0.5),
 		"stackable": false,
+		"weight": 5,
 	},
 	{
 		"type": "harvest_madness",
@@ -77,6 +87,7 @@ const POWERUP_DATA = [
 		"desc": "5초간 모든 스탯 대폭 증가",
 		"color": Color(1.0, 0.5, 1.0),
 		"stackable": false,
+		"weight": 2,
 	},
 	{
 		"type": "field_clear",
@@ -84,6 +95,7 @@ const POWERUP_DATA = [
 		"desc": "맵 전체 풀 클리어",
 		"color": Color(0.3, 1.0, 0.3),
 		"stackable": false,
+		"weight": 2,
 	},
 	{
 		"type": "blackhole",
@@ -91,6 +103,7 @@ const POWERUP_DATA = [
 		"desc": "모든 드롭 코인 흡수",
 		"color": Color(0.2, 0.0, 0.4),
 		"stackable": false,
+		"weight": 5,
 	},
 ]
 
@@ -100,17 +113,29 @@ func _ready() -> void:
 	_build_ui()
 
 func _pick_random_powerups(count: int) -> Array:
-	var pool = POWERUP_DATA.duplicate()
-	# Filter out non-stackable powerups already active
-	var filtered: Array = []
-	for data in pool:
+	var pool: Array = []
+	for data in POWERUP_DATA:
 		if not data.stackable:
-			# Overdrive: once per session
-			if data.type == "overdrive" and GameManager.session_buff_overdrive:
+			if data.type == "overdrive" and GameManager.timed_buffs.has("overdrive"):
 				continue
-		filtered.append(data)
-	filtered.shuffle()
-	return filtered.slice(0, count)
+		pool.append(data)
+
+	var result: Array = []
+	for i in count:
+		if pool.is_empty():
+			break
+		var total_weight: int = 0
+		for item in pool:
+			total_weight += item.weight
+		var roll = randi() % total_weight
+		var cumulative: int = 0
+		for j in pool.size():
+			cumulative += pool[j].weight
+			if roll < cumulative:
+				result.append(pool[j])
+				pool.remove_at(j)
+				break
+	return result
 
 func _build_ui() -> void:
 	var selected = _pick_random_powerups(3)

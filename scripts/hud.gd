@@ -127,7 +127,7 @@ const POWERUP_COLORS = {
   "blackhole": Color(0.5, 0.2, 0.8),
 }
 
-const PERSISTENT_BUFFS = ["attack_speed", "attack_range", "magnet_range", "move_speed", "overdrive"]
+const PERSISTENT_BUFFS = ["attack_speed", "attack_range", "magnet_range", "move_speed"]
 
 func _on_powerup_acquired(type: String, level: int) -> void:
   var pname = POWERUP_NAMES.get(type, type)
@@ -237,6 +237,7 @@ const TIMED_BUFF_NAMES = {
   "gold_rush": "골드 러시",
   "beast_rush": "비스트 러시",
   "harvest_madness": "하베스트 매드니스",
+  "overdrive": "오버드라이브",
 }
 
 func _on_timed_buff_started(type: String, _duration: float) -> void:

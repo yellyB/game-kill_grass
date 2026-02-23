@@ -32,7 +32,6 @@ var session_buff_attack_speed: int = 0
 var session_buff_attack_range: int = 0
 var session_buff_magnet_range: int = 0
 var session_buff_move_speed: int = 0
-var session_buff_overdrive: bool = false
 
 # Timed buffs: { "gold_rush": remaining_seconds, ... }
 var timed_buffs: Dictionary = {}
@@ -307,7 +306,7 @@ func get_magnet_range() -> float:
 
 func get_session_attack_speed_mult() -> float:
   var mult = 1.0 + session_buff_attack_speed * 0.25
-  if session_buff_overdrive:
+  if timed_buffs.has("overdrive"):
     mult *= 2.0  # +100%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
@@ -323,7 +322,7 @@ func get_session_attack_range_mult() -> float:
 
 func get_session_move_speed_mult() -> float:
   var mult = 1.0 + session_buff_move_speed * 0.25
-  if session_buff_overdrive:
+  if timed_buffs.has("overdrive"):
     mult *= 0.2  # -80%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
@@ -357,7 +356,7 @@ func apply_powerup(type: String) -> void:
       session_buff_move_speed += 1
       powerup_acquired.emit(type, session_buff_move_speed)
     "overdrive":
-      session_buff_overdrive = true
+      _start_timed_buff("overdrive", 10.0)
       powerup_acquired.emit(type, 1)
     "extra_time":
       extra_time_requested.emit(5.0)
@@ -591,7 +590,6 @@ func reset_session_data() -> void:
   session_buff_attack_range = 0
   session_buff_magnet_range = 0
   session_buff_move_speed = 0
-  session_buff_overdrive = false
   timed_buffs.clear()
   hit_penalty_active = false
   session_money_changed.emit(0)
