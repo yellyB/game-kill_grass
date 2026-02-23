@@ -179,7 +179,7 @@ func _ensure_next_weapon_nodes() -> void:
   current_vbox.add_theme_constant_override("separation", 2)
   current_panel.add_child(current_vbox)
   current_weapon_title = Label.new()
-  current_weapon_title.text = "보유 무기"
+  current_weapon_title.text = "현재 무기"
   current_weapon_title.add_theme_font_size_override("font_size", 22)
   current_weapon_title.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
   current_weapon_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -338,13 +338,13 @@ func _update_weapon_buy_button() -> void:
   # Update condition indicators
   _update_weapon_conditions(has_skill, total_skill, skill_req, has_money, next.price)
 
+  var btn_label = "%s 구매\n$%s" % [next.name, format_number(next.price)]
+  weapon_buy_btn.text = btn_label
   if has_skill and has_money:
     weapon_buy_btn.disabled = false
-    weapon_buy_btn.text = "다음 무기 구매\n$%s" % format_number(next.price)
     _update_next_weapon_card_style(true)
   else:
     weapon_buy_btn.disabled = true
-    weapon_buy_btn.text = "구매 불가"
     _update_next_weapon_card_style(false)
 
 func _update_weapon_conditions(has_skill: bool, total_skill: int, skill_req: int, has_money: bool, price: int) -> void:
