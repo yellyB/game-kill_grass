@@ -55,13 +55,8 @@ func reset_all_data() -> void:
 	delete_save()
 	# Reset GameManager
 	GameManager.money = 0
-	GameManager.upgrade_grass_density = 0
-	GameManager.upgrade_grass_quality = 0
-	GameManager.upgrade_grass_regen = 0
-	GameManager.upgrade_grass_reward = 0
-	GameManager.upgrade_monster_knockback = 0
-	GameManager.upgrade_grass_drop = 0
-	GameManager.upgrade_golden_chance = 0
+	for type in GameManager.upgrade_levels:
+		GameManager.upgrade_levels[type] = 0
 	GameManager.inventory = {}
 	GameManager.discovered_items = []
 	GameManager.selected_world = 0

@@ -19,14 +19,26 @@ const WORLD_UNLOCK_COSTS: Array = [0, 5000, 20000, 50000]
 signal world_unlocked(index: int)
 signal key_acquired(world_index: int)
 
-# Upgrades
-var upgrade_grass_density: int = 0  # 풀 밀도 업그레이드 (0-10, 최대 레벨에서 빽빽하게)
-var upgrade_grass_quality: int = 0  # 풀 등급 업그레이드 (0-16, 고급 풀 등장 확률 증가)
-var upgrade_grass_regen: int = 0  # 풀 재생 속도 업그레이드 (0-10)
-var upgrade_grass_reward: int = 0  # 풀 보상 업그레이드 (0-10, 코인 드롭량 증가)
-var upgrade_monster_knockback: int = 0  # 몬스터 넉백 증가 (0-5)
-var upgrade_grass_drop: int = 0  # 풀 드롭률 증가 (0-5)
-var upgrade_golden_chance: int = 0  # 황금풀 확률 증가 (0-5)
+# Skill definitions — single source of truth for all skills
+const SKILL_DEFS: Array = [
+  {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "max_level": 10,
+   "description": "맵에 풀이 더 빽빽하게 자랍니다."},
+  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "max_level": 10,
+   "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다."},
+  {"type": "grass_regen", "name": "풀 재생", "short_name": "재생", "max_level": 3,
+   "description": "베어진 풀이 더 빨리 다시 자랍니다."},
+  {"type": "grass_reward", "name": "풀 보상", "short_name": "보상", "max_level": 10,
+   "description": "풀에서 떨어지는 코인이 증가합니다."},
+  {"type": "monster_knockback", "name": "넉백 증가", "short_name": "넉백", "max_level": 3,
+   "description": "몬스터를 더 멀리 밀어냅니다."},
+  {"type": "grass_drop", "name": "드롭률 증가", "short_name": "드롭", "max_level": 5,
+   "description": "풀에서 코인이 떨어질 확률이 증가합니다."},
+  {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "max_level": 5,
+   "description": "황금풀이 등장할 확률이 증가합니다."},
+]
+
+# Upgrades — Dictionary-based level management
+var upgrade_levels: Dictionary = {}  # {"grass_density": 0, "grass_quality": 0, ...}
 
 # Session powerup buffs (reset each session)
 var session_buff_attack_speed: int = 0
@@ -47,14 +59,7 @@ const UPGRADE_COST_MULTIPLIER: float = 1.8
 # Game settings
 var base_magnet_range: float = 75.0  # Half of original 150
 
-# Grass density settings
-const MAX_DENSITY_LEVEL: int = 10
-const MAX_QUALITY_LEVEL: int = 10
-const MAX_REGEN_LEVEL: int = 3
-const MAX_REWARD_LEVEL: int = 10
-const MAX_KNOCKBACK_LEVEL: int = 3
-const MAX_DROP_LEVEL: int = 5
-const MAX_GOLDEN_CHANCE_LEVEL: int = 5
+# Grass settings
 const BASE_GRASS_PER_CHUNK: int = 8
 const BASE_MIN_SPACING: float = 60.0
 const GRASS_DROP_CHANCE: float = 0.2
@@ -85,6 +90,10 @@ var _sfx_unlock: AudioStreamPlayer
 
 func _ready() -> void:
   process_mode = Node.PROCESS_MODE_ALWAYS
+  # Initialize upgrade_levels from SKILL_DEFS
+  for def in SKILL_DEFS:
+    if not upgrade_levels.has(def.type):
+      upgrade_levels[def.type] = 0
   _init_grass_data()
   _sfx_click = AudioStreamPlayer.new()
   _sfx_click.stream = preload("res://resources/sounds/effect/button_click.wav")
@@ -245,7 +254,7 @@ func _init_grass_data() -> void:
   grass_data_list.append(golden_grass)
 
 func get_random_grass_data() -> GrassData:
-  var quality_level = upgrade_grass_quality
+  var quality_level = upgrade_levels.get("grass_quality", 0)
 
   var roll = randf()
   if roll < get_golden_grass_chance():
@@ -284,18 +293,18 @@ func add_money(amount: int) -> void:
 # Returns grass quality level for spawning calculations
 # Higher level = more chance for rare grass
 func get_grass_quality_level() -> int:
-  return upgrade_grass_quality
+  return upgrade_levels.get("grass_quality", 0)
 
 func get_grass_per_chunk() -> int:
   # Level 0: 8, Level 10: 80 (레벨당 +7.2)
-  return int(BASE_GRASS_PER_CHUNK + upgrade_grass_density * 7.2)
+  return int(BASE_GRASS_PER_CHUNK + upgrade_levels.get("grass_density", 0) * 7.2)
 
 func get_grass_min_spacing() -> float:
   # Level 0: 60, Level 10: 15 (레벨당 -4.5)
-  return BASE_MIN_SPACING - upgrade_grass_density * 4.5
+  return BASE_MIN_SPACING - upgrade_levels.get("grass_density", 0) * 4.5
 
 func get_grass_density_level() -> int:
-  return upgrade_grass_density
+  return upgrade_levels.get("grass_density", 0)
 
 func get_magnet_range() -> float:
   var mult = 1.0 + session_buff_magnet_range * 0.3
@@ -405,47 +414,57 @@ const BASE_KNOCKBACK: float = 600.0
 const KNOCKBACK_PER_LEVEL: float = 120.0
 
 func get_monster_knockback_strength() -> float:
-  return BASE_KNOCKBACK + upgrade_monster_knockback * KNOCKBACK_PER_LEVEL
+  return BASE_KNOCKBACK + upgrade_levels.get("monster_knockback", 0) * KNOCKBACK_PER_LEVEL
 
 func get_grass_drop_chance() -> float:
   # 레벨당 6% 증가 (Lv.5 = 50%)
-  return GRASS_DROP_CHANCE + upgrade_grass_drop * 0.06
+  return GRASS_DROP_CHANCE + upgrade_levels.get("grass_drop", 0) * 0.06
 
 func get_golden_grass_chance() -> float:
-  if upgrade_golden_chance == 0:
+  var lvl = upgrade_levels.get("golden_chance", 0)
+  if lvl == 0:
     return 0.0002  # 기본 0.02%
-  return 0.002 * upgrade_golden_chance  # Lv.1=0.2%, Lv.5=1.0%
+  return 0.002 * lvl  # Lv.1=0.2%, Lv.5=1.0%
 
 func get_total_skill_level() -> int:
-  return upgrade_grass_density + upgrade_grass_quality + upgrade_grass_regen + upgrade_grass_reward + upgrade_monster_knockback + upgrade_grass_drop + upgrade_golden_chance
+  var total = 0
+  for level in upgrade_levels.values():
+    total += level
+  return total
 
 func get_grass_reward_multiplier() -> float:
   # 레벨당 30% 증가 (Lv.10 = x4.0)
-  return 1.0 + upgrade_grass_reward * 0.3
+  return 1.0 + upgrade_levels.get("grass_reward", 0) * 0.3
 
 # 무기 레벨별 필요 스킬 포인트 (수동 튜닝)
 # Lv0 나뭇가지, Lv1 녹슨식칼, Lv2 피자커터, Lv3 전기파리채,
 # Lv4 뜨거운다리미, Lv5 매우화난고양이, Lv6 체인소,
 # Lv7 마법지팡이, Lv8 날개달린선풍기, Lv9 위성레이저제초기
-const WEAPON_SKILL_REQUIREMENTS = [0, 0, 1, 2, 4, 6, 9, 12, 15, 18]
+const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 5, 9, 14, 20, 27, 35, 42]
 
 # Skill tree prerequisites: "type:level" -> Array of {type, level} (all AND)
 const SKILL_PREREQS = {
-  "grass_density:4": [{"type": "grass_quality", "level": 2}],
-  "grass_density:7": [{"type": "grass_regen", "level": 2}],
-  "grass_quality:4": [{"type": "grass_density", "level": 2}],
-  "grass_quality:7": [{"type": "grass_reward", "level": 3}],
+  # 재생 ← 밀도
   "grass_regen:1": [{"type": "grass_density", "level": 2}],
-  "grass_regen:3": [{"type": "grass_quality", "level": 2}],
+  "grass_regen:2": [{"type": "grass_density", "level": 5}],
+  "grass_regen:3": [{"type": "grass_density", "level": 8}],
+  # 보상 ← 등급
   "grass_reward:1": [{"type": "grass_quality", "level": 2}],
-  "grass_reward:4": [{"type": "grass_density", "level": 3}],
-  "grass_reward:7": [{"type": "grass_regen", "level": 2}],
-  "monster_knockback:1": [{"type": "grass_density", "level": 3}],
-  "monster_knockback:3": [{"type": "grass_regen", "level": 2}],
+  # 넉백 ← 등급
+  "monster_knockback:1": [{"type": "grass_quality", "level": 4}],
+  "monster_knockback:2": [{"type": "grass_quality", "level": 7}],
+  "monster_knockback:3": [{"type": "grass_quality", "level": 10}],
+  # 황금풀 ← 밀도
+  "golden_chance:1": [{"type": "grass_density", "level": 4}],
+  "golden_chance:2": [{"type": "grass_density", "level": 7}],
+  "golden_chance:3": [{"type": "grass_density", "level": 9}],
+  "golden_chance:5": [{"type": "grass_density", "level": 10}],
+  # 드롭률 ← 보상
   "grass_drop:1": [{"type": "grass_reward", "level": 2}],
-  "grass_drop:3": [{"type": "grass_quality", "level": 3}],
-  "golden_chance:1": [{"type": "grass_quality", "level": 3}],
-  "golden_chance:3": [{"type": "grass_reward", "level": 3}],
+  "grass_drop:2": [{"type": "grass_reward", "level": 5}],
+  "grass_drop:3": [{"type": "grass_reward", "level": 7}],
+  "grass_drop:4": [{"type": "grass_reward", "level": 9}],
+  "grass_drop:5": [{"type": "grass_reward", "level": 10}],
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
@@ -454,28 +473,25 @@ func check_skill_prereqs(type: String, level: int) -> Dictionary:
     return {"met": true, "missing": []}
   var missing: Array = []
   for req in SKILL_PREREQS[key]:
-    var current = _get_upgrade_level(req.type)
+    var current = get_upgrade_level(req.type)
     if current < req.level:
       missing.append({"type": req.type, "level": req.level, "current": current})
   return {"met": missing.is_empty(), "missing": missing}
 
-func _get_upgrade_level(type: String) -> int:
-  match type:
-    "grass_density":
-      return upgrade_grass_density
-    "grass_quality":
-      return upgrade_grass_quality
-    "grass_regen":
-      return upgrade_grass_regen
-    "grass_reward":
-      return upgrade_grass_reward
-    "monster_knockback":
-      return upgrade_monster_knockback
-    "grass_drop":
-      return upgrade_grass_drop
-    "golden_chance":
-      return upgrade_golden_chance
-  return 0
+func get_upgrade_level(type: String) -> int:
+  return upgrade_levels.get(type, 0)
+
+func get_skill_max_level(type: String) -> int:
+  for def in SKILL_DEFS:
+    if def.type == type:
+      return def.max_level
+  return -1
+
+func get_skill_def(type: String) -> Dictionary:
+  for def in SKILL_DEFS:
+    if def.type == type:
+      return def
+  return {}
 
 func get_weapon_skill_requirement(weapon_level: int) -> int:
   if weapon_level < 0 or weapon_level >= WEAPON_SKILL_REQUIREMENTS.size():
@@ -484,7 +500,7 @@ func get_weapon_skill_requirement(weapon_level: int) -> int:
 
 func get_grass_regen_time(base_time: float) -> float:
   # 매 레벨마다 5초씩 감소 (최대 Lv.3 = -15초)
-  return base_time - (upgrade_grass_regen * 5.0)
+  return base_time - (upgrade_levels.get("grass_regen", 0) * 5.0)
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
@@ -503,38 +519,13 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   return base
 
 func purchase_upgrade(upgrade_type: String) -> bool:
-  var current_level: int
-  var max_level: int = -1  # -1 means no max
-  match upgrade_type:
-    "grass_density":
-      current_level = upgrade_grass_density
-      max_level = MAX_DENSITY_LEVEL
-    "grass_quality":
-      current_level = upgrade_grass_quality
-      max_level = MAX_QUALITY_LEVEL
-    "grass_regen":
-      current_level = upgrade_grass_regen
-      max_level = MAX_REGEN_LEVEL
-    "grass_reward":
-      current_level = upgrade_grass_reward
-      max_level = MAX_REWARD_LEVEL
-    "monster_knockback":
-      current_level = upgrade_monster_knockback
-      max_level = MAX_KNOCKBACK_LEVEL
-    "grass_drop":
-      current_level = upgrade_grass_drop
-      max_level = MAX_DROP_LEVEL
-    "golden_chance":
-      current_level = upgrade_golden_chance
-      max_level = MAX_GOLDEN_CHANCE_LEVEL
-    _:
-      return false
-
-  # Check max level
+  var current_level = upgrade_levels.get(upgrade_type, -1)
+  if current_level < 0:
+    return false  # Unknown skill type
+  var max_level = get_skill_max_level(upgrade_type)
   if max_level >= 0 and current_level >= max_level:
     return false
 
-  # Check skill prerequisites
   var next_level = current_level + 1
   var prereq_result = check_skill_prereqs(upgrade_type, next_level)
   if not prereq_result.met:
@@ -546,24 +537,8 @@ func purchase_upgrade(upgrade_type: String) -> bool:
 
   money -= cost
   money_changed.emit(money)
-
-  match upgrade_type:
-    "grass_density":
-      upgrade_grass_density += 1
-    "grass_quality":
-      upgrade_grass_quality += 1
-    "grass_regen":
-      upgrade_grass_regen += 1
-    "grass_reward":
-      upgrade_grass_reward += 1
-    "monster_knockback":
-      upgrade_monster_knockback += 1
-    "grass_drop":
-      upgrade_grass_drop += 1
-    "golden_chance":
-      upgrade_golden_chance += 1
-
-  upgrade_purchased.emit(upgrade_type, current_level + 1)
+  upgrade_levels[upgrade_type] = next_level
+  upgrade_purchased.emit(upgrade_type, next_level)
   return true
 
 func add_item(item_id: String, count: int = 1) -> void:
@@ -627,13 +602,7 @@ func unlock_world(index: int) -> bool:
 func get_save_data() -> Dictionary:
   return {
     "money": money,
-    "upgrade_grass_density": upgrade_grass_density,
-    "upgrade_grass_quality": upgrade_grass_quality,
-    "upgrade_grass_regen": upgrade_grass_regen,
-    "upgrade_grass_reward": upgrade_grass_reward,
-    "upgrade_monster_knockback": upgrade_monster_knockback,
-    "upgrade_grass_drop": upgrade_grass_drop,
-    "upgrade_golden_chance": upgrade_golden_chance,
+    "upgrade_levels": upgrade_levels.duplicate(),
     "inventory": inventory,
     "discovered_items": discovered_items,
     "selected_world": selected_world,
@@ -644,13 +613,14 @@ func get_save_data() -> Dictionary:
 
 func load_save_data(data: Dictionary) -> void:
   money = data.get("money", 0)
-  upgrade_grass_density = data.get("upgrade_grass_density", 0)
-  upgrade_grass_quality = data.get("upgrade_grass_quality", 0)
-  upgrade_grass_regen = data.get("upgrade_grass_regen", 0)
-  upgrade_grass_reward = data.get("upgrade_grass_reward", 0)
-  upgrade_monster_knockback = data.get("upgrade_monster_knockback", 0)
-  upgrade_grass_drop = data.get("upgrade_grass_drop", 0)
-  upgrade_golden_chance = data.get("upgrade_golden_chance", 0)
+  # New format: upgrade_levels dictionary
+  if data.has("upgrade_levels"):
+    for type in data.upgrade_levels:
+      upgrade_levels[type] = int(data.upgrade_levels[type])
+  else:
+    # Legacy save migration: individual "upgrade_X" keys
+    for def in SKILL_DEFS:
+      upgrade_levels[def.type] = int(data.get("upgrade_%s" % def.type, 0))
   inventory = data.get("inventory", {})
   discovered_items = data.get("discovered_items", [])
   selected_world = data.get("selected_world", 0)

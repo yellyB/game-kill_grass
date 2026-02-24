@@ -100,7 +100,7 @@ func update_stats_display() -> void:
   var grass_density = GameManager.get_grass_density_level()
   var grass_quality = GameManager.get_grass_quality_level()
 
-  if grass_density >= GameManager.MAX_DENSITY_LEVEL:
+  if grass_density >= GameManager.get_skill_max_level("grass_density"):
     grass_density_label.text = "풀 밀도: Lv.%d (MAX)" % (grass_density + 1)
   else:
     grass_density_label.text = "풀 밀도: Lv.%d" % (grass_density + 1)
