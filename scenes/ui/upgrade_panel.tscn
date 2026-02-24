@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/upgrade_panel.gd" id="1_upgrade"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.1, 0.1, 0.15, 1.0)
+bg_color = Color(0.1, 0.1, 0.15, 1)
 
 [node name="UpgradePanel" type="CanvasLayer"]
 
@@ -87,6 +87,7 @@ horizontal_alignment = 1
 
 [node name="WeaponSection" type="PanelContainer" parent="Control/Panel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 60.0
 offset_top = 230.0
@@ -135,6 +136,7 @@ text = "업그레이드 $100"
 
 [node name="SectionLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 40.0
 offset_top = 515.0
@@ -148,6 +150,7 @@ horizontal_alignment = 1
 
 [node name="SkillTreeScroll" type="ScrollContainer" parent="Control/Panel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 20.0
 offset_top = 565.0
@@ -157,13 +160,14 @@ grow_horizontal = 2
 horizontal_scroll_mode = 0
 
 [node name="SkillTreeContainer" type="Control" parent="Control/Panel/SkillTreeScroll"]
+custom_minimum_size = Vector2(0, 700)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
-custom_minimum_size = Vector2(0, 700)
 
 [node name="DescriptionPanel" type="Panel" parent="Control/Panel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 40.0
 offset_top = 1300.0
@@ -190,6 +194,7 @@ autowrap_mode = 2
 
 [node name="ConfirmBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
+anchors_preset = 10
 anchor_right = 1.0
 offset_left = 40.0
 offset_top = 1600.0
