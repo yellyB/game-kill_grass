@@ -68,6 +68,14 @@ func _ready() -> void:
   attack_timer.timeout.connect(_on_attack_timer_timeout)
   update_attack_range()
   create_weapon_visual()
+  # 세션 시작 후 1초간 행동 불가 + 하늘에서 떨어지는 애니메이션
+  set_process(false)
+  player_visual.visible = false
+  weapon_pivot.visible = false
+  await get_tree().process_frame
+  player_visual.visible = true
+  weapon_pivot.visible = true
+  _play_drop_animation()
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
   GameManager.timed_buff_started.connect(_on_timed_buff_changed)
@@ -293,6 +301,30 @@ func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
     var dist = monster.global_position.distance_to(center)
     if dist <= radius:
       monster.take_damage(damage, global_position)
+
+func _play_drop_animation() -> void:
+  var start_offset = -800.0
+  player_visual.position.y = start_offset
+  weapon_pivot.position.y = start_offset
+  # 그림자 (착지 지점 = 발 위치에 고정)
+  var shadow = Sprite2D.new()
+  shadow.texture = PlaceholderTexture2D.new()
+  shadow.texture.size = Vector2(60, 16)
+  shadow.position = Vector2(0, 28)
+  shadow.modulate = Color(0, 0, 0, 0.15)
+  shadow.scale = Vector2(0.3, 0.3)
+  add_child(shadow)
+  # 떨어지는 애니메이션 (바운스 이징)
+  var tween = create_tween()
+  tween.set_parallel(true)
+  tween.tween_property(player_visual, "position:y", 0.0, 0.7).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+  tween.tween_property(weapon_pivot, "position:y", 0.0, 0.7).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+  # 그림자: 스케일만 변화 (위치 고정)
+  tween.tween_property(shadow, "scale", Vector2(1.0, 1.0), 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+  tween.tween_property(shadow, "modulate:a", 0.3, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+  tween.chain().tween_property(shadow, "modulate:a", 0.0, 0.3)
+  tween.chain().tween_callback(shadow.queue_free)
+  tween.chain().tween_callback(func(): set_process(true))
 
 func _on_attack_timer_timeout() -> void:
   can_attack = true
