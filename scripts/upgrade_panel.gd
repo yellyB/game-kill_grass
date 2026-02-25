@@ -30,7 +30,6 @@ var _display_columns: Array = []  # skill types + "weapon" inserted in the middl
 # Computed at runtime from GameManager.SKILL_PREREQS
 var _skill_connections: Array = []
 var _skill_node_steps: Dictionary = {}  # type -> { level -> step }
-var _weapon_steps: Array = []  # weapon_level -> step position (float)
 
 # Node visual settings
 const NODE_SIZE: int = 52
@@ -435,14 +434,9 @@ func _compute_column_order() -> void:
 
   _skill_columns = []
   _display_columns = []
-  var mid = int(groups.size() / 2.0)
   for i in range(groups.size()):
-    if i == mid and i > 0:
-      _display_columns.append("weapon")
     _skill_columns += groups[i]
     _display_columns += groups[i]
-  if mid == 0 or groups.size() <= 1:
-    _display_columns.append("weapon")
 
 func _layout_tree(root: String, children_map: Dictionary) -> Array:
   if not children_map.has(root):
@@ -533,36 +527,6 @@ func _compute_prereq_data() -> void:
         prev_step = step
     iter += 1
 
-  # 3. Compute weapon step positions based on cumulative skill counts
-  _weapon_steps.clear()
-  var step_skill_count: Dictionary = {}
-  for skill_type in _skill_columns:
-    for lv in _skill_node_steps[skill_type]:
-      var step = _skill_node_steps[skill_type][lv]
-      step_skill_count[step] = step_skill_count.get(step, 0) + 1
-
-  var sorted_steps: Array = step_skill_count.keys()
-  sorted_steps.sort()
-  var cumul: Dictionary = {}
-  var running_total: int = 0
-  for s in sorted_steps:
-    running_total += step_skill_count[s]
-    cumul[s] = running_total
-
-  for w_idx in range(GameManager.WEAPON_SKILL_REQUIREMENTS.size()):
-    var req = GameManager.WEAPON_SKILL_REQUIREMENTS[w_idx]
-    if req <= 0:
-      _weapon_steps.append(-1.5 + w_idx * 1.0)
-    else:
-      var placed = false
-      for s in sorted_steps:
-        if cumul[s] >= req:
-          _weapon_steps.append(s + 0.5)
-          placed = true
-          break
-      if not placed:
-        _weapon_steps.append(sorted_steps[-1] + 1.5)
-
 func build_skill_tree() -> void:
   _compute_prereq_data()
   for child in skill_tree_container.get_children():
@@ -582,12 +546,6 @@ func build_skill_tree() -> void:
   var col_width = usable_width / float(col_count)
   var step_size = NODE_SIZE + NODE_GAP
 
-  # Compute tree_top_offset to make room for weapons above step 0
-  var min_weapon_step: float = 0.0
-  for ws in _weapon_steps:
-    min_weapon_step = min(min_weapon_step, ws)
-  var tree_top_offset: float = ceil(-min_weapon_step) * step_size if min_weapon_step < 0 else 0.0
-
   # Find total steps needed (max step across all skill nodes + 1)
   var max_steps: int = 0
   for skill_type in _skill_columns:
@@ -595,21 +553,9 @@ func build_skill_tree() -> void:
     var last_step = _skill_node_steps[skill_type][chain.max_level]
     max_steps = max(max_steps, last_step + 1)
 
-  # Track weapon column x for later rendering
-  var weapon_col_x: float = 0.0
-  var weapon_col_width: float = col_width
-
   for col_idx in range(col_count):
-    var display_col = _display_columns[col_idx]
+    var skill_type = _display_columns[col_idx]
     var col_x = tree_margin + col_idx * col_width
-
-    # Skip weapon column (rendered separately)
-    if display_col == "weapon":
-      weapon_col_x = col_x
-      weapon_col_width = col_width
-      continue
-
-    var skill_type = display_col
     var chain = _get_skill_chain(skill_type)
     var current_level = _get_current_level(skill_type)
     var max_level = chain.max_level
@@ -617,7 +563,7 @@ func build_skill_tree() -> void:
     var last_step = _skill_node_steps[skill_type][max_level]
 
     var center_x = col_x + col_width / 2.0
-    var col_top_y = COL_HEADER_HEIGHT + tree_top_offset + first_step * step_size
+    var col_top_y = COL_HEADER_HEIGHT +first_step * step_size
 
     _node_positions[skill_type] = {}
 
@@ -660,13 +606,13 @@ func build_skill_tree() -> void:
       var level = i + 1
       var state = _get_node_state(skill_type, level)
       var node_step = _skill_node_steps[skill_type][level]
-      var node_y = COL_HEADER_HEIGHT + tree_top_offset + node_step * step_size
+      var node_y = COL_HEADER_HEIGHT +node_step * step_size
       _node_positions[skill_type][level] = Vector2(center_x, node_y + NODE_SIZE / 2.0)
 
       # Vertical line from previous node to this node
       if i > 0:
         var prev_step = _skill_node_steps[skill_type][level - 1]
-        var prev_bottom = COL_HEADER_HEIGHT + tree_top_offset + prev_step * step_size + NODE_SIZE
+        var prev_bottom = COL_HEADER_HEIGHT +prev_step * step_size + NODE_SIZE
         var curr_top = node_y
         if curr_top > prev_bottom:
           var prev_state = _get_node_state(skill_type, level - 1)
@@ -687,169 +633,10 @@ func build_skill_tree() -> void:
 
     _skill_card_centers[skill_type] = Vector2(center_x, col_top_y - 20)
 
-  # Render weapon column
-  _render_weapon_column(weapon_col_x, weapon_col_width, step_size, tree_top_offset)
-
-  var total_height = COL_HEADER_HEIGHT + tree_top_offset + max_steps * step_size + 20
+  var total_height = COL_HEADER_HEIGHT + max_steps * step_size + 20
   skill_tree_container.custom_minimum_size = Vector2(0, total_height)
 
   _add_connection_lines()
-
-func _render_weapon_column(col_x: float, col_width: float, step_size: int, tree_top_offset: float) -> void:
-  var current_weapon = WeaponManager.current_weapon_level
-  var total_weapons = WeaponManager.WEAPONS.size()
-  var center_x = col_x + col_width / 2.0
-  var total_skill = GameManager.get_total_skill_level()
-
-  # Header
-  var name_label = Label.new()
-  name_label.text = "무기"
-  name_label.add_theme_font_size_override("font_size", 20)
-  name_label.add_theme_color_override("font_color", Color.WHITE if current_weapon > 0 else Color(0.5, 0.55, 0.6))
-  name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  # Position header at the first weapon step or at step 0 if all weapons are above
-  var first_skill_y = COL_HEADER_HEIGHT + tree_top_offset
-  name_label.position = Vector2(col_x, first_skill_y - 43)
-  name_label.size = Vector2(col_width, 22)
-  skill_tree_container.add_child(name_label)
-
-  var level_label = Label.new()
-  level_label.text = "Lv.%d" % current_weapon
-  level_label.add_theme_font_size_override("font_size", 16)
-  level_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.7) if current_weapon > 0 else Color(0.45, 0.45, 0.5))
-  level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  level_label.position = Vector2(col_x, first_skill_y - 22)
-  level_label.size = Vector2(col_width, 18)
-  skill_tree_container.add_child(level_label)
-
-  # Background panel spanning the weapon nodes
-  if _weapon_steps.size() > 0:
-    var min_y = COL_HEADER_HEIGHT + tree_top_offset + _weapon_steps[0] * step_size - 10
-    var max_y = COL_HEADER_HEIGHT + tree_top_offset + _weapon_steps[-1] * step_size + NODE_SIZE + 10
-    var bg = Panel.new()
-    var bg_style = StyleBoxFlat.new()
-    bg_style.bg_color = Color(0.12, 0.1, 0.08, 0.5)
-    bg_style.corner_radius_top_left = 8
-    bg_style.corner_radius_top_right = 8
-    bg_style.corner_radius_bottom_left = 8
-    bg_style.corner_radius_bottom_right = 8
-    bg.add_theme_stylebox_override("panel", bg_style)
-    bg.position = Vector2(col_x + 1, min_y)
-    bg.size = Vector2(col_width - 2, max_y - min_y)
-    skill_tree_container.add_child(bg)
-
-  # Render weapon nodes
-  var node_y_positions: Array = []  # Store y centers for connection lines
-  for i in range(total_weapons):
-    var node_y = COL_HEADER_HEIGHT + tree_top_offset + _weapon_steps[i] * step_size
-    var node_center_y = node_y + NODE_SIZE / 2.0
-    node_y_positions.append(node_center_y)
-
-    # Determine state
-    var state: String
-    if i < current_weapon:
-      state = "completed"
-    elif i == current_weapon:
-      state = "current"
-    elif i == current_weapon + 1:
-      var req = GameManager.get_weapon_skill_requirement(i)
-      if total_skill >= req:
-        state = "purchasable"
-      else:
-        state = "prereq_locked"
-    else:
-      state = "locked"
-
-    var dot = _create_weapon_node(i, state)
-    dot.position = Vector2(center_x - NODE_SIZE / 2.0, node_y)
-    dot.size = Vector2(NODE_SIZE, NODE_SIZE)
-    skill_tree_container.add_child(dot)
-
-    # Vertical connection line from previous weapon
-    if i > 0:
-      var prev_bottom_y = COL_HEADER_HEIGHT + tree_top_offset + _weapon_steps[i - 1] * step_size + NODE_SIZE
-      var curr_top_y = node_y
-      if curr_top_y > prev_bottom_y:
-        var line_met = (i - 1) < current_weapon
-        if line_met:
-          var vline = Line2D.new()
-          vline.z_index = 1
-          vline.width = 4.0
-          vline.default_color = Color(0.2, 0.5, 0.65, 0.9)
-          vline.antialiased = true
-          vline.add_point(Vector2(center_x, prev_bottom_y))
-          vline.add_point(Vector2(center_x, curr_top_y))
-          skill_tree_container.add_child(vline)
-        else:
-          # Dashed line
-          var from_pt = Vector2(center_x, prev_bottom_y)
-          var to_pt = Vector2(center_x, curr_top_y)
-          var length = from_pt.distance_to(to_pt)
-          var dir = (to_pt - from_pt).normalized()
-          var dash_len = 10.0
-          var gap_len = 8.0
-          var d = 0.0
-          while d < length:
-            var seg_start = from_pt + dir * d
-            var seg_end = from_pt + dir * min(d + dash_len, length)
-            var dash = Line2D.new()
-            dash.z_index = 1
-            dash.width = 3.0
-            dash.default_color = Color(0.4, 0.4, 0.5, 0.5)
-            dash.antialiased = true
-            dash.add_point(seg_start)
-            dash.add_point(seg_end)
-            skill_tree_container.add_child(dash)
-            d += dash_len + gap_len
-
-func _create_weapon_node(weapon_level: int, state: String) -> Button:
-  var btn = Button.new()
-  btn.custom_minimum_size = Vector2(NODE_SIZE, NODE_SIZE)
-
-  var style = StyleBoxFlat.new()
-  var radius = int(NODE_SIZE / 2)
-  style.corner_radius_top_left = radius
-  style.corner_radius_top_right = radius
-  style.corner_radius_bottom_left = radius
-  style.corner_radius_bottom_right = radius
-  style.content_margin_left = 2
-  style.content_margin_right = 2
-  style.content_margin_top = 2
-  style.content_margin_bottom = 2
-
-  btn.text = str(weapon_level + 1)
-  btn.disabled = true
-
-  match state:
-    "completed":
-      style.bg_color = Color(0.15, 0.4, 0.55)
-      btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0.9))
-    "current":
-      style.bg_color = Color(0.2, 0.5, 0.7)
-      style.border_width_top = 3
-      style.border_width_bottom = 3
-      style.border_width_left = 3
-      style.border_width_right = 3
-      style.border_color = Color(0.3, 0.8, 1.0)
-      btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1))
-    "purchasable":
-      style.bg_color = COLOR_PURCHASABLE
-      btn.add_theme_color_override("font_disabled_color", Color(0.1, 0.1, 0.1))
-    "prereq_locked":
-      style.bg_color = COLOR_PREREQ_LOCKED
-      btn.add_theme_color_override("font_disabled_color", Color(0.9, 0.7, 0.5))
-    "locked":
-      style.bg_color = COLOR_LOCKED
-      btn.text = ""
-      btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.55))
-
-  btn.add_theme_stylebox_override("normal", style)
-  btn.add_theme_stylebox_override("hover", style)
-  btn.add_theme_stylebox_override("pressed", style)
-  btn.add_theme_stylebox_override("disabled", style)
-  btn.add_theme_font_size_override("font_size", 16)
-
-  return btn
 
 func _create_skill_node(skill_type: String, level: int, state: String) -> Button:
   var btn = Button.new()
