@@ -146,6 +146,58 @@ const BUTTON_COLORS = {
   "sub": Color(0.45, 0.62, 0.78),
 }
 
+const COIN_TEXTURE = preload("res://resources/images/coin.png")
+
+# MoneyLabel에 코인 아이콘을 추가하고 $ 없이 숫자만 표시하도록 변환
+# 반환: 코인 아이콘이 포함된 HBoxContainer
+func setup_money_label_with_icon(money_label: Label) -> void:
+  var parent = money_label.get_parent()
+  var font_size = money_label.get_theme_font_size("font_size")
+  var icon_size = int(font_size * 0.9)
+
+  # 원래 Label의 레이아웃 속성 저장
+  var anchor_l = money_label.anchor_left
+  var anchor_r = money_label.anchor_right
+  var anchor_t = money_label.anchor_top
+  var anchor_b = money_label.anchor_bottom
+  var off_l = money_label.offset_left
+  var off_r = money_label.offset_right
+  var off_t = money_label.offset_top
+  var off_b = money_label.offset_bottom
+  var grow_h = money_label.grow_horizontal
+  var grow_v = money_label.grow_vertical
+
+  var hbox = HBoxContainer.new()
+  hbox.name = "MoneyHBox"
+  hbox.layout_mode = 1
+  hbox.anchor_left = anchor_l
+  hbox.anchor_right = anchor_r
+  hbox.anchor_top = anchor_t
+  hbox.anchor_bottom = anchor_b
+  hbox.offset_left = off_l
+  hbox.offset_right = off_r
+  hbox.offset_top = off_t
+  hbox.offset_bottom = off_b
+  hbox.grow_horizontal = grow_h
+  hbox.grow_vertical = grow_v
+  hbox.alignment = BoxContainer.ALIGNMENT_END
+  hbox.add_theme_constant_override("separation", 8)
+  hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+  var icon = TextureRect.new()
+  icon.texture = COIN_TEXTURE
+  icon.expand_mode = TextureRect.EXPAND_FIT_HEIGHT
+  icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  icon.custom_minimum_size = Vector2(icon_size, icon_size)
+  icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  hbox.add_child(icon)
+
+  parent.remove_child(money_label)
+  hbox.add_child(money_label)
+  money_label.anchors_preset = Control.PRESET_FULL_RECT
+  money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  parent.add_child(hbox)
+
 func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = Vector2.ZERO) -> void:
   var main_color = BUTTON_COLORS.get(color_type, BUTTON_COLORS["main"])
   if btn_size != Vector2.ZERO:

@@ -9,7 +9,7 @@ signal panel_closed
 @onready var confirm_btn: Button = $Panel/ConfirmBtn
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var toggle_btn: Button = $ToggleBtn
-@onready var money_label: Label = $Panel/MoneyLabel
+@onready var money_display = $Panel/MoneyDisplay
 @onready var skill_tree_container: Control = $Panel/SkillTreeScroll/SkillTreeContainer
 
 # Weapon nodes
@@ -892,7 +892,7 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
   update_money_display()
 
 func update_money_display() -> void:
-  money_label.text = "$%s" % format_number(GameManager.money)
+  money_display.update_display()
 
 func update_total_skill_label() -> void:
   total_skill_label.text = "스킬: %d" % GameManager.get_total_skill_level()

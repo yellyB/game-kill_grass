@@ -6,7 +6,7 @@ signal panel_closed
 @onready var panel: Panel = $Panel
 @onready var toggle_btn: Button = $ToggleBtn
 @onready var close_btn: Button = $Panel/CloseBtn
-@onready var money_label: Label = $Panel/MoneyLabel
+@onready var money_display = $Panel/MoneyDisplay
 @onready var scroll_container: ScrollContainer = $Panel/ScrollContainer
 
 var is_open: bool = false
@@ -135,6 +135,7 @@ func _ready() -> void:
 
   GameManager.money_changed.connect(_on_money_changed)
   GameManager.inventory_changed.connect(_on_inventory_changed)
+
   update_money_display()
   toggle_btn.visible = show_toggle_button
 
@@ -191,7 +192,7 @@ func _on_inventory_changed() -> void:
     _refresh_all()
 
 func update_money_display() -> void:
-  money_label.text = "$%s" % format_number(GameManager.money)
+  money_display.update_display()
 
 # ── Layout building ──
 

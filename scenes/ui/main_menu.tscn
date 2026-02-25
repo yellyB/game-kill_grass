@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cmenu123"]
+[gd_scene load_steps=7 format=3 uid="uid://cmenu123"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="2_upgrade"]
 [ext_resource type="PackedScene" uid="uid://citempanel" path="res://scenes/ui/item_panel.tscn" id="4_item"]
 [ext_resource type="Texture2D" uid="uid://muujnakyfyb1" path="res://resources/images/main.png" id="5_main_bg"]
 [ext_resource type="Texture2D" uid="uid://do3vq3o5qqsor" path="res://resources/images/title.png" id="6_title"]
+[ext_resource type="PackedScene" path="res://scenes/ui/money_display.tscn" id="7_money"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -40,23 +41,7 @@ texture = ExtResource("6_title")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="MoneyLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -200.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 80.0
-grow_horizontal = 0
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 48
-text = "$0"
-horizontal_alignment = 2
-vertical_alignment = 1
+[node name="MoneyDisplay" parent="." instance=ExtResource("7_money")]
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1

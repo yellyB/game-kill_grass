@@ -5,7 +5,7 @@ extends Control
 @onready var item_btn: Button = $VBoxContainer/ItemBtn
 @onready var quit_btn: Button = $VBoxContainer/QuitBtn
 @onready var title_image: TextureRect = $TitleImage
-@onready var money_label: Label = $MoneyLabel
+@onready var money_display = $MoneyDisplay
 @onready var upgrade_panel: Control = $UpgradePanel/Control
 @onready var item_panel: Control = $ItemPanel/Control
 
@@ -38,9 +38,7 @@ func _ready() -> void:
   item_panel.panel_opened.connect(_on_panel_opened)
   item_panel.panel_closed.connect(_on_panel_closed)
 
-  # Money display
-  update_money_display()
-  GameManager.money_changed.connect(_on_money_changed)
+  # Money display is handled by MoneyDisplay scene
 
   # Debug buttons (bottom of screen, debug builds only)
   if OS.is_debug_build():
@@ -202,11 +200,8 @@ func _on_panel_closed() -> void:
   item_btn.disabled = false
   quit_btn.disabled = false
 
-func _on_money_changed(_amount: int) -> void:
-  update_money_display()
-
 func update_money_display() -> void:
-  money_label.text = "$" + format_number(GameManager.money)
+  money_display.update_display()
 
 # ── World Selection Panel ──
 
