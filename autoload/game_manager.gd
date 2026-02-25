@@ -451,20 +451,17 @@ const SKILL_PREREQS = {
   # 보상 ← 등급
   "grass_reward:1": [{"type": "grass_quality", "level": 2}],
   # 넉백 ← 등급
-  "monster_knockback:1": [{"type": "grass_quality", "level": 4}],
-  "monster_knockback:2": [{"type": "grass_quality", "level": 7}],
-  "monster_knockback:3": [{"type": "grass_quality", "level": 10}],
+  "monster_knockback:1": [{"type": "grass_reward", "level": 2}],
   # 황금풀 ← 밀도
-  "golden_chance:1": [{"type": "grass_density", "level": 4}],
-  "golden_chance:2": [{"type": "grass_density", "level": 7}],
-  "golden_chance:3": [{"type": "grass_density", "level": 9}],
-  "golden_chance:5": [{"type": "grass_density", "level": 10}],
+  "golden_chance:1": [{"type": "grass_density", "level": 3}],
+  "golden_chance:2": [{"type": "grass_density", "level": 5}],
+  "golden_chance:3": [{"type": "grass_density", "level": 7}],
+  "golden_chance:4": [{"type": "grass_density", "level": 9}],
   # 드롭률 ← 보상
   "grass_drop:1": [{"type": "grass_reward", "level": 2}],
-  "grass_drop:2": [{"type": "grass_reward", "level": 5}],
-  "grass_drop:3": [{"type": "grass_reward", "level": 7}],
-  "grass_drop:4": [{"type": "grass_reward", "level": 9}],
-  "grass_drop:5": [{"type": "grass_reward", "level": 10}],
+  "grass_drop:2": [{"type": "grass_reward", "level": 4}],
+  "grass_drop:3": [{"type": "grass_reward", "level": 6}],
+  "grass_drop:4": [{"type": "grass_reward", "level": 8}],
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
