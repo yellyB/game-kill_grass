@@ -34,7 +34,7 @@ var _skill_node_steps: Dictionary = {}  # type -> { level -> step }
 # Node visual settings
 const NODE_SIZE: int = 52
 const NODE_GAP: int = 24
-const COL_HEADER_HEIGHT: float = 25.0
+const COL_HEADER_HEIGHT: float = 45.0
 
 # Colors
 const COLOR_COMPLETED = Color(0.2, 0.55, 0.3)
@@ -800,13 +800,13 @@ func _update_skill_description() -> void:
       var next_mult = GameManager.get_grass_reward_multiplier()
       GameManager.upgrade_levels["grass_reward"] = temp
       stat_text = "보상 배율: x%.1f → x%.1f" % [current_mult, next_mult]
-    "monster_knockback":
-      var current_kb = GameManager.get_monster_knockback_strength()
-      var temp_kb = GameManager.upgrade_levels["monster_knockback"]
-      GameManager.upgrade_levels["monster_knockback"] += 1
-      var next_kb = GameManager.get_monster_knockback_strength()
-      GameManager.upgrade_levels["monster_knockback"] = temp_kb
-      stat_text = "넉백: %.0f → %.0f" % [current_kb, next_kb]
+    "penalty_reduce":
+      var current_pr = GameManager.get_part_penalty_mult() * 100
+      var temp_pr = GameManager.upgrade_levels["penalty_reduce"]
+      GameManager.upgrade_levels["penalty_reduce"] += 1
+      var next_pr = GameManager.get_part_penalty_mult() * 100
+      GameManager.upgrade_levels["penalty_reduce"] = temp_pr
+      stat_text = "패널티: %.0f%% → %.0f%%" % [current_pr, next_pr]
     "grass_drop":
       var current_drop = GameManager.get_grass_drop_chance() * 100
       var temp_drop = GameManager.upgrade_levels["grass_drop"]

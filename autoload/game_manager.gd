@@ -14,7 +14,7 @@ var selected_world: int = 0
 var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
-const WORLD_UNLOCK_COSTS: Array = [0, 5000, 20000, 50000]
+const WORLD_UNLOCK_COSTS: Array = [0, 3000, 20000, 50000]
 
 signal world_unlocked(index: int)
 signal key_acquired(world_index: int)
@@ -23,14 +23,14 @@ signal key_acquired(world_index: int)
 const SKILL_DEFS: Array = [
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "max_level": 10,
    "description": "맵에 풀이 더 빽빽하게 자랍니다."},
-  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "max_level": 10,
+  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "max_level": 8,
    "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다."},
-  {"type": "grass_regen", "name": "풀 재생", "short_name": "재생", "max_level": 3,
+  {"type": "grass_regen", "name": "풀 재생", "short_name": "재생", "max_level": 2,
    "description": "베어진 풀이 더 빨리 다시 자랍니다."},
-  {"type": "grass_reward", "name": "풀 보상", "short_name": "보상", "max_level": 10,
+  {"type": "grass_reward", "name": "풀 보상", "short_name": "보상", "max_level": 6,
    "description": "풀에서 떨어지는 코인이 증가합니다."},
-  {"type": "monster_knockback", "name": "넉백 증가", "short_name": "넉백", "max_level": 3,
-   "description": "몬스터를 더 멀리 밀어냅니다."},
+  {"type": "penalty_reduce", "name": "패널티 감소", "short_name": "패널티", "max_level": 3,
+   "description": "몬스터에게 맞았을 때 코인 손실이 줄어듭니다."},
   {"type": "grass_drop", "name": "드롭률 증가", "short_name": "드롭", "max_level": 5,
    "description": "풀에서 코인이 떨어질 확률이 증가합니다."},
   {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "max_level": 5,
@@ -277,20 +277,20 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[3]  # 황금풀
 
   # 가중치 기반 3종 풀 분배 (겹치는 구간 있음)
-  # 기본풀: Lv.0에서 100%, Lv.7에서 ~2%, Lv.8+ 등장 안 함
-  # 완전 센풀: Lv.2 이하 등장 안 함, Lv.3에서 ~2%, Lv.10에서 100%
+  # 기본풀: Lv.0에서 100%, Lv.6에서 ~2%, Lv.7+ 등장 안 함
+  # 완전 센풀: Lv.2 이하 등장 안 함, Lv.3에서 ~2%, Lv.8에서 100%
   # 강한풀: 나머지 (중반에 70% 정도로 피크)
   var normal_w: float
-  if quality_level >= 8:
+  if quality_level >= 7:
     normal_w = 0.0
   else:
-    normal_w = pow((8.0 - quality_level) / 8.0, 1.8)
+    normal_w = pow((7.0 - quality_level) / 7.0, 1.8)
 
   var strong_w: float
   if quality_level <= 2:
     strong_w = 0.0
   else:
-    strong_w = pow((quality_level - 2.0) / 8.0, 1.8)
+    strong_w = pow((quality_level - 2.0) / 6.0, 1.8)
 
   var tough_w = max(0.0, 1.0 - normal_w - strong_w)
 
@@ -430,7 +430,7 @@ const BASE_KNOCKBACK: float = 600.0
 const KNOCKBACK_PER_LEVEL: float = 120.0
 
 func get_monster_knockback_strength() -> float:
-  return BASE_KNOCKBACK + upgrade_levels.get("monster_knockback", 0) * KNOCKBACK_PER_LEVEL
+  return BASE_KNOCKBACK + get_part_count("충격 무시 범퍼", 2) * KNOCKBACK_PER_LEVEL
 
 func get_grass_drop_chance() -> float:
   # 레벨당 6% 증가 (Lv.5 = 50%)
@@ -450,7 +450,7 @@ func get_total_skill_level() -> int:
 
 func get_grass_reward_multiplier() -> float:
   # 레벨당 30% 증가 (Lv.10 = x4.0)
-  return 1.0 + upgrade_levels.get("grass_reward", 0) * 0.3
+  return 1.0 + upgrade_levels.get("grass_reward", 0) * 0.4
 
 # 무기 레벨별 필요 스킬 포인트 (수동 튜닝)
 # Lv0 나뭇가지, Lv1 녹슨식칼, Lv2 피자커터, Lv3 전기파리채,
@@ -463,21 +463,23 @@ const SKILL_PREREQS = {
   # 재생 ← 밀도
   "grass_regen:1": [{"type": "grass_density", "level": 2}],
   "grass_regen:2": [{"type": "grass_density", "level": 5}],
-  "grass_regen:3": [{"type": "grass_density", "level": 8}],
   # 보상 ← 등급
   "grass_reward:1": [{"type": "grass_quality", "level": 2}],
-  # 넉백 ← 등급
-  "monster_knockback:1": [{"type": "grass_reward", "level": 2}],
+  "grass_reward:2": [{"type": "grass_quality", "level": 4}],
+  "grass_reward:3": [{"type": "grass_quality", "level": 6}],
+  "grass_reward:4": [{"type": "grass_quality", "level": 8}],
+  # 패널티 감소 ← 보상
+  "penalty_reduce:1": [{"type": "grass_reward", "level": 2}],
   # 황금풀 ← 밀도
-  "golden_chance:1": [{"type": "grass_density", "level": 3}],
-  "golden_chance:2": [{"type": "grass_density", "level": 5}],
-  "golden_chance:3": [{"type": "grass_density", "level": 7}],
-  "golden_chance:4": [{"type": "grass_density", "level": 9}],
-  # 드롭률 ← 보상
-  "grass_drop:1": [{"type": "grass_reward", "level": 2}],
-  "grass_drop:2": [{"type": "grass_reward", "level": 4}],
-  "grass_drop:3": [{"type": "grass_reward", "level": 6}],
-  "grass_drop:4": [{"type": "grass_reward", "level": 8}],
+  "golden_chance:1": [{"type": "grass_density", "level": 5}],
+  "golden_chance:2": [{"type": "grass_density", "level": 7}],
+  "golden_chance:3": [{"type": "grass_density", "level": 9}],
+  "golden_chance:4": [{"type": "grass_density", "level": 10}],
+  # 드롭률 ← 등급
+  "grass_drop:1": [{"type": "grass_quality", "level": 2}],
+  "grass_drop:2": [{"type": "grass_quality", "level": 4}],
+  "grass_drop:3": [{"type": "grass_quality", "level": 6}],
+  "grass_drop:4": [{"type": "grass_quality", "level": 8}],
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
@@ -512,21 +514,32 @@ func get_weapon_skill_requirement(weapon_level: int) -> int:
   return WEAPON_SKILL_REQUIREMENTS[weapon_level]
 
 func get_grass_regen_time(base_time: float) -> float:
-  # 매 레벨마다 5초씩 감소 (최대 Lv.3 = -15초)
-  return base_time - (upgrade_levels.get("grass_regen", 0) * 5.0)
+  var level = upgrade_levels.get("grass_regen", 0)
+  if level == 0:
+    return base_time
+  elif level == 1:
+    return 13.0
+  else:
+    return 4.0
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
-  if upgrade_type in ["golden_chance", "grass_drop"]:
+  if upgrade_type == "golden_chance":
     var multiplier = 5.0 + current_level * 16.2
     return int(base * multiplier)
-  if upgrade_type in ["grass_density", "grass_reward"] and current_level > 0:
-    var multiplier = 1.0 + current_level * 0.3
+  if upgrade_type == "grass_drop":
+    var multiplier = 2.0 + current_level * 3.0
+    return int(base * multiplier)
+  if upgrade_type == "grass_reward":
+    var multiplier = 2.0 + current_level * 3.0
+    return int(base * multiplier)
+  if upgrade_type == "grass_density" and current_level > 0:
+    var multiplier = 1.0 + current_level * 0.4
     return int(base * multiplier)
   if upgrade_type == "grass_quality" and current_level > 0:
     var multiplier = 1.0 + current_level * 0.15
     return int(base * multiplier)
-  if upgrade_type in ["grass_regen", "monster_knockback"] and current_level > 0:
+  if upgrade_type in ["grass_regen", "penalty_reduce"] and current_level > 0:
     var multiplier = 1.0 + current_level * 7.0
     return int(base * multiplier)
   return base
@@ -580,7 +593,8 @@ func get_part_count(part_id: String, max_count: int) -> int:
   return mini(get_item_count(part_id), max_count)
 
 func get_part_penalty_mult() -> float:
-  return 1.0 - get_part_count("충격 무시 범퍼", 2) * 0.25  # 개당 -25%, 최대 -50%
+  # 스킬트리 기반: Lv1 -25%, Lv2 -50%, Lv3 -75%
+  return 1.0 - upgrade_levels.get("penalty_reduce", 0) * 0.25
 
 func is_item_discovered(item_id: String) -> bool:
   return item_id in discovered_items
