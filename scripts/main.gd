@@ -43,9 +43,9 @@ func _ready() -> void:
 	cancel_btn.pressed.connect(_on_cancel_back_to_menu)
 
 	# Button styles
-	GameManager.style_button(back_to_menu_btn, Color(0.45, 0.45, 0.5))
-	GameManager.style_button(confirm_btn, Color(0.7, 0.3, 0.25))
-	GameManager.style_button(cancel_btn, Color(0.3, 0.75, 0.45))
+	GameManager.style_button(back_to_menu_btn, "muted")
+	GameManager.style_button(confirm_btn)
+	GameManager.style_button(cancel_btn, "muted")
 
 	# Setup session end overlay
 	touch_button.pressed.connect(_on_session_end_touch)

@@ -43,16 +43,11 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="CloseBtn" type="Button" parent="Control/Panel"]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -100.0
+anchors_preset = 0
+offset_left = 20.0
 offset_top = 30.0
-offset_right = -30.0
-offset_bottom = 90.0
-grow_horizontal = 0
-theme_override_font_sizes/font_size = 32
-text = "X"
+offset_right = 124.0
+offset_bottom = 105.0
 
 [node name="MoneyLabel" type="Label" parent="Control/Panel"]
 layout_mode = 1

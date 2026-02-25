@@ -29,8 +29,8 @@ func _ready() -> void:
   quit_btn.pressed.connect(_on_quit_pressed)
 
   # Hide the toggle buttons on panels (we use menu buttons instead)
-  upgrade_panel.set_toggle_button_visible(false)
-  item_panel.set_toggle_button_visible(false)
+  upgrade_panel.call_deferred("set_toggle_button_visible", false)
+  item_panel.call_deferred("set_toggle_button_visible", false)
 
   # Connect panel signals for mutual exclusion
   upgrade_panel.panel_opened.connect(_on_panel_opened)
@@ -46,27 +46,41 @@ func _ready() -> void:
   if OS.is_debug_build():
     _build_debug_buttons()
 
-  # 버튼 스타일 적용
-  _apply_button_style(play_btn, Color(0.3, 0.75, 0.45), Color(0.2, 0.55, 0.3), "▶", "PLAY", 122)
-  _apply_button_style(upgrade_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "⬆", "강화")
-  _apply_button_style(item_btn, Color(0.35, 0.55, 0.85), Color(0.25, 0.4, 0.7), "🎒", "아이템")
-  _apply_button_style(quit_btn, Color(0.5, 0.5, 0.55), Color(0.35, 0.35, 0.4), "✕", "QUIT")
-
-  # PLAY 버튼: 화면 너비의 50%
+  # 버튼 스타일 적용 (btn_size로 크기+폰트 자동 비례)
   var viewport_w = get_viewport_rect().size.x
-  play_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-  play_btn.custom_minimum_size.x = viewport_w * 0.5
 
-  # 나머지 버튼 오른쪽 정렬 + 고정 너비
-  for btn in [upgrade_btn, item_btn, quit_btn]:
-    btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-    btn.custom_minimum_size.x = 360
+  play_btn.text = ""
+  play_btn.icon = preload("res://resources/images/icon/start.png")
+  play_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  play_btn.expand_icon = true
+  play_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+  GameManager.style_button(play_btn, "main", Vector2(360, 288))
+
+
+  upgrade_btn.text = "강화"
+  upgrade_btn.icon = preload("res://resources/images/icon/icon_upgrade.png")
+  upgrade_btn.expand_icon = true
+  upgrade_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+  GameManager.style_button(upgrade_btn, "sub", Vector2(360, 112))
+
+
+  item_btn.text = "아이템"
+  item_btn.icon = preload("res://resources/images/icon/icon_inventory.png")
+  item_btn.expand_icon = true
+  item_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+  GameManager.style_button(item_btn, "sub", Vector2(360, 112))
+
+
+  quit_btn.text = "종료"
+  quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+  GameManager.style_button(quit_btn, "muted", Vector2(360, 112))
 
   # Title animation
   animate_title()
 
   # Main menu BGM
   _start_menu_bgm()
+
 
 var _menu_bgm: AudioStreamPlayer
 
@@ -78,78 +92,6 @@ func _start_menu_bgm() -> void:
   add_child(_menu_bgm)
   _menu_bgm.play()
 
-func _apply_button_style(btn: Button, main_color: Color, shadow_color: Color, icon: String, label_text: String, font_size: int = 28) -> void:
-  # 버튼 기본 텍스트 제거
-  btn.text = ""
-  btn.clip_text = false
-
-  # Normal 스타일 (둥근 메인 + 아래 그림자)
-  var style_n = StyleBoxFlat.new()
-  style_n.bg_color = main_color
-  style_n.corner_radius_top_left = 18
-  style_n.corner_radius_top_right = 18
-  style_n.corner_radius_bottom_left = 18
-  style_n.corner_radius_bottom_right = 18
-  style_n.border_width_bottom = 6
-  style_n.border_color = shadow_color
-  style_n.content_margin_left = 24
-  style_n.content_margin_right = 24
-  style_n.content_margin_top = 12
-  style_n.content_margin_bottom = 14
-  btn.add_theme_stylebox_override("normal", style_n)
-
-  # Hover 스타일 (살짝 밝게)
-  var style_h = StyleBoxFlat.new()
-  style_h.bg_color = main_color.lightened(0.1)
-  style_h.corner_radius_top_left = 18
-  style_h.corner_radius_top_right = 18
-  style_h.corner_radius_bottom_left = 18
-  style_h.corner_radius_bottom_right = 18
-  style_h.border_width_bottom = 6
-  style_h.border_color = shadow_color
-  style_h.content_margin_left = 24
-  style_h.content_margin_right = 24
-  style_h.content_margin_top = 12
-  style_h.content_margin_bottom = 14
-  btn.add_theme_stylebox_override("hover", style_h)
-
-  # Pressed 스타일 (어둡게 + 그림자 줄어듦 = 눌린 느낌)
-  var style_p = StyleBoxFlat.new()
-  style_p.bg_color = main_color.darkened(0.1)
-  style_p.corner_radius_top_left = 18
-  style_p.corner_radius_top_right = 18
-  style_p.corner_radius_bottom_left = 18
-  style_p.corner_radius_bottom_right = 18
-  style_p.border_width_bottom = 2
-  style_p.border_color = shadow_color
-  style_p.content_margin_left = 24
-  style_p.content_margin_right = 24
-  style_p.content_margin_top = 16
-  style_p.content_margin_bottom = 10
-  btn.add_theme_stylebox_override("pressed", style_p)
-
-  # 아이콘 + 텍스트를 HBox로 구성
-  var hbox = HBoxContainer.new()
-  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  hbox.add_theme_constant_override("separation", 12)
-  hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  btn.add_child(hbox)
-
-  var icon_label = Label.new()
-  icon_label.text = icon
-  icon_label.add_theme_font_size_override("font_size", font_size + 2)
-  icon_label.add_theme_color_override("font_color", Color(1, 1, 1))
-  icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  hbox.add_child(icon_label)
-
-  var text_label = Label.new()
-  text_label.text = label_text
-  text_label.add_theme_font_size_override("font_size", font_size)
-  text_label.add_theme_color_override("font_color", Color(1, 1, 1))
-  text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.3))
-  text_label.add_theme_constant_override("outline_size", 3)
-  text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  hbox.add_child(text_label)
 
 func animate_title() -> void:
   title_image.pivot_offset = title_image.size / 2.0
@@ -229,14 +171,14 @@ func _show_quit_confirm() -> void:
   confirm.text = "확인"
   confirm.custom_minimum_size = Vector2(120, 50)
   confirm.add_theme_font_size_override("font_size", 22)
-  GameManager.style_button(confirm, Color(0.7, 0.3, 0.25))
+  GameManager.style_button(confirm)
   btn_row.add_child(confirm)
 
   var cancel = Button.new()
   cancel.text = "취소"
   cancel.custom_minimum_size = Vector2(120, 50)
   cancel.add_theme_font_size_override("font_size", 22)
-  GameManager.style_button(cancel, Color(0.45, 0.45, 0.5))
+  GameManager.style_button(cancel, "muted")
   btn_row.add_child(cancel)
 
   confirm.pressed.connect(func():
@@ -345,7 +287,7 @@ func _open_world_select() -> void:
   _ws_action_btn.custom_minimum_size = Vector2(350, 75)
   _ws_action_btn.add_theme_font_size_override("font_size", 35)
   _ws_action_btn.pressed.connect(_on_action_btn_pressed)
-  GameManager.style_button(_ws_action_btn, Color(0.3, 0.75, 0.45))
+  GameManager.style_button(_ws_action_btn)
   action_center.add_child(_ws_action_btn)
   _ws_update_action_btn()
 
@@ -359,7 +301,7 @@ func _open_world_select() -> void:
   close_btn.custom_minimum_size = Vector2(240, 62)
   close_btn.add_theme_font_size_override("font_size", 30)
   close_btn.pressed.connect(_close_world_select)
-  GameManager.style_button(close_btn, Color(0.45, 0.45, 0.5))
+  GameManager.style_button(close_btn, "muted")
   close_center.add_child(close_btn)
 
 func _ws_rebuild_cards() -> void:
@@ -572,21 +514,21 @@ func _build_debug_buttons() -> void:
   reset_btn.text = "초기화"
   reset_btn.add_theme_font_size_override("font_size", 18)
   reset_btn.pressed.connect(_on_debug_reset)
-  GameManager.style_button(reset_btn, Color(0.7, 0.3, 0.25))
+  GameManager.style_button(reset_btn, "sub")
   container.add_child(reset_btn)
 
   var money_btn = Button.new()
   money_btn.text = "+$100000"
   money_btn.add_theme_font_size_override("font_size", 18)
   money_btn.pressed.connect(_on_debug_add_money)
-  GameManager.style_button(money_btn, Color(0.7, 0.6, 0.15))
+  GameManager.style_button(money_btn, "sub")
   container.add_child(money_btn)
 
   var items_btn = Button.new()
   items_btn.text = "아이템+10"
   items_btn.add_theme_font_size_override("font_size", 18)
   items_btn.pressed.connect(_on_debug_add_items)
-  GameManager.style_button(items_btn, Color(0.2, 0.55, 0.7))
+  GameManager.style_button(items_btn)
   container.add_child(items_btn)
 
 func _on_debug_reset() -> void:

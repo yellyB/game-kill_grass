@@ -61,9 +61,11 @@ func _ready() -> void:
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
   # Button styles
-  GameManager.style_button(toggle_btn, Color(0.35, 0.55, 0.85))
-  GameManager.style_button(close_btn, Color(0.45, 0.45, 0.5))
-  GameManager.style_button(confirm_btn, Color(0.3, 0.75, 0.45))
+  GameManager.style_button(toggle_btn, "sub")
+  close_btn.icon = preload("res://resources/images/icon/back.png")
+  close_btn.expand_icon = true
+  GameManager.style_button(close_btn, "muted")
+  GameManager.style_button(confirm_btn)
 
   update_money_display()
   update_weapon_display()
@@ -74,7 +76,7 @@ func _ready() -> void:
 
 func set_toggle_button_visible(should_show: bool) -> void:
   show_toggle_button = should_show
-  if toggle_btn:
+  if is_instance_valid(toggle_btn):
     toggle_btn.visible = should_show
 
 func open_panel() -> void:
@@ -252,7 +254,7 @@ func _ensure_next_weapon_nodes() -> void:
   weapon_buy_btn.custom_minimum_size = Vector2(0, 60)
   weapon_buy_btn.add_theme_font_size_override("font_size", 26)
   weapon_buy_btn.pressed.connect(_on_weapon_buy_pressed)
-  GameManager.style_button(weapon_buy_btn, Color(0.3, 0.75, 0.45))
+  GameManager.style_button(weapon_buy_btn)
   weapon_right_vbox.add_child(weapon_buy_btn)
 
 func _on_weapon_buy_pressed() -> void:

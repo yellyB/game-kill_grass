@@ -140,7 +140,19 @@ func play_unlock_sound() -> void:
 
 # ── Shared Button Style ──
 
-func style_button(btn: Button, main_color: Color) -> void:
+const BUTTON_COLORS = {
+  "main": Color(0.3, 0.75, 0.45),
+  "muted": Color(0.45, 0.45, 0.5),
+  "sub": Color(0.45, 0.62, 0.78),
+}
+
+func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = Vector2.ZERO) -> void:
+  var main_color = BUTTON_COLORS.get(color_type, BUTTON_COLORS["main"])
+  if btn_size != Vector2.ZERO:
+    var font_size = int(btn_size.y * 35.0 / 75.0)
+    btn.custom_minimum_size = btn_size
+    btn.add_theme_font_size_override("font_size", font_size)
+    btn.add_theme_constant_override("icon_max_width", font_size)
   var shadow_color = main_color.darkened(0.3)
 
   # Normal

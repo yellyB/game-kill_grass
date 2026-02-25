@@ -14,9 +14,9 @@ func _ready() -> void:
 	save_quit_btn.pressed.connect(_on_save_quit_pressed)
 
 	# Button styles
-	GameManager.style_button(pause_btn, Color(0.45, 0.45, 0.5))
-	GameManager.style_button(resume_btn, Color(0.3, 0.75, 0.45))
-	GameManager.style_button(save_quit_btn, Color(0.7, 0.3, 0.25))
+	GameManager.style_button(pause_btn, "muted")
+	GameManager.style_button(resume_btn)
+	GameManager.style_button(save_quit_btn)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
