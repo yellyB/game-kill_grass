@@ -152,7 +152,11 @@ func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = 
     var font_size = int(btn_size.y * 35.0 / 75.0)
     btn.custom_minimum_size = btn_size
     btn.add_theme_font_size_override("font_size", font_size)
-    btn.add_theme_constant_override("icon_max_width", font_size)
+    if btn.icon:
+      var aspect = float(btn.icon.get_width()) / float(btn.icon.get_height())
+      btn.add_theme_constant_override("icon_max_width", int(font_size * aspect))
+    else:
+      btn.add_theme_constant_override("icon_max_width", font_size)
   var shadow_color = main_color.darkened(0.3)
 
   # Normal
