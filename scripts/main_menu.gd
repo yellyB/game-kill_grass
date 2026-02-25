@@ -4,6 +4,7 @@ extends Control
 @onready var upgrade_btn: Button = $VBoxContainer/UpgradeBtn
 @onready var item_btn: Button = $VBoxContainer/ItemBtn
 @onready var quit_btn: Button = $VBoxContainer/QuitBtn
+@onready var quit_confirm_dialog: Control = $QuitConfirmDialog
 @onready var title_image: TextureRect = $TitleImage
 @onready var money_display = $MoneyDisplay
 @onready var upgrade_panel: Control = $UpgradePanel/Control
@@ -27,6 +28,7 @@ func _ready() -> void:
   upgrade_btn.pressed.connect(_on_upgrade_pressed)
   item_btn.pressed.connect(_on_item_pressed)
   quit_btn.pressed.connect(_on_quit_pressed)
+  quit_confirm_dialog.dialog_confirmed.connect(func(): get_tree().quit())
 
   # Hide the toggle buttons on panels (we use menu buttons instead)
   upgrade_panel.call_deferred("set_toggle_button_visible", false)
@@ -117,76 +119,7 @@ func _on_item_pressed() -> void:
 
 func _on_quit_pressed() -> void:
   GameManager.play_button_click()
-  _show_quit_confirm()
-
-func _show_quit_confirm() -> void:
-  var overlay = Control.new()
-  overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  overlay.mouse_filter = Control.MOUSE_FILTER_STOP
-  add_child(overlay)
-
-  # Dim background
-  var dim = ColorRect.new()
-  dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-  dim.color = Color(0, 0, 0, 0.6)
-  overlay.add_child(dim)
-
-  # Dialog panel
-  var panel = PanelContainer.new()
-  panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-  panel.offset_left = -160
-  panel.offset_right = 160
-  panel.offset_top = -80
-  panel.offset_bottom = 80
-  var panel_style = StyleBoxFlat.new()
-  panel_style.bg_color = Color(0.12, 0.12, 0.15)
-  panel_style.border_color = Color(0.4, 0.4, 0.5)
-  panel_style.set_border_width_all(2)
-  panel_style.set_corner_radius_all(12)
-  panel_style.set_content_margin_all(20)
-  panel.add_theme_stylebox_override("panel", panel_style)
-  overlay.add_child(panel)
-
-  var vbox = VBoxContainer.new()
-  vbox.add_theme_constant_override("separation", 20)
-  panel.add_child(vbox)
-
-  # Message
-  var msg = Label.new()
-  msg.text = "게임을 종료할까요?"
-  msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  msg.add_theme_font_size_override("font_size", 28)
-  msg.add_theme_color_override("font_color", Color.WHITE)
-  vbox.add_child(msg)
-
-  # Buttons
-  var btn_row = HBoxContainer.new()
-  btn_row.add_theme_constant_override("separation", 16)
-  btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
-  vbox.add_child(btn_row)
-
-  var confirm = Button.new()
-  confirm.text = "확인"
-  confirm.custom_minimum_size = Vector2(120, 50)
-  confirm.add_theme_font_size_override("font_size", 22)
-  GameManager.style_button(confirm)
-  btn_row.add_child(confirm)
-
-  var cancel = Button.new()
-  cancel.text = "취소"
-  cancel.custom_minimum_size = Vector2(120, 50)
-  cancel.add_theme_font_size_override("font_size", 22)
-  GameManager.style_button(cancel, "muted")
-  btn_row.add_child(cancel)
-
-  confirm.pressed.connect(func():
-    GameManager.play_confirm_click()
-    get_tree().quit()
-  )
-  cancel.pressed.connect(func():
-    GameManager.play_button_click()
-    overlay.queue_free()
-  )
+  quit_confirm_dialog.show_dialog("게임을 종료할까요?")
 
 func _on_panel_opened() -> void:
   play_btn.disabled = true

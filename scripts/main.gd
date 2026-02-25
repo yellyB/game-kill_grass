@@ -16,8 +16,6 @@ const BGM_PATHS: Array = [
 @onready var weapon_shop: Control = $WeaponShop/Control
 @onready var back_to_menu_btn: Button = $BackToMenuUI/BackToMenuBtn
 @onready var confirm_dialog: Control = $BackToMenuUI/ConfirmDialog
-@onready var confirm_btn: Button = $BackToMenuUI/ConfirmDialog/DialogPanel/ConfirmBtn
-@onready var cancel_btn: Button = $BackToMenuUI/ConfirmDialog/DialogPanel/CancelBtn
 @onready var session_end_overlay: Control = $BackToMenuUI/SessionEndOverlay
 @onready var touch_button: Button = $BackToMenuUI/SessionEndOverlay/TouchButton
 @onready var session_earnings_label: Label = $BackToMenuUI/SessionEndOverlay/SessionEarningsLabel
@@ -39,13 +37,11 @@ func _ready() -> void:
 
   # Setup back to menu button and dialog
   back_to_menu_btn.pressed.connect(_on_back_to_menu_pressed)
-  confirm_btn.pressed.connect(_on_confirm_back_to_menu)
-  cancel_btn.pressed.connect(_on_cancel_back_to_menu)
+  confirm_dialog.dialog_confirmed.connect(_on_confirm_back_to_menu)
+  confirm_dialog.dialog_cancelled.connect(_on_cancel_back_to_menu)
 
   # Button styles
   GameManager.style_button(back_to_menu_btn, "muted")
-  GameManager.style_button(confirm_btn)
-  GameManager.style_button(cancel_btn, "muted")
 
   # Setup session end overlay
   touch_button.pressed.connect(_on_session_end_touch)
@@ -213,17 +209,14 @@ func _on_session_ready() -> void:
 
 func _on_back_to_menu_pressed() -> void:
   GameManager.play_button_click()
-  confirm_dialog.visible = true
+  confirm_dialog.show_dialog("첫 화면으로 돌아갈까요?", "처음으로", "게임 계속하기")
   get_tree().paused = true
 
 func _on_confirm_back_to_menu() -> void:
-  GameManager.play_confirm_click()
   get_tree().paused = false
   SessionManager.quit_to_menu()
 
 func _on_cancel_back_to_menu() -> void:
-  GameManager.play_button_click()
-  confirm_dialog.visible = false
   get_tree().paused = false
 
 func _on_extra_time(seconds: float) -> void:
