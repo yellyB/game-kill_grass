@@ -164,10 +164,11 @@ func _on_powerup_acquired(type: String, level: int) -> void:
     label.text = "%s!" % pname
 
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 72)
+  label.add_theme_font_size_override("font_size", 50)
   label.add_theme_color_override("font_color", pcolor)
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   label.add_theme_constant_override("outline_size", 3)
+  _apply_notif_bg(label)
   item_notif_container.add_child(label)
 
   var tween = create_tween()
@@ -186,10 +187,11 @@ func _on_key_acquired(world_index: int) -> void:
   var label = Label.new()
   label.text = "+ 열쇠 (%s)" % world_name
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 72)
+  label.add_theme_font_size_override("font_size", 50)
   label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   label.add_theme_constant_override("outline_size", 3)
+  _apply_notif_bg(label)
   item_notif_container.add_child(label)
 
   var tween = create_tween()
@@ -197,14 +199,25 @@ func _on_key_acquired(world_index: int) -> void:
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)
 
+func _apply_notif_bg(label: Label) -> void:
+  var bg = StyleBoxFlat.new()
+  bg.bg_color = Color(0.2, 0.2, 0.2, 0.4)
+  bg.set_corner_radius_all(6)
+  bg.content_margin_left = 8
+  bg.content_margin_right = 8
+  bg.content_margin_top = 3
+  bg.content_margin_bottom = 3
+  label.add_theme_stylebox_override("normal", bg)
+
 func _on_item_added(item_id: String, _total_count: int) -> void:
   var label = Label.new()
   label.text = "+ %s" % item_id
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 72)
+  label.add_theme_font_size_override("font_size", 50)
   label.add_theme_color_override("font_color", Color(1, 0.9, 0.4))
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   label.add_theme_constant_override("outline_size", 3)
+  _apply_notif_bg(label)
   item_notif_container.add_child(label)
 
   # Fade out and remove
