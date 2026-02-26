@@ -478,7 +478,7 @@ func _apply_double_or_dust() -> void:
     add_money(-lost)
     powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
-const BASE_KNOCKBACK: float = 600.0
+const BASE_KNOCKBACK: float = 300.0
 const KNOCKBACK_PER_LEVEL: float = 120.0
 
 func get_monster_knockback_strength() -> float:
