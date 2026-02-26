@@ -220,8 +220,8 @@ func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = 
   style_n.corner_radius_bottom_right = 18
   style_n.border_width_bottom = 6
   style_n.border_color = shadow_color
-  style_n.content_margin_left = 24
-  style_n.content_margin_right = 24
+  style_n.content_margin_left = 48
+  style_n.content_margin_right = 48
   style_n.content_margin_top = 12
   style_n.content_margin_bottom = 14
   btn.add_theme_stylebox_override("normal", style_n)
@@ -240,8 +240,8 @@ func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = 
   style_p.corner_radius_bottom_right = 18
   style_p.border_width_bottom = 2
   style_p.border_color = shadow_color
-  style_p.content_margin_left = 24
-  style_p.content_margin_right = 24
+  style_p.content_margin_left = 48
+  style_p.content_margin_right = 48
   style_p.content_margin_top = 16
   style_p.content_margin_bottom = 10
   btn.add_theme_stylebox_override("pressed", style_p)

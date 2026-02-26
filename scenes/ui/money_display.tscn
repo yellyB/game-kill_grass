@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://cku35fegcf51v"]
 
 [ext_resource type="Script" path="res://scripts/money_display.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://resources/images/coin.png" id="2_coin"]
+[ext_resource type="Texture2D" uid="uid://df2f0qoyvfmcy" path="res://resources/images/coin.png" id="2_coin"]
 
 [node name="MoneyDisplay" type="HBoxContainer"]
 anchors_preset = 1
@@ -12,19 +12,19 @@ offset_top = 20.0
 offset_right = -20.0
 offset_bottom = 70.0
 grow_horizontal = 0
-alignment = 2
-theme_override_constants/separation = 8
 mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
 script = ExtResource("1_script")
 
 [node name="CoinIcon" type="TextureRect" parent="."]
-layout_mode = 2
 custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
 size_flags_vertical = 4
+mouse_filter = 2
 texture = ExtResource("2_coin")
 expand_mode = 1
 stretch_mode = 6
-mouse_filter = 2
 
 [node name="MoneyLabel" type="Label" parent="."]
 layout_mode = 2

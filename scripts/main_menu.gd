@@ -53,27 +53,27 @@ func _ready() -> void:
   play_btn.icon = preload("res://resources/images/icon/start.png")
   play_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
   play_btn.expand_icon = true
-  play_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-  GameManager.style_button(play_btn, "main", Vector2(360, 288))
+  play_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+  GameManager.style_button(play_btn, "main", Vector2(460, 288))
 
 
   upgrade_btn.text = "강화"
   upgrade_btn.icon = preload("res://resources/images/icon/icon_upgrade.png")
   upgrade_btn.expand_icon = true
-  upgrade_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-  GameManager.style_button(upgrade_btn, "sub", Vector2(360, 112))
+  upgrade_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+  GameManager.style_button(upgrade_btn, "sub", Vector2(460, 112))
 
 
   item_btn.text = "아이템"
   item_btn.icon = preload("res://resources/images/icon/icon_inventory.png")
   item_btn.expand_icon = true
-  item_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-  GameManager.style_button(item_btn, "sub", Vector2(360, 112))
+  item_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+  GameManager.style_button(item_btn, "sub", Vector2(460, 112))
 
 
   quit_btn.text = "종료"
-  quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-  GameManager.style_button(quit_btn, "muted", Vector2(360, 112))
+  quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+  GameManager.style_button(quit_btn, "muted", Vector2(460, 112))
 
   # Title animation
   animate_title()
@@ -189,7 +189,7 @@ func _open_world_select() -> void:
   header.text = "월드 선택"
   header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   header.add_theme_font_size_override("font_size", 50)
-  header.add_theme_color_override("font_color", Color(0.75, 0.95, 0.62))
+  header.add_theme_color_override("font_color", Color.WHITE)
   header.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   header.add_theme_constant_override("outline_size", 3)
   vbox.add_child(header)
@@ -205,6 +205,11 @@ func _open_world_select() -> void:
   vbox.add_child(_ws_cards_container)
 
   _ws_rebuild_cards()
+
+  # Spacer between cards and buttons
+  var spacer = Control.new()
+  spacer.custom_minimum_size = Vector2(0, 20)
+  vbox.add_child(spacer)
 
   # Action button (게임 입장 / 해금)
   var action_center = CenterContainer.new()
