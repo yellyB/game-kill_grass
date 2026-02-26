@@ -95,7 +95,7 @@ const POWERUP_DATA = [
 		"desc": "맵 전체 풀 클리어",
 		"color": Color(0.3, 1.0, 0.3),
 		"stackable": false,
-		"weight": 2,
+		"weight": 1,
 	},
 	{
 		"type": "blackhole",
