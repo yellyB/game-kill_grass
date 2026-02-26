@@ -148,33 +148,22 @@ const PERSISTENT_BUFFS = ["attack_speed", "attack_range", "magnet_range", "move_
 func _on_powerup_acquired(type: String, level: int) -> void:
   var pname = POWERUP_NAMES.get(type, type)
   var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
-  var label = Label.new()
+  var text: String
 
   # Special display for different powerup types
   if type == "double_or_dust":
     if level == 1:
-      label.text = "DOUBLE! 코인 2배!"
+      text = "DOUBLE! 코인 2배!"
       pcolor = Color(1.0, 0.85, 0.0)
     else:
-      label.text = "DUST! 코인 증발..."
+      text = "DUST! 코인 증발..."
       pcolor = Color(0.5, 0.1, 0.1)
   elif level > 0 and type in ["attack_speed", "attack_range", "magnet_range", "move_speed"]:
-    label.text = "%s Lv.%d!" % [pname, level]
+    text = "%s Lv.%d!" % [pname, level]
   else:
-    label.text = "%s!" % pname
+    text = "%s!" % pname
 
-  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 50)
-  label.add_theme_color_override("font_color", pcolor)
-  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  label.add_theme_constant_override("outline_size", 3)
-  _apply_notif_bg(label)
-  item_notif_container.add_child(label)
-
-  var tween = create_tween()
-  tween.tween_interval(1.5)
-  tween.tween_property(label, "modulate:a", 0.0, 0.5)
-  tween.tween_callback(label.queue_free)
+  _show_notif(text, pcolor)
 
   # Update persistent buff display
   if type in PERSISTENT_BUFFS:
@@ -184,22 +173,19 @@ const WORLD_NAMES: Array = ["슬라임 늪", "들판", "마법의 숲", "용의 
 
 func _on_key_acquired(world_index: int) -> void:
   var world_name = WORLD_NAMES[world_index] if world_index < WORLD_NAMES.size() else "월드 %d" % world_index
+  _show_notif("+ 열쇠 (%s)" % world_name, Color(0.3, 1.0, 1.0))
+
+func _on_item_added(item_id: String, _total_count: int) -> void:
+  _show_notif("+ %s" % item_id, Color(1, 0.9, 0.4))
+
+func _show_notif(text: String, color: Color = Color.WHITE, font_size: int = 50, display_time: float = 1.5) -> void:
   var label = Label.new()
-  label.text = "+ 열쇠 (%s)" % world_name
+  label.text = text
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 50)
-  label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
+  label.add_theme_font_size_override("font_size", font_size)
+  label.add_theme_color_override("font_color", color)
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   label.add_theme_constant_override("outline_size", 3)
-  _apply_notif_bg(label)
-  item_notif_container.add_child(label)
-
-  var tween = create_tween()
-  tween.tween_interval(1.5)
-  tween.tween_property(label, "modulate:a", 0.0, 0.5)
-  tween.tween_callback(label.queue_free)
-
-func _apply_notif_bg(label: Label) -> void:
   var bg = StyleBoxFlat.new()
   bg.bg_color = Color(0.2, 0.2, 0.2, 0.4)
   bg.set_corner_radius_all(6)
@@ -208,21 +194,10 @@ func _apply_notif_bg(label: Label) -> void:
   bg.content_margin_top = 3
   bg.content_margin_bottom = 3
   label.add_theme_stylebox_override("normal", bg)
-
-func _on_item_added(item_id: String, _total_count: int) -> void:
-  var label = Label.new()
-  label.text = "+ %s" % item_id
-  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 50)
-  label.add_theme_color_override("font_color", Color(1, 0.9, 0.4))
-  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  label.add_theme_constant_override("outline_size", 3)
-  _apply_notif_bg(label)
   item_notif_container.add_child(label)
 
-  # Fade out and remove
   var tween = create_tween()
-  tween.tween_interval(1.5)
+  tween.tween_interval(display_time)
   tween.tween_property(label, "modulate:a", 0.0, 0.5)
   tween.tween_callback(label.queue_free)
 
@@ -232,19 +207,7 @@ func _connect_player_hit() -> void:
     player.player_hit.connect(_on_player_hit)
 
 func _on_player_hit() -> void:
-  var label = Label.new()
-  label.text = "SLOW!"
-  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", 80)
-  label.add_theme_color_override("font_color", Color(1, 0.2, 0.2))
-  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  label.add_theme_constant_override("outline_size", 4)
-  item_notif_container.add_child(label)
-
-  var tween = create_tween()
-  tween.tween_interval(1.0)
-  tween.tween_property(label, "modulate:a", 0.0, 0.5)
-  tween.tween_callback(label.queue_free)
+  pass
 
 
 var buff_container: VBoxContainer
