@@ -37,6 +37,7 @@ var max_health: int = 1
 var health: int = 1
 var penalty_min: int = 5
 var penalty_max: int = 10
+var hit_radius: float = 30.0
 var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
@@ -48,6 +49,7 @@ func setup(config: Dictionary) -> void:
   has_lightning = config.get("has_lightning", false)
   penalty_min = config.get("penalty_min", 5)
   penalty_max = config.get("penalty_max", 10)
+  hit_radius = config.get("hit_radius", 25)
 
 func _ready() -> void:
   add_to_group("monsters")

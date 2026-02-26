@@ -13,7 +13,7 @@ var is_dead: bool = false
 @onready var lock_icon: Polygon2D = $LockIcon
 
 func _ready() -> void:
-	add_to_group("monsters")
+	add_to_group("field_objects")
 
 func take_damage(_amount: int, _from_global_pos: Variant = null) -> void:
 	if is_dead:
@@ -24,7 +24,7 @@ func take_damage(_amount: int, _from_global_pos: Variant = null) -> void:
 
 func die() -> void:
 	is_dead = true
-	remove_from_group("monsters")
+	remove_from_group("field_objects")
 	set_process(false)
 
 	# Play break sound (on root so it persists after queue_free)

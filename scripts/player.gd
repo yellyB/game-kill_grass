@@ -222,9 +222,10 @@ func try_attack() -> void:
   _spawn_weapon_effect(input_direction)
 
 func _has_targets_in_range(center: Vector2, radius: float) -> bool:
-  # Check monsters
-  for monster in get_tree().get_nodes_in_group("monsters"):
-    if is_instance_valid(monster) and monster.global_position.distance_to(center) <= radius:
+  # Check monsters and field objects
+  var targets = get_tree().get_nodes_in_group("monsters") + get_tree().get_nodes_in_group("field_objects")
+  for target in targets:
+    if is_instance_valid(target) and target.global_position.distance_to(center) <= radius:
       return true
   # Check grass
   var local_center = center - grass_spawner.global_position
@@ -293,14 +294,15 @@ func create_weapon_sprite() -> Sprite2D:
 
 
 func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
-  var monsters = get_tree().get_nodes_in_group("monsters")
   var damage = WeaponManager.get_weapon_damage()
-  for monster in monsters:
-    if not is_instance_valid(monster):
+  var targets = get_tree().get_nodes_in_group("monsters") + get_tree().get_nodes_in_group("field_objects")
+  for target in targets:
+    if not is_instance_valid(target):
       continue
-    var dist = monster.global_position.distance_to(center)
-    if dist <= radius:
-      monster.take_damage(damage, global_position)
+    var dist = target.global_position.distance_to(center)
+    var hr = target.hit_radius if "hit_radius" in target else 0.0
+    if dist <= radius + hr:
+      target.take_damage(damage, global_position)
 
 func _play_drop_animation() -> void:
   var start_offset = -800.0
@@ -405,8 +407,6 @@ func _check_monster_collision() -> void:
     return
   for monster in get_tree().get_nodes_in_group("monsters"):
     if not is_instance_valid(monster):
-      continue
-    if monster.get_script() and monster.get_script().resource_path.ends_with("chest.gd"):
       continue
     if global_position.distance_to(monster.global_position) < MONSTER_HIT_RADIUS:
       _on_monster_hit(monster)
