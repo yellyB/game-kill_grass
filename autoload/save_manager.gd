@@ -63,6 +63,7 @@ func reset_all_data() -> void:
 	GameManager.unlocked_worlds = [0]
 	GameManager.owned_keys = []
 	GameManager.truck_assembled = false
+	GameManager.prologue_seen = false
 	GameManager.money_changed.emit(0)
 	GameManager.inventory_changed.emit()
 	# Reset WeaponManager

@@ -14,6 +14,7 @@ var selected_world: int = 0
 var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
+var prologue_seen: bool = false
 const WORLD_UNLOCK_COSTS: Array = [0, 3000, 20000, 50000]
 
 signal world_unlocked(index: int)
@@ -687,6 +688,7 @@ func get_save_data() -> Dictionary:
     "unlocked_worlds": unlocked_worlds,
     "owned_keys": owned_keys,
     "truck_assembled": truck_assembled,
+    "prologue_seen": prologue_seen,
   }
 
 func load_save_data(data: Dictionary) -> void:
@@ -709,6 +711,7 @@ func load_save_data(data: Dictionary) -> void:
   if 0 not in unlocked_worlds:
     unlocked_worlds.append(0)
   truck_assembled = data.get("truck_assembled", false)
+  prologue_seen = data.get("prologue_seen", false)
   var saved_keys = data.get("owned_keys", [])
   owned_keys = []
   for k in saved_keys:
