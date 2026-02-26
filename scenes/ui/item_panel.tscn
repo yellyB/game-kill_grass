@@ -47,7 +47,7 @@ layout_mode = 1
 anchors_preset = 0
 offset_left = 20.0
 offset_top = 30.0
-offset_right = 124.0
+offset_right = 180.0
 offset_bottom = 105.0
 
 [node name="MoneyDisplay" parent="Control/Panel" instance=ExtResource("3_money")]
