@@ -286,79 +286,93 @@ func _create_world_card(index: int) -> PanelContainer:
   style.content_margin_bottom = 16
   card.add_theme_stylebox_override("panel", style)
 
-  var hbox = HBoxContainer.new()
-  hbox.add_theme_constant_override("separation", 14)
-  card.add_child(hbox)
+  var has_key = GameManager.has_key(index)
+  var fully_locked = not unlocked and not has_key
 
-  # Status icon
-  var icon_label = Label.new()
-  icon_label.add_theme_font_size_override("font_size", 40)
-  if unlocked:
-    icon_label.text = "O"
-    icon_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55))
+  if fully_locked:
+    # Locked without key: show only lock icon centered
+    var lock_label = Label.new()
+    lock_label.text = "🔒"
+    lock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    lock_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    lock_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    lock_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    lock_label.add_theme_font_size_override("font_size", 50)
+    lock_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
+    card.add_child(lock_label)
   else:
-    icon_label.text = "X"
-    icon_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
-  hbox.add_child(icon_label)
+    var hbox = HBoxContainer.new()
+    hbox.add_theme_constant_override("separation", 14)
+    card.add_child(hbox)
 
-  # Info column
-  var info_vbox = VBoxContainer.new()
-  info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  info_vbox.add_theme_constant_override("separation", 4)
-  hbox.add_child(info_vbox)
-
-  var name_label = Label.new()
-  name_label.text = world.name
-  name_label.add_theme_font_size_override("font_size", 35)
-  if unlocked:
-    name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
-  else:
-    name_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-  name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  name_label.add_theme_constant_override("outline_size", 2)
-  info_vbox.add_child(name_label)
-
-  var monster_label = Label.new()
-  monster_label.text = world.monsters
-  monster_label.add_theme_font_size_override("font_size", 22)
-  if unlocked:
-    monster_label.add_theme_color_override("font_color", Color(0.62, 0.7, 0.66))
-  else:
-    monster_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
-  info_vbox.add_child(monster_label)
-
-  # Cost / key status (locked only)
-  if not unlocked:
-    var status_vbox = VBoxContainer.new()
-    status_vbox.add_theme_constant_override("separation", 2)
-    hbox.add_child(status_vbox)
-
-    var cost_label = Label.new()
-    cost_label.text = "$" + format_number(cost)
-    cost_label.add_theme_font_size_override("font_size", 30)
-    if GameManager.money >= cost:
-      cost_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+    # Status icon
+    var icon_label = Label.new()
+    icon_label.add_theme_font_size_override("font_size", 40)
+    if unlocked:
+      icon_label.text = "O"
+      icon_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55))
     else:
-      cost_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.4))
-    status_vbox.add_child(cost_label)
+      icon_label.text = "X"
+      icon_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
+    hbox.add_child(icon_label)
 
-    var key_label = Label.new()
-    key_label.add_theme_font_size_override("font_size", 22)
-    if GameManager.has_key(index):
+    # Info column
+    var info_vbox = VBoxContainer.new()
+    info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    info_vbox.add_theme_constant_override("separation", 4)
+    hbox.add_child(info_vbox)
+
+    var name_label = Label.new()
+    name_label.text = world.name
+    name_label.add_theme_font_size_override("font_size", 35)
+    if unlocked:
+      name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
+    else:
+      name_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
+    name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    name_label.add_theme_constant_override("outline_size", 2)
+    info_vbox.add_child(name_label)
+
+    var monster_label = Label.new()
+    monster_label.text = world.monsters
+    monster_label.add_theme_font_size_override("font_size", 22)
+    if unlocked:
+      monster_label.add_theme_color_override("font_color", Color(0.62, 0.7, 0.66))
+    else:
+      monster_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
+    info_vbox.add_child(monster_label)
+
+    # Cost / key status (locked with key)
+    if not unlocked:
+      var status_vbox = VBoxContainer.new()
+      status_vbox.add_theme_constant_override("separation", 2)
+      hbox.add_child(status_vbox)
+
+      var cost_label = Label.new()
+      cost_label.text = "$" + format_number(cost)
+      cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+      cost_label.add_theme_font_size_override("font_size", 30)
+      if GameManager.money >= cost:
+        cost_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+      else:
+        cost_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.4))
+      status_vbox.add_child(cost_label)
+
+      var key_label = Label.new()
+      key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+      key_label.add_theme_font_size_override("font_size", 22)
       key_label.text = "열쇠 O"
       key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
-    else:
-      key_label.text = "열쇠 X"
-      key_label.add_theme_color_override("font_color", Color(0.5, 0.4, 0.4))
-    status_vbox.add_child(key_label)
+      status_vbox.add_child(key_label)
 
-  # Clickable overlay button
-  var btn = Button.new()
-  btn.flat = true
-  btn.anchors_preset = Control.PRESET_FULL_RECT
-  btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-  btn.pressed.connect(_on_world_card_pressed.bind(index))
-  card.add_child(btn)
+  # Clickable overlay button (disabled for fully locked worlds)
+  if not fully_locked:
+    var btn = Button.new()
+    btn.flat = true
+    btn.anchors_preset = Control.PRESET_FULL_RECT
+    btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+    btn.pressed.connect(_on_world_card_pressed.bind(index))
+    card.add_child(btn)
 
   return card
 
