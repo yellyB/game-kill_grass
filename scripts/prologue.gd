@@ -13,6 +13,7 @@ const FADE_DURATION: float = 0.4
 var _current_slide: int = -1
 var _transitioning: bool = false
 var _bg_rect: ColorRect
+var _image_rect: TextureRect
 var _text_label: Label
 var _skip_btn: Button
 var _touch_btn: Button
@@ -32,6 +33,19 @@ func _build_ui() -> void:
   _bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
   _bg_rect.color = Color.BLACK
   control.add_child(_bg_rect)
+
+  # Slide image (upper area)
+  _image_rect = TextureRect.new()
+  _image_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+  _image_rect.offset_left = 80
+  _image_rect.offset_right = -80
+  _image_rect.offset_top = 80
+  _image_rect.offset_bottom = -320
+  _image_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+  _image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  _image_rect.modulate.a = 0.0
+  _image_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  control.add_child(_image_rect)
 
   # Bottom text
   _text_label = Label.new()
@@ -99,19 +113,25 @@ func _advance_slide() -> void:
   _transitioning = true
   var slide = SLIDES[_current_slide]
 
-  # Fade out text
+  # Fade out text + image
   var tween = create_tween()
   if _current_slide > 0:
     tween.tween_property(_text_label, "modulate:a", 0.0, FADE_DURATION * 0.5)
+    tween.parallel().tween_property(_image_rect, "modulate:a", 0.0, FADE_DURATION * 0.5)
     tween.tween_property(_bg_rect, "color", slide.bg, FADE_DURATION * 0.5)
   else:
     _bg_rect.color = slide.bg
 
-  # Update text and fade in
+  # Update content and fade in
   tween.tween_callback(func():
     _text_label.text = slide.text
+    if slide.has("image"):
+      _image_rect.texture = load(slide.image)
+    else:
+      _image_rect.texture = null
   )
   tween.tween_property(_text_label, "modulate:a", 1.0, FADE_DURATION)
+  tween.parallel().tween_property(_image_rect, "modulate:a", 1.0, FADE_DURATION)
   tween.tween_callback(func():
     _transitioning = false
   )
@@ -131,6 +151,7 @@ func _finish() -> void:
 
   var tween = create_tween()
   tween.tween_property(_text_label, "modulate:a", 0.0, FADE_DURATION)
+  tween.parallel().tween_property(_image_rect, "modulate:a", 0.0, FADE_DURATION)
   tween.tween_property(_bg_rect, "color", Color.BLACK, FADE_DURATION * 0.5)
   tween.tween_property(_bg_rect, "modulate:a", 0.0, FADE_DURATION)
   tween.tween_callback(func():
