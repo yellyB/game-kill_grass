@@ -22,8 +22,6 @@ const INVINCIBLE_DURATION: float = 3.0
 const MONSTER_HIT_RADIUS: float = 45.0
 var _hit_overlay_canvas: CanvasLayer = null
 
-@onready var attack_area: Area2D = $AttackArea
-@onready var attack_shape: CollisionShape2D = $AttackArea/CollisionShape2D
 @onready var player_visual: Node2D = $PlayerVisual
 @onready var attack_timer: Timer = $AttackTimer
 @onready var weapon_pivot: Node2D = $WeaponPivot
@@ -46,6 +44,8 @@ var walk_time: float = 0.0
 var weapon_base_scale: Vector2 = Vector2.ONE  # Store weapon's base scale
 var grass_spawner: Node2D = null
 var attack_radius: float = 80.0
+var attack_area: Area2D = null
+var attack_shape: CollisionShape2D = null
 
 # Coin text batching
 const BATCH_TIMEOUT: float = 0.3
@@ -65,6 +65,17 @@ func _ready() -> void:
   sfx_coin_player.stream = SFX_COIN
   sfx_coin_player.volume_db = -8.0
   add_child(sfx_coin_player)
+  # Create attack area for collision-based hit detection
+  attack_area = Area2D.new()
+  attack_area.collision_layer = 0
+  attack_area.collision_mask = 8  # layer 4: hittable
+  attack_shape = CollisionShape2D.new()
+  attack_shape.debug_color = Color(1.0, 0.2, 0.2, 0.3)
+  var shape = CircleShape2D.new()
+  shape.radius = attack_radius
+  attack_shape.shape = shape
+  attack_area.add_child(attack_shape)
+  add_child(attack_area)
   attack_timer.timeout.connect(_on_attack_timer_timeout)
   update_attack_range()
   create_weapon_visual()
@@ -111,7 +122,12 @@ func _process(delta: float) -> void:
     if invincible_timer <= 0:
       is_invincible = false
 
+  # Update attack area position
   input_direction = get_input_direction()
+  if input_direction != Vector2.ZERO:
+    attack_area.position = input_direction * (attack_radius * 0.5)
+  else:
+    attack_area.position = Vector2.ZERO
   input_direction_changed.emit(input_direction)
 
   if input_direction != Vector2.ZERO:
@@ -219,15 +235,10 @@ func try_attack() -> void:
   _spawn_weapon_effect(input_direction)
 
 func _has_targets_in_range(center: Vector2, radius: float) -> bool:
-  # Check monsters and field objects
-  var targets = get_tree().get_nodes_in_group("monsters") + get_tree().get_nodes_in_group("field_objects")
-  for target in targets:
-    if not is_instance_valid(target):
-      continue
-    var hr = target.hit_radius if "hit_radius" in target else 0.0
-    if target.global_position.distance_to(center) <= radius + hr:
-      return true
-  # Check grass
+  # Check hittable objects via collision overlap
+  if attack_area.get_overlapping_areas().size() > 0:
+    return true
+  # Check grass (no collision shape, use distance)
   var local_center = center - grass_spawner.global_position
   for grid_pos in grass_spawner.grass_data:
     var data = grass_spawner.grass_data[grid_pos]
@@ -265,6 +276,8 @@ func update_attack_range() -> void:
   const BASE_ATTACK_RANGE: float = 80.0
   var weapon_range = GameManager.get_session_attack_range_mult()
   attack_radius = BASE_ATTACK_RANGE * weapon_range
+  if attack_shape and attack_shape.shape:
+    (attack_shape.shape as CircleShape2D).radius = attack_radius
 
 func create_weapon_visual() -> void:
   if blade:
@@ -293,15 +306,11 @@ func create_weapon_sprite() -> Sprite2D:
   return sprite
 
 
-func _attack_monsters_in_area(center: Vector2, radius: float) -> void:
+func _attack_monsters_in_area(_center: Vector2, _radius: float) -> void:
   var damage = WeaponManager.get_weapon_damage()
-  var targets = get_tree().get_nodes_in_group("monsters") + get_tree().get_nodes_in_group("field_objects")
-  for target in targets:
-    if not is_instance_valid(target):
-      continue
-    var dist = target.global_position.distance_to(center)
-    var hr = target.hit_radius if "hit_radius" in target else 0.0
-    if dist <= radius + hr:
+  for area in attack_area.get_overlapping_areas():
+    var target = area.get_parent()
+    if is_instance_valid(target) and target.has_method("take_damage"):
       target.take_damage(damage, global_position)
 
 func _play_drop_animation() -> void:
