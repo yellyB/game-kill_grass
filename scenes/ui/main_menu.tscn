@@ -45,13 +45,6 @@ stretch_mode = 5
 [node name="MoneyDisplay" parent="." instance=ExtResource("7_money")]
 layout_mode = 0
 anchors_preset = 0
-anchor_left = 0.0
-anchor_right = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 260.0
-offset_bottom = 50.0
-grow_horizontal = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
