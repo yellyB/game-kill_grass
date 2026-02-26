@@ -1,4 +1,4 @@
-extends CharacterBody2D
+extends Node2D
 
 signal input_direction_changed(direction: Vector2)
 signal player_hit
@@ -129,9 +129,6 @@ func _process(delta: float) -> void:
     if batch_timer <= 0:
       _finish_batch()
 
-func _physics_process(_delta: float) -> void:
-  pass
-
 func get_input_direction() -> Vector2:
   var direction = Vector2.ZERO
 
@@ -225,7 +222,10 @@ func _has_targets_in_range(center: Vector2, radius: float) -> bool:
   # Check monsters and field objects
   var targets = get_tree().get_nodes_in_group("monsters") + get_tree().get_nodes_in_group("field_objects")
   for target in targets:
-    if is_instance_valid(target) and target.global_position.distance_to(center) <= radius:
+    if not is_instance_valid(target):
+      continue
+    var hr = target.hit_radius if "hit_radius" in target else 0.0
+    if target.global_position.distance_to(center) <= radius + hr:
       return true
   # Check grass
   var local_center = center - grass_spawner.global_position

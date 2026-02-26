@@ -8,6 +8,8 @@ const SFX_DEATH = preload("res://resources/sounds/effect/monster_death.wav")
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow: Sprite2D = $Shadow
 @onready var lightning_effect: Node2D = $LightningEffect
+@onready var hit_area: Area2D = $HitArea
+@onready var hit_shape: CollisionShape2D = $HitArea/CollisionShape2D
 
 static var _texture_cache: Dictionary = {}
 var textures: Array[Texture2D] = []
@@ -37,7 +39,8 @@ var max_health: int = 1
 var health: int = 1
 var penalty_min: int = 5
 var penalty_max: int = 10
-var hit_radius: float = 30.0
+var hit_radius: float = 15.0
+var sprite_scale: float = 0.12
 var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
@@ -49,7 +52,7 @@ func setup(config: Dictionary) -> void:
   has_lightning = config.get("has_lightning", false)
   penalty_min = config.get("penalty_min", 5)
   penalty_max = config.get("penalty_max", 10)
-  hit_radius = config.get("hit_radius", 25)
+  sprite_scale = config.get("sprite_scale", 0.12)
 
 func _ready() -> void:
   add_to_group("monsters")
@@ -60,8 +63,14 @@ func _ready() -> void:
   _load_textures()
   if sprite and not textures.is_empty():
     sprite.texture = textures[0]
+    sprite.scale = Vector2(sprite_scale, sprite_scale)
   if shadow and not textures.is_empty():
     shadow.texture = textures[0]
+    shadow.scale = Vector2(sprite_scale * 0.67, sprite_scale * 0.25)
+  # Scale collision shape with sprite (base radius 42 at default scale 0.12)
+  const BASE_HIT_RADIUS: float = 42.0
+  hit_shape.shape.radius = BASE_HIT_RADIUS * (sprite_scale / 0.12)
+  hit_radius = hit_shape.shape.radius
   _pick_new_wander()
   # Disable lightning for non-slime monsters
   if not has_lightning and lightning_effect:
@@ -178,7 +187,8 @@ func die() -> void:
   # Phase 1: Slightly expand (0.1s)
   var tween = create_tween()
   tween.set_parallel(true)
-  tween.tween_property(sprite, "scale", Vector2(0.16, 0.16), 0.1).set_ease(Tween.EASE_OUT)
+  var death_scale = sprite_scale * 1.33
+  tween.tween_property(sprite, "scale", Vector2(death_scale, death_scale), 0.1).set_ease(Tween.EASE_OUT)
   tween.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.08)
   await tween.finished
 
