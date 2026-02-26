@@ -3,9 +3,11 @@ extends CanvasLayer
 signal finished
 
 const SLIDES: Array = [
-  {"bg": Color(0.08, 0.14, 0.08), "text": "어느 날, 풀이 세상을 뒤덮기 시작했다."},
-  {"bg": Color(0.06, 0.1, 0.06), "text": "마을도, 길도, 전부 풀에 잠식되었다.\n누군가는 베어야 했다."},
-  {"bg": Color(0.05, 0.08, 0.12), "text": "...그게 나라고?"},
+  {"bg": Color(0.05, 0.08, 0.12), "text": "힘든 하루가 끝났다.\n이제 집에만 가면 돼...", "image": "res://resources/images/prologue/scene1.png"},
+  {"bg": Color(0.08, 0.08, 0.08), "text": "...어?", "image": "res://resources/images/prologue/scene2.png"},
+  {"bg": Color(0.0, 0.0, 0.0), "text": "", "image": "res://resources/images/prologue/scene3.png"},
+  {"bg": Color(0.0, 0.0, 0.0), "text": ""},
+  {"bg": Color(0.08, 0.14, 0.08), "text": "여긴... 어디지?\n집에 가려면 트럭이 필요할 것 같다...", "image": "res://resources/images/prologue/scene4.png"},
 ]
 
 const FADE_DURATION: float = 0.4
@@ -17,6 +19,7 @@ var _image_rect: TextureRect
 var _text_label: Label
 var _skip_btn: Button
 var _touch_btn: Button
+var _control: Control
 
 func _ready() -> void:
   layer = 100
@@ -25,9 +28,11 @@ func _ready() -> void:
 
 func _build_ui() -> void:
   # Full-screen background
-  var control = Control.new()
-  control.set_anchors_preset(Control.PRESET_FULL_RECT)
-  add_child(control)
+  _control = Control.new()
+  _control.set_anchors_preset(Control.PRESET_FULL_RECT)
+  _control.pivot_offset = Vector2(540, 960)
+  add_child(_control)
+  var control = _control
 
   _bg_rect = ColorRect.new()
   _bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -37,8 +42,8 @@ func _build_ui() -> void:
   # Slide image (upper area)
   _image_rect = TextureRect.new()
   _image_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-  _image_rect.offset_left = 80
-  _image_rect.offset_right = -80
+  _image_rect.offset_left = 30
+  _image_rect.offset_right = -130
   _image_rect.offset_top = 80
   _image_rect.offset_bottom = -320
   _image_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -132,9 +137,28 @@ func _advance_slide() -> void:
   )
   tween.tween_property(_text_label, "modulate:a", 1.0, FADE_DURATION)
   tween.parallel().tween_property(_image_rect, "modulate:a", 1.0, FADE_DURATION)
+
+  # Screen shake on slide 3 (index 2)
+  if _current_slide == 2:
+    tween.tween_callback(_start_shake)
+    tween.tween_interval(1.0)
+    tween.tween_callback(func():
+      _control.position = Vector2.ZERO
+    )
+
   tween.tween_callback(func():
     _transitioning = false
   )
+
+func _start_shake() -> void:
+  var shake_tween = create_tween()
+  var intensity = 30.0
+  var steps = 20
+  for i in range(steps):
+    var offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
+    shake_tween.tween_property(_control, "position", offset, 1.0 / steps)
+    intensity *= 0.9
+  shake_tween.tween_property(_control, "position", Vector2.ZERO, 0.05)
 
 func _on_tap() -> void:
   if _transitioning:
