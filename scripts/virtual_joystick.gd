@@ -12,6 +12,7 @@ var is_pressed: bool = false
 var touch_index: int = -1
 
 func _ready() -> void:
+  add_to_group("virtual_joystick")
   # Only show on mobile
   if not OS.has_feature("mobile"):
     visible = false
