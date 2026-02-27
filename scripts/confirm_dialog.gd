@@ -5,9 +5,9 @@ signal dialog_cancelled
 
 @onready var overlay: ColorRect = $Overlay
 @onready var dialog_panel: Panel = $DialogPanel
-@onready var message_label: Label = $DialogPanel/MessageLabel
-@onready var confirm_btn: Button = $DialogPanel/ConfirmBtn
-@onready var cancel_btn: Button = $DialogPanel/CancelBtn
+@onready var message_label: Label = $DialogPanel/VBox/MessageLabel
+@onready var confirm_btn: Button = $DialogPanel/VBox/BtnRow/ConfirmBtn
+@onready var cancel_btn: Button = $DialogPanel/VBox/BtnRow/CancelBtn
 
 func _ready() -> void:
   visible = false
