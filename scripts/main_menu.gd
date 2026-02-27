@@ -306,15 +306,17 @@ func _create_world_card(index: int) -> PanelContainer:
 
   if fully_locked:
     # Locked without key: show only lock icon centered
-    var lock_label = Label.new()
-    lock_label.text = "🔒"
-    lock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    lock_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    lock_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    lock_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    lock_label.add_theme_font_size_override("font_size", 50)
-    lock_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
-    card.add_child(lock_label)
+    var lock_container = CenterContainer.new()
+    lock_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    lock_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    card.add_child(lock_container)
+    var lock_icon = TextureRect.new()
+    lock_icon.texture = preload("res://resources/images/icon/lock.png")
+    lock_icon.custom_minimum_size = Vector2(100, 100)
+    lock_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+    lock_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    lock_icon.modulate = Color(0.4, 0.4, 0.5)
+    lock_container.add_child(lock_icon)
   else:
     var hbox = HBoxContainer.new()
     hbox.add_theme_constant_override("separation", 14)
