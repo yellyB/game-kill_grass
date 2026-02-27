@@ -333,8 +333,12 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
   var hit_count = 0
   var attacked_positions: Array = []
   var damage = WeaponManager.get_weapon_damage()
+  var max_targets = WeaponManager.get_weapon_max_targets()
 
   for grid_pos in grass_data:
+    if hit_count >= max_targets:
+      break
+
     var data = grass_data[grid_pos]
     if data.cut:
       continue

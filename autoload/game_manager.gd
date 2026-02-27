@@ -62,7 +62,7 @@ const BASE_UPGRADE_COST: int = 100
 const UPGRADE_COST_MULTIPLIER: float = 1.8
 
 # Game settings
-var base_magnet_range: float = 75.0  # Half of original 150
+var base_magnet_range: float = 65.0
 
 # Grass settings
 const BASE_GRASS_PER_CHUNK: int = 8
