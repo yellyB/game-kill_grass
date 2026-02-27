@@ -4,15 +4,20 @@ extends HBoxContainer
 @onready var money_label: Label = $MoneyLabel
 
 func _ready() -> void:
-  # Force top-right anchor (Godot editor sometimes overrides in parent scenes)
-  anchor_left = 1.0
-  anchor_right = 1.0
+  # Position relative to visible viewport (top-right)
+  var vp_size = get_viewport_rect().size
+  var margin_right = 40.0
+  var margin_top = 30.0
+  var w = 260.0
+  var h = 50.0
+  anchor_left = 0.0
+  anchor_right = 0.0
   anchor_top = 0.0
   anchor_bottom = 0.0
-  offset_left = -280.0
-  offset_top = 20.0
-  offset_right = -20.0
-  offset_bottom = 70.0
+  offset_left = vp_size.x - w - margin_right
+  offset_top = margin_top
+  offset_right = vp_size.x - margin_right
+  offset_bottom = margin_top + h
   grow_horizontal = GROW_DIRECTION_BEGIN
   GameManager.money_changed.connect(_on_money_changed)
   update_display()

@@ -30,7 +30,7 @@ func _build_ui() -> void:
   # Full-screen background
   _control = Control.new()
   _control.set_anchors_preset(Control.PRESET_FULL_RECT)
-  _control.pivot_offset = Vector2(540, 960)
+  _control.pivot_offset = _control.size / 2
   add_child(_control)
   var control = _control
 
@@ -42,8 +42,8 @@ func _build_ui() -> void:
   # Slide image (upper area)
   _image_rect = TextureRect.new()
   _image_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-  _image_rect.offset_left = 30
-  _image_rect.offset_right = -130
+  _image_rect.offset_left = 0
+  _image_rect.offset_right = 0
   _image_rect.offset_top = 80
   _image_rect.offset_bottom = -320
   _image_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
