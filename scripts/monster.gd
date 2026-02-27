@@ -90,13 +90,11 @@ func _load_textures() -> void:
       textures.append(tex)
   _texture_cache[sprite_path] = textures.duplicate()
 
-func _load_texture_from_file(res_path: String) -> ImageTexture:
-  var abs_path = ProjectSettings.globalize_path(res_path)
-  var image = Image.new()
-  var err = image.load(abs_path)
-  if err != OK:
-    return null
-  return ImageTexture.create_from_image(image)
+func _load_texture_from_file(res_path: String) -> Texture2D:
+  var tex = load(res_path)
+  if tex:
+    return tex
+  return null
 
 func _process(delta: float) -> void:
   # Animation
