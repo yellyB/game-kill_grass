@@ -33,6 +33,8 @@ var _display_columns: Array = []  # skill types + "weapon" inserted in the middl
 var _skill_connections: Array = []
 var _skill_node_steps: Dictionary = {}  # type -> { level -> step }
 
+var _desc_cost_node: HBoxContainer = null
+
 # Node visual settings
 const NODE_SIZE: int = 52
 const NODE_GAP: int = 24
@@ -315,8 +317,7 @@ func _update_weapon_buy_button() -> void:
   # Update condition indicators
   _update_weapon_conditions(has_skill, total_skill, skill_req, has_money, next.price)
 
-  var btn_label = "%s 구매\n$%s" % [next.name, format_number(next.price)]
-  weapon_buy_btn.text = btn_label
+  weapon_buy_btn.text = "%s 구매" % next.name
   if has_skill and has_money:
     weapon_buy_btn.disabled = false
     _update_next_weapon_card_style(true)
@@ -335,12 +336,9 @@ func _update_weapon_conditions(has_skill: bool, total_skill: int, skill_req: int
   skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   weapon_condition_vbox.add_child(skill_label)
 
-  var money_label_cond = Label.new()
-  money_label_cond.text = "$%s" % format_number(price)
-  money_label_cond.add_theme_font_size_override("font_size", 22)
-  money_label_cond.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if has_money else Color(0.9, 0.3, 0.3))
-  money_label_cond.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  weapon_condition_vbox.add_child(money_label_cond)
+  var money_color = Color(0.3, 0.8, 0.55) if has_money else Color(0.9, 0.3, 0.3)
+  var money_cond_hbox = GameManager.create_coin_label(GameManager.format_number(price), 22, money_color, 0, true)
+  weapon_condition_vbox.add_child(money_cond_hbox)
 
 func _update_next_weapon_card_style(can_buy: bool) -> void:
   if not next_weapon_panel:
@@ -744,6 +742,7 @@ func clear_selection() -> void:
   selected_type = ""
   selected_level = -1
   description_label.text = "강화할 항목을 선택하세요"
+  _clear_description_cost()
   confirm_btn.disabled = true
   confirm_btn.text = "업그레이드 하기"
 
@@ -817,7 +816,43 @@ func _update_skill_description() -> void:
       var req_name = GameManager.get_skill_def(m.type).get("name", m.type)
       prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]
 
-  description_label.text = "%s Lv.%d\n\n%s\n%s%s\n\n비용: $%s" % [chain_info.name, selected_level, chain_info.description, stat_text, prereq_text, format_number(cost)]
+  description_label.text = "%s Lv.%d\n\n%s\n%s%s" % [chain_info.name, selected_level, chain_info.description, stat_text, prereq_text]
+
+  # Add cost with coin icon below description
+  _update_description_cost(cost)
+
+func _update_description_cost(cost: int) -> void:
+  if _desc_cost_node:
+    _desc_cost_node.queue_free()
+    _desc_cost_node = null
+
+  var hbox = HBoxContainer.new()
+  hbox.add_theme_constant_override("separation", 6)
+  hbox.anchor_left = 0.0
+  hbox.anchor_right = 0.0
+  hbox.anchor_top = 1.0
+  hbox.anchor_bottom = 1.0
+  hbox.offset_left = 16
+  hbox.offset_top = -45
+  hbox.offset_right = 400
+  hbox.offset_bottom = -10
+
+  var cost_prefix = Label.new()
+  cost_prefix.text = "비용: "
+  cost_prefix.add_theme_font_size_override("font_size", 26)
+  cost_prefix.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
+  hbox.add_child(cost_prefix)
+
+  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 26, Color(1, 0.9, 0.3))
+  hbox.add_child(coin_hbox)
+
+  description_panel.add_child(hbox)
+  _desc_cost_node = hbox
+
+func _clear_description_cost() -> void:
+  if _desc_cost_node:
+    _desc_cost_node.queue_free()
+    _desc_cost_node = null
 
 func update_confirm_button() -> void:
   if selected_type.is_empty():
@@ -846,10 +881,10 @@ func update_confirm_button() -> void:
 
   if GameManager.money < cost:
     confirm_btn.disabled = true
-    confirm_btn.text = "돈 부족 ($%s)" % format_number(cost)
+    confirm_btn.text = "돈 부족"
   else:
     confirm_btn.disabled = false
-    confirm_btn.text = "업그레이드 하기 ($%s)" % format_number(cost)
+    confirm_btn.text = "업그레이드 하기"
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
@@ -936,14 +971,3 @@ func _position_bottom_section() -> void:
   description_panel.offset_top = description_panel.offset_bottom - desc_height
   # SkillTreeScroll ends before DescriptionPanel
   skill_tree_scroll.offset_bottom = description_panel.offset_top - gap
-
-func format_number(num: int) -> String:
-  var str_num = str(num)
-  var result = ""
-  var count = 0
-  for i in range(str_num.length() - 1, -1, -1):
-    if count > 0 and count % 3 == 0:
-      result = "," + result
-    result = str_num[i] + result
-    count += 1
-  return result

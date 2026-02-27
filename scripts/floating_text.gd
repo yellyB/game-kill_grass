@@ -23,7 +23,7 @@ func _process(delta: float) -> void:
 # Legacy single-coin setup
 func setup(amount: int) -> void:
 	if amount_label:
-		amount_label.text = "+%s" % format_number(amount)
+		amount_label.text = "+%s" % GameManager.format_number(amount)
 		apply_color(amount)
 
 func animate() -> void:
@@ -48,7 +48,7 @@ func animate() -> void:
 func start_batch(amount: int) -> void:
 	is_batch_mode = true
 	if amount_label:
-		amount_label.text = "+%s" % format_number(amount)
+		amount_label.text = "+%s" % GameManager.format_number(amount)
 		apply_color(amount)
 	# Pop in
 	scale = Vector2(0.5, 0.5)
@@ -57,7 +57,7 @@ func start_batch(amount: int) -> void:
 
 func update_batch(total: int) -> void:
 	if amount_label:
-		amount_label.text = "+%s" % format_number(total)
+		amount_label.text = "+%s" % GameManager.format_number(total)
 		apply_color(total)
 	bump_animation()
 
@@ -78,7 +78,7 @@ func bump_animation() -> void:
 
 func setup_penalty(amount: int) -> void:
 	if amount_label:
-		amount_label.text = "-%s" % format_number(amount)
+		amount_label.text = "-%s" % GameManager.format_number(amount)
 		amount_label.modulate = Color(1, 0.3, 0.3)
 
 func apply_color(amount: int) -> void:
@@ -93,13 +93,3 @@ func apply_color(amount: int) -> void:
 	else:
 		amount_label.modulate = Color(1, 0.9, 0.3)  # Bronze/default
 
-func format_number(num: int) -> String:
-	var str_num = str(num)
-	var result = ""
-	var count = 0
-	for i in range(str_num.length() - 1, -1, -1):
-		if count > 0 and count % 3 == 0:
-			result = "," + result
-		result = str_num[i] + result
-		count += 1
-	return result

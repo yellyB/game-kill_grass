@@ -1001,14 +1001,3 @@ func _position_close_btn() -> void:
   close_btn.offset_top = pad_v
   close_btn.offset_right = pad_h + w
   close_btn.offset_bottom = pad_v + h
-
-func format_number(num: int) -> String:
-  var str_num = str(num)
-  var result = ""
-  var count = 0
-  for i in range(str_num.length() - 1, -1, -1):
-    if count > 0 and count % 3 == 0:
-      result = "," + result
-    result = str_num[i] + result
-    count += 1
-  return result

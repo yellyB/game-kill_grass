@@ -19,7 +19,7 @@ var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
 var prologue_seen: bool = false
-const WORLD_UNLOCK_COSTS: Array = [0, 3000, 20000, 50000]
+const WORLD_UNLOCK_COSTS: Array = [0, 2000, 10000, 50000]
 
 signal world_unlocked(index: int)
 signal key_acquired(world_index: int)
@@ -153,41 +153,27 @@ const BUTTON_COLORS = {
 
 const COIN_TEXTURE = preload("res://resources/images/coin.png")
 
-# MoneyLabel에 코인 아이콘을 추가하고 $ 없이 숫자만 표시하도록 변환
-# 반환: 코인 아이콘이 포함된 HBoxContainer
-func setup_money_label_with_icon(money_label: Label) -> void:
-  var parent = money_label.get_parent()
-  var font_size = money_label.get_theme_font_size("font_size")
-  var icon_size = int(font_size * 0.9)
+func format_number(num: int) -> String:
+  var str_num = str(num)
+  var result = ""
+  var count = 0
+  for i in range(str_num.length() - 1, -1, -1):
+    if count > 0 and count % 3 == 0:
+      result = "," + result
+    result = str_num[i] + result
+    count += 1
+  return result
 
-  # 원래 Label의 레이아웃 속성 저장
-  var anchor_l = money_label.anchor_left
-  var anchor_r = money_label.anchor_right
-  var anchor_t = money_label.anchor_top
-  var anchor_b = money_label.anchor_bottom
-  var off_l = money_label.offset_left
-  var off_r = money_label.offset_right
-  var off_t = money_label.offset_top
-  var off_b = money_label.offset_bottom
-  var grow_h = money_label.grow_horizontal
-  var grow_v = money_label.grow_vertical
-
+# 코인 아이콘 + 금액 텍스트를 담은 HBoxContainer 생성
+func create_coin_label(amount_text: String, font_size: int = 30,
+    font_color: Color = Color(1, 0.9, 0.3), outline_size: int = 0,
+    center: bool = false) -> HBoxContainer:
+  var icon_size = int(font_size * 0.85)
   var hbox = HBoxContainer.new()
-  hbox.name = "MoneyHBox"
-  hbox.layout_mode = 1
-  hbox.anchor_left = anchor_l
-  hbox.anchor_right = anchor_r
-  hbox.anchor_top = anchor_t
-  hbox.anchor_bottom = anchor_b
-  hbox.offset_left = off_l
-  hbox.offset_right = off_r
-  hbox.offset_top = off_t
-  hbox.offset_bottom = off_b
-  hbox.grow_horizontal = grow_h
-  hbox.grow_vertical = grow_v
-  hbox.alignment = BoxContainer.ALIGNMENT_END
-  hbox.add_theme_constant_override("separation", 8)
+  hbox.add_theme_constant_override("separation", int(font_size * 0.2))
   hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  if center:
+    hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 
   var icon = TextureRect.new()
   icon.texture = COIN_TEXTURE
@@ -197,11 +183,17 @@ func setup_money_label_with_icon(money_label: Label) -> void:
   icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
   hbox.add_child(icon)
 
-  parent.remove_child(money_label)
-  hbox.add_child(money_label)
-  money_label.anchors_preset = Control.PRESET_FULL_RECT
-  money_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  parent.add_child(hbox)
+  var label = Label.new()
+  label.text = amount_text
+  label.add_theme_font_size_override("font_size", font_size)
+  label.add_theme_color_override("font_color", font_color)
+  label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  if outline_size > 0:
+    label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    label.add_theme_constant_override("outline_size", outline_size)
+  hbox.add_child(label)
+
+  return hbox
 
 func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = Vector2.ZERO) -> void:
   var main_color = BUTTON_COLORS.get(color_type, BUTTON_COLORS["main"])

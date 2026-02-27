@@ -87,6 +87,10 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
 func update_display() -> void:
 	var next = WeaponManager.get_next_weapon()
 
+	# Remove previous coin children from button
+	for child in upgrade_btn.get_children():
+		child.queue_free()
+
 	if next.is_empty():
 		# Max level reached
 		weapon_image.texture = WeaponManager.get_weapon_texture()
@@ -103,25 +107,43 @@ func update_display() -> void:
 		next_weapon_label.text = next.name
 		stats_label.text = "대미지: %d" % next.damage
 
+		upgrade_btn.text = ""
+		var vbox = VBoxContainer.new()
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_theme_constant_override("separation", 4)
+		vbox.anchors_preset = Control.PRESET_CENTER
+		vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+		var title_lbl = Label.new()
+		title_lbl.text = "업그레이드"
+		title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		title_lbl.add_theme_font_size_override("font_size", 35)
+		title_lbl.add_theme_color_override("font_color", Color.WHITE)
+		title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vbox.add_child(title_lbl)
+
+		var coin_hbox = GameManager.create_coin_label(
+			GameManager.format_number(next.price), 35, Color.WHITE, 0, true)
+		vbox.add_child(coin_hbox)
+
 		var skill_req = WeaponManager.get_next_weapon_skill_requirement()
 		var total_skill = GameManager.get_total_skill_level()
 		if not WeaponManager.has_enough_skill_points():
-			upgrade_btn.text = "업그레이드\n$%s\n(스킬 %d/%d 필요)" % [format_number(next.price), total_skill, skill_req]
+			var suffix_lbl = Label.new()
+			suffix_lbl.text = "(스킬 %d/%d 필요)" % [total_skill, skill_req]
+			suffix_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			suffix_lbl.add_theme_font_size_override("font_size", 28)
+			suffix_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+			suffix_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			vbox.add_child(suffix_lbl)
 			upgrade_btn.disabled = true
 		else:
-			upgrade_btn.text = "업그레이드\n$%s" % format_number(next.price)
 			upgrade_btn.disabled = not WeaponManager.can_upgrade()
+
+		upgrade_btn.add_child(vbox)
 
 	# Update toggle button with current weapon level
 	toggle_btn.text = "무기\nLv.%d" % (WeaponManager.current_weapon_level + 1)
 
-func format_number(num: int) -> String:
-	var str_num = str(num)
-	var result = ""
-	var count = 0
-	for i in range(str_num.length() - 1, -1, -1):
-		if count > 0 and count % 3 == 0:
-			result = "," + result
-		result = str_num[i] + result
-		count += 1
-	return result

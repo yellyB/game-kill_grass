@@ -97,20 +97,8 @@ func _on_session_money_changed(_new_amount: int) -> void:
   tween.tween_property(money_display, "scale", Vector2(1.0, 1.0), 0.1)
 
 func update_money_display() -> void:
-  money_label.text = format_number(displayed_money)
+  money_label.text = GameManager.format_number(displayed_money)
 
-func format_number(num: int) -> String:
-  var str_num = str(num)
-  var result = ""
-  var count = 0
-
-  for i in range(str_num.length() - 1, -1, -1):
-    if count > 0 and count % 3 == 0:
-      result = "," + result
-    result = str_num[i] + result
-    count += 1
-
-  return result
 
 func _on_upgrade_purchased(_type: String, _level: int) -> void:
   update_stats_display()

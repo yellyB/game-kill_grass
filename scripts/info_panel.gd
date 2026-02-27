@@ -21,6 +21,7 @@ extends Control
 @onready var combo_label: Label = $Panel/ProgressSection/ComboLabel
 
 var is_open: bool = false
+var _money_hbox: HBoxContainer = null
 
 func _ready() -> void:
 	panel.visible = false
@@ -74,19 +75,22 @@ func update_display() -> void:
 	final_speed_label.text = "최종 속도: x%.2f" % base_speed
 	final_range_label.text = "최종 범위: %.0f" % base_range
 
-	# Progress
-	total_money_label.text = "보유 골드: $%s" % format_number(GameManager.money)
+	# Progress — replace total_money_label with coin icon
+	total_money_label.visible = false
+	if _money_hbox:
+		_money_hbox.queue_free()
+	var parent_section = total_money_label.get_parent()
+	_money_hbox = HBoxContainer.new()
+	_money_hbox.add_theme_constant_override("separation", 6)
+	var gold_prefix = Label.new()
+	gold_prefix.text = "보유 골드: "
+	gold_prefix.add_theme_font_size_override("font_size", 22)
+	gold_prefix.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	_money_hbox.add_child(gold_prefix)
+	var coin_hbox = GameManager.create_coin_label(GameManager.format_number(GameManager.money), 22, Color(1, 0.9, 0.3))
+	_money_hbox.add_child(coin_hbox)
+	var idx = total_money_label.get_index()
+	parent_section.add_child(_money_hbox)
+	parent_section.move_child(_money_hbox, idx + 1)
 	combo_label.text = "현재 콤보: x%d" % GameManager.combo
 
-func format_number(num: int) -> String:
-	var str_num = str(num)
-	var result = ""
-	var count = 0
-
-	for i in range(str_num.length() - 1, -1, -1):
-		if count > 0 and count % 3 == 0:
-			result = "," + result
-		result = str_num[i] + result
-		count += 1
-
-	return result

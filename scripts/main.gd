@@ -157,20 +157,49 @@ func show_session_end_overlay(earnings: int) -> void:
   sfx.finished.connect(sfx.queue_free)
 
   # Hide elements initially
-  session_earnings_label.modulate = Color(1, 1, 1, 0)
+  session_earnings_label.visible = false
   bonus_label.visible = false
   tap_to_return_label.modulate = Color(1, 1, 1, 0)
   touch_button.disabled = true
 
-  # Set texts
-  session_earnings_label.text = "획득: $%s" % format_number(earnings)
+  # Build earnings display with coin icon
+  var earnings_container = HBoxContainer.new()
+  earnings_container.name = "EarningsContainer"
+  earnings_container.alignment = BoxContainer.ALIGNMENT_CENTER
+  earnings_container.add_theme_constant_override("separation", 8)
+  earnings_container.layout_mode = 1
+  earnings_container.anchor_left = session_earnings_label.anchor_left
+  earnings_container.anchor_right = session_earnings_label.anchor_right
+  earnings_container.anchor_top = session_earnings_label.anchor_top
+  earnings_container.anchor_bottom = session_earnings_label.anchor_bottom
+  earnings_container.offset_left = session_earnings_label.offset_left
+  earnings_container.offset_right = session_earnings_label.offset_right
+  earnings_container.offset_top = session_earnings_label.offset_top
+  earnings_container.offset_bottom = session_earnings_label.offset_bottom
+  earnings_container.grow_horizontal = session_earnings_label.grow_horizontal
+  earnings_container.grow_vertical = session_earnings_label.grow_vertical
+  earnings_container.modulate = Color(1, 1, 1, 0)
+
+  var prefix_label = Label.new()
+  prefix_label.text = "획득: "
+  prefix_label.add_theme_font_size_override("font_size", 36)
+  prefix_label.add_theme_color_override("font_color", Color.WHITE)
+  prefix_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  prefix_label.add_theme_constant_override("outline_size", 3)
+  earnings_container.add_child(prefix_label)
+
+  var coin_hbox = GameManager.create_coin_label(
+    GameManager.format_number(earnings), 36, Color(1, 1, 1), 3)
+  earnings_container.add_child(coin_hbox)
+
+  session_end_overlay.add_child(earnings_container)
 
   # Show overlay
   session_end_overlay.visible = true
 
   # Fade in earnings
   var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-  tween.tween_property(session_earnings_label, "modulate:a", 1.0, 0.4)
+  tween.tween_property(earnings_container, "modulate:a", 1.0, 0.4)
 
   # Show tap to return
   tween.tween_interval(0.6)
@@ -221,14 +250,3 @@ func _on_cancel_back_to_menu() -> void:
 
 func _on_extra_time(seconds: float) -> void:
   session_time_remaining += seconds
-
-func format_number(num: int) -> String:
-  var str_num = str(num)
-  var result = ""
-  var count = 0
-  for i in range(str_num.length() - 1, -1, -1):
-    if count > 0 and count % 3 == 0:
-      result = "," + result
-    result = str_num[i] + result
-    count += 1
-  return result
