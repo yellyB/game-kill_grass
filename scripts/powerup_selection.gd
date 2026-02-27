@@ -214,6 +214,7 @@ func _build_ui() -> void:
 		pressed_style.content_margin_top = 16
 		pressed_style.content_margin_bottom = 10
 		btn.add_theme_stylebox_override("pressed", pressed_style)
+		btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
 		btn.add_theme_color_override("font_color", Color.WHITE)
 		btn.add_theme_color_override("font_hover_color", Color.WHITE)

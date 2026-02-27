@@ -256,6 +256,10 @@ func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = 
   style_d.border_color = shadow_color.darkened(0.4)
   btn.add_theme_stylebox_override("disabled", style_d)
 
+  # Focus (remove default outline)
+  var style_f = StyleBoxEmpty.new()
+  btn.add_theme_stylebox_override("focus", style_f)
+
   # Font colors
   btn.add_theme_color_override("font_color", Color.WHITE)
   btn.add_theme_color_override("font_hover_color", Color.WHITE)

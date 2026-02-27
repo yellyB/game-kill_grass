@@ -678,6 +678,7 @@ func _create_skill_node(skill_type: String, level: int, state: String) -> Button
   btn.add_theme_stylebox_override("hover", style)
   btn.add_theme_stylebox_override("pressed", style)
   btn.add_theme_stylebox_override("disabled", style)
+  btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
   btn.add_theme_font_size_override("font_size", 16)
 
   return btn
