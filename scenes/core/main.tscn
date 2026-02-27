@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://scripts/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" uid="uid://chud123" path="res://scenes/ui/hud.tscn" id="7_hud"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="8_upgrade"]
-[ext_resource type="PackedScene" uid="uid://cjoystick123" path="res://scenes/ui/virtual_joystick.tscn" id="10_joystick"]
 [ext_resource type="PackedScene" uid="uid://cweaponshop" path="res://scenes/ui/weapon_shop.tscn" id="11_weaponshop"]
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog.tscn" id="12_confirm"]
 
@@ -116,9 +115,6 @@ script = ExtResource("6_camera")
 [node name="UpgradePanel" parent="." instance=ExtResource("8_upgrade")]
 
 [node name="WeaponShop" parent="." instance=ExtResource("11_weaponshop")]
-
-[node name="VirtualJoystick" parent="." instance=ExtResource("10_joystick")]
-layout_mode = 3
 
 [node name="BackToMenuUI" type="CanvasLayer" parent="."]
 

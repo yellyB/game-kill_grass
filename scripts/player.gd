@@ -10,7 +10,7 @@ const SFX_COIN = preload("res://resources/sounds/effect/pick_coin.wav")
 @export var move_speed: float = 300.0
 
 # Debug settings
-const DEBUG_SHOW_RANGES: bool = true
+const DEBUG_SHOW_RANGES: bool = false
 
 # Hit penalty
 var is_hit_debuffed: bool = false
@@ -376,14 +376,17 @@ func _input(event: InputEvent) -> void:
     if event.pressed:
       is_touching = true
       touch_start_pos = event.position
+      touch_direction = Vector2.ZERO
     else:
       is_touching = false
-      input_direction = Vector2.ZERO
+      touch_direction = Vector2.ZERO
   elif event is InputEventScreenDrag:
     if is_touching:
       var drag_vector = event.position - touch_start_pos
       if drag_vector.length() > 20:
-        input_direction = drag_vector.normalized()
+        touch_direction = drag_vector.normalized()
+      else:
+        touch_direction = Vector2.ZERO
 
 func accumulate_coin_text(value: int) -> void:
   sfx_coin_player.play()
