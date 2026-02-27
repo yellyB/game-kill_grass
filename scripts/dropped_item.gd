@@ -4,7 +4,7 @@ const SFX_PICK_KEY = preload("res://resources/sounds/effect/pick_key.wav")
 const SFX_PICK_ITEM = preload("res://resources/sounds/effect/pick_item.wav")
 
 var item_id: String = ""
-var item_texture: ImageTexture = null
+var item_texture: Texture2D = null
 var target: Node2D = null  # Player to fly toward
 
 var is_key: bool = false
@@ -19,7 +19,7 @@ var fly_duration: float = 0.45
 var start_pos: Vector2 = Vector2.ZERO
 var control_point: Vector2 = Vector2.ZERO
 
-func setup(p_item_id: String, p_texture: ImageTexture, p_target: Node2D) -> void:
+func setup(p_item_id: String, p_texture: Texture2D, p_target: Node2D) -> void:
 	item_id = p_item_id
 	item_texture = p_texture
 	target = p_target
