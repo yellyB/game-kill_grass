@@ -19,6 +19,9 @@ func _ready() -> void:
 	# Find player
 	player = get_tree().get_first_node_in_group("player")
 
+	# Apply color based on value (set_value may be called before add_child)
+	update_visual()
+
 	# Spawn animation - pop out
 	spawn_animation()
 
@@ -108,13 +111,26 @@ func update_visual() -> void:
 
 	# Color based on value
 	var coin_color: Color
-	if value >= 15:
-		coin_color = Color(1.0, 0.85, 0.0) # Gold
-	elif value >= 5:
-		coin_color = Color(0.75, 0.75, 0.8) # Silver
+	var shine_color: Color
+	if value > 200:
+		coin_color = Color(0.6, 0.85, 1.0) # Diamond - bright cyan
+		shine_color = Color(0.85, 0.95, 1.0, 0.8)
+	elif value > 100:
+		coin_color = Color(1.0, 0.85, 0.0) # Gold - bright yellow
+		shine_color = Color(1.0, 1.0, 0.6, 0.7)
+	elif value > 50:
+		coin_color = Color(0.75, 0.78, 0.85) # Silver - cool gray-blue
+		shine_color = Color(0.9, 0.92, 1.0, 0.6)
 	else:
-		coin_color = Color(0.8, 0.5, 0.2) # Bronze
+		coin_color = Color(0.85, 0.55, 0.25) # Bronze - bright copper
+		shine_color = Color(1.0, 0.75, 0.4, 0.6)
 
-	for child in visual.get_children():
-		if child is Polygon2D:
-			child.color = coin_color
+	var coin_body = visual.get_node_or_null("CoinBody")
+	var coin_shine = visual.get_node_or_null("CoinShine")
+	if coin_body:
+		coin_body.color = coin_color
+		if value > 200:
+			# Diamond shape
+			coin_body.polygon = PackedVector2Array([Vector2(0, -13), Vector2(11, 0), Vector2(0, 13), Vector2(-11, 0)])
+	if coin_shine:
+		coin_shine.color = shine_color
