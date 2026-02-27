@@ -4,13 +4,11 @@ signal panel_opened
 signal panel_closed
 
 @onready var panel: Panel = $Panel
-@onready var toggle_btn: Button = $ToggleBtn
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var money_display = $Panel/MoneyDisplay
 @onready var scroll_container: ScrollContainer = $Panel/ScrollContainer
 
 var is_open: bool = false
-var show_toggle_button: bool = true
 var _crafting: bool = false
 
 # Content containers (built dynamically)
@@ -130,27 +128,22 @@ const FINAL_RECIPE: Dictionary = {
 
 func _ready() -> void:
   panel.visible = false
-  toggle_btn.pressed.connect(_on_toggle_pressed)
   close_btn.pressed.connect(_on_close_pressed)
 
   GameManager.money_changed.connect(_on_money_changed)
   GameManager.inventory_changed.connect(_on_inventory_changed)
 
   update_money_display()
-  toggle_btn.visible = show_toggle_button
 
   # Button styles
-  GameManager.style_button(toggle_btn, "sub")
   close_btn.icon = preload("res://resources/images/icon/back.png")
   close_btn.expand_icon = true
   GameManager.style_button(close_btn, "muted")
 
   _build_layout()
 
-func set_toggle_button_visible(should_show: bool) -> void:
-  show_toggle_button = should_show
-  if is_instance_valid(toggle_btn):
-    toggle_btn.visible = should_show
+func set_toggle_button_visible(_should_show: bool) -> void:
+  pass
 
 func open_panel() -> void:
   if is_open:
@@ -161,17 +154,6 @@ func open_panel() -> void:
   _refresh_all()
   panel_opened.emit()
 
-func _on_toggle_pressed() -> void:
-  GameManager.play_button_click()
-  is_open = !is_open
-  panel.visible = is_open
-  if is_open:
-    update_money_display()
-    _refresh_all()
-    panel_opened.emit()
-  else:
-    panel_closed.emit()
-
 func _on_close_pressed() -> void:
   GameManager.play_button_click()
   is_open = false
@@ -179,10 +161,10 @@ func _on_close_pressed() -> void:
   panel_closed.emit()
 
 func _on_other_panel_opened() -> void:
-  toggle_btn.disabled = true
+  pass
 
 func _on_other_panel_closed() -> void:
-  toggle_btn.disabled = false
+  pass
 
 func _on_money_changed(_amount: int) -> void:
   update_money_display()
