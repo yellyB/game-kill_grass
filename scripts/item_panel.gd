@@ -139,6 +139,7 @@ func _ready() -> void:
   close_btn.icon = preload("res://resources/images/icon/back.png")
   close_btn.expand_icon = true
   GameManager.style_button(close_btn, "muted")
+  _position_close_btn()
 
   _build_layout()
 
@@ -179,11 +180,20 @@ func update_money_display() -> void:
 # ── Layout building ──
 
 func _build_layout() -> void:
+  var pad = GameManager.SCREEN_PADDING
+
+  # Hide the tscn ScrollContainer — we use a direct VBoxContainer instead
+  scroll_container.visible = false
+
   content_vbox = VBoxContainer.new()
-  content_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-  content_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-  content_vbox.add_theme_constant_override("separation", 20)
-  scroll_container.add_child(content_vbox)
+  content_vbox.anchor_right = 1.0
+  content_vbox.anchor_bottom = 1.0
+  content_vbox.offset_left = pad
+  content_vbox.offset_top = 190.0
+  content_vbox.offset_right = -pad
+  content_vbox.offset_bottom = -pad
+  content_vbox.add_theme_constant_override("separation", 10)
+  panel.add_child(content_vbox)
 
   # Materials section header (centered)
   var mat_header = _create_section_header("재료")
@@ -201,9 +211,10 @@ func _build_layout() -> void:
   material_grid.add_theme_constant_override("v_separation", 12)
   material_center.add_child(material_grid)
 
-  # Spacer
+  # Spacer (expand to fill, min 30)
   var spacer1 = Control.new()
-  spacer1.custom_minimum_size = Vector2(0, 20)
+  spacer1.size_flags_vertical = Control.SIZE_EXPAND_FILL
+  spacer1.custom_minimum_size = Vector2(0, 30)
   content_vbox.add_child(spacer1)
 
   # Parts section header (centered)
@@ -222,10 +233,11 @@ func _build_layout() -> void:
   parts_grid.add_theme_constant_override("v_separation", 16)
   parts_center.add_child(parts_grid)
 
-  # Spacer
-  var spacer3 = Control.new()
-  spacer3.custom_minimum_size = Vector2(0, 20)
-  content_vbox.add_child(spacer3)
+  # Spacer (expand to fill, min 30)
+  var spacer2 = Control.new()
+  spacer2.size_flags_vertical = Control.SIZE_EXPAND_FILL
+  spacer2.custom_minimum_size = Vector2(0, 30)
+  content_vbox.add_child(spacer2)
 
   # Final assembly section header (centered)
   var final_header = _create_section_header("최종 조립")
@@ -237,14 +249,11 @@ func _build_layout() -> void:
   final_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   content_vbox.add_child(final_center)
 
-  # Recipe detail overlay (floats over scroll content, no layout push)
+  # Recipe detail overlay (floats over content, no layout push)
   detail_container = Control.new()
   detail_container.visible = false
   detail_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-  detail_container.offset_left = 0
-  detail_container.offset_top = 190  # same as scroll top
-  detail_container.offset_right = 0
-  detail_container.offset_bottom = 0
+  detail_container.offset_top = 190.0
   detail_container.mouse_filter = Control.MOUSE_FILTER_STOP
   panel.add_child(detail_container)
 
@@ -977,6 +986,19 @@ func _load_texture(res_path: String) -> ImageTexture:
   if err != OK:
     return null
   return ImageTexture.create_from_image(image)
+
+func _position_close_btn() -> void:
+  var pad = GameManager.SCREEN_PADDING
+  var w = 160.0
+  var h = 75.0
+  close_btn.anchor_left = 0.0
+  close_btn.anchor_right = 0.0
+  close_btn.anchor_top = 0.0
+  close_btn.anchor_bottom = 0.0
+  close_btn.offset_left = pad
+  close_btn.offset_top = pad
+  close_btn.offset_right = pad + w
+  close_btn.offset_bottom = pad + h
 
 func format_number(num: int) -> String:
   var str_num = str(num)
