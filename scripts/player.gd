@@ -93,8 +93,6 @@ func _ready() -> void:
   GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
   queue_redraw()  # For debug drawing
-  # Connect virtual joystick on mobile
-  call_deferred("_connect_joystick")
   # Find grass spawner
   call_deferred("find_grass_spawner")
 
@@ -366,17 +364,23 @@ func _on_weapon_changed(_level: int) -> void:
 func _on_magnet_range_changed() -> void:
   queue_redraw()
 
-# Mobile input support
-var _joystick_connected: bool = false
+# Mobile touch input support
+var touch_start_pos: Vector2 = Vector2.ZERO
+var is_touching: bool = false
 
-func _connect_joystick() -> void:
-  var joystick = get_tree().get_first_node_in_group("virtual_joystick")
-  if joystick:
-    joystick.joystick_input.connect(_on_joystick_input)
-    _joystick_connected = true
-
-func _on_joystick_input(direction: Vector2) -> void:
-  input_direction = direction
+func _input(event: InputEvent) -> void:
+  if event is InputEventScreenTouch:
+    if event.pressed:
+      is_touching = true
+      touch_start_pos = event.position
+    else:
+      is_touching = false
+      input_direction = Vector2.ZERO
+  elif event is InputEventScreenDrag:
+    if is_touching:
+      var drag_vector = event.position - touch_start_pos
+      if drag_vector.length() > 20:
+        input_direction = drag_vector.normalized()
 
 func accumulate_coin_text(value: int) -> void:
   sfx_coin_player.play()
