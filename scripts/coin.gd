@@ -1,4 +1,4 @@
-extends Area2D
+extends Node2D
 
 @export var value: int = 1
 @export var magnet_speed: float = 600.0
@@ -11,7 +11,6 @@ var is_collected: bool = false
 var velocity: Vector2 = Vector2.ZERO
 
 @onready var visual: Node2D = $Visual
-@onready var collision: CollisionShape2D = $CollisionShape2D
 
 func _ready() -> void:
 	add_to_group("coins")
