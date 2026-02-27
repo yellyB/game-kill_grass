@@ -3,6 +3,7 @@ extends CanvasLayer
 @onready var money_display = $MoneyDisplay
 @onready var money_label: Label = $MoneyDisplay/MoneyLabel
 @onready var item_notif_container: VBoxContainer = $ItemNotifContainer
+@onready var stats_container: VBoxContainer = $StatsContainer
 
 # Stats labels
 @onready var weapon_label: Label = $StatsContainer/WeaponLabel
@@ -33,6 +34,10 @@ func _ready() -> void:
   GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
   WeaponManager.weapon_changed.connect(_on_weapon_changed)
 
+  # Position UI elements with unified screen padding
+  _position_stats_container()
+  _position_notif_container()
+
   # Create buff timer container (below timer, centered)
   _create_buff_container()
   _setup_monster_arrows()
@@ -50,6 +55,22 @@ func _ready() -> void:
 
   # Connect player_hit signal (deferred to ensure player exists)
   call_deferred("_connect_player_hit")
+
+func _position_stats_container() -> void:
+  var pad = GameManager.SCREEN_PADDING
+  stats_container.offset_left = pad
+  stats_container.offset_top = pad
+  stats_container.offset_right = 400.0
+  stats_container.offset_bottom = 200.0
+
+func _position_notif_container() -> void:
+  var pad = GameManager.SCREEN_PADDING
+  item_notif_container.anchor_left = 1.0
+  item_notif_container.anchor_right = 1.0
+  item_notif_container.offset_left = -350.0
+  item_notif_container.offset_top = pad + 120.0
+  item_notif_container.offset_right = -pad
+  item_notif_container.offset_bottom = 400.0
 
 func _process(delta: float) -> void:
   # Update timed buff countdowns

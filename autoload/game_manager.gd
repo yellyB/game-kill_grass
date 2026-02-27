@@ -1,5 +1,8 @@
 extends Node
 
+# UI constants
+const SCREEN_PADDING: float = 40.0
+
 # Game state
 var money: int = 0
 var session_money: int = 0

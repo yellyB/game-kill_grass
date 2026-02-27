@@ -5,11 +5,15 @@ signal panel_closed
 
 @onready var panel: Panel = $Panel
 @onready var total_skill_label: Label = $Panel/TotalSkillLabel
+@onready var description_panel: Panel = $Panel/DescriptionPanel
 @onready var description_label: Label = $Panel/DescriptionPanel/DescriptionLabel
 @onready var confirm_btn: Button = $Panel/ConfirmBtn
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var money_display = $Panel/MoneyDisplay
+@onready var skill_tree_scroll: ScrollContainer = $Panel/SkillTreeScroll
 @onready var skill_tree_container: Control = $Panel/SkillTreeScroll/SkillTreeContainer
+@onready var weapon_section: PanelContainer = $Panel/WeaponSection
+@onready var section_label: Label = $Panel/SectionLabel
 
 # Weapon nodes
 @onready var weapon_image: TextureRect = $Panel/WeaponSection/WeaponHBox/WeaponImage
@@ -61,7 +65,10 @@ func _ready() -> void:
   close_btn.icon = preload("res://resources/images/icon/back.png")
   close_btn.expand_icon = true
   GameManager.style_button(close_btn, "muted")
+  _position_close_btn()
   GameManager.style_button(confirm_btn)
+  _position_bottom_section()
+  _apply_side_padding()
 
   update_money_display()
   update_weapon_display()
@@ -874,6 +881,58 @@ func update_money_display() -> void:
 
 func update_total_skill_label() -> void:
   total_skill_label.text = "스킬: %d" % GameManager.get_total_skill_level()
+
+func _apply_side_padding() -> void:
+  var pad = GameManager.SCREEN_PADDING
+  # WeaponSection
+  weapon_section.offset_left = pad
+  weapon_section.offset_right = -pad
+  # SectionLabel
+  section_label.offset_left = pad
+  section_label.offset_right = -pad
+  # SkillTreeScroll
+  skill_tree_scroll.offset_left = pad
+  skill_tree_scroll.offset_right = -pad
+
+func _position_close_btn() -> void:
+  var pad = GameManager.SCREEN_PADDING
+  var w = 160.0
+  var h = 75.0
+  close_btn.anchor_left = 0.0
+  close_btn.anchor_right = 0.0
+  close_btn.anchor_top = 0.0
+  close_btn.anchor_bottom = 0.0
+  close_btn.offset_left = pad
+  close_btn.offset_top = pad
+  close_btn.offset_right = pad + w
+  close_btn.offset_bottom = pad + h
+
+func _position_bottom_section() -> void:
+  var vp_size = get_viewport_rect().size
+  var pad = GameManager.SCREEN_PADDING
+  var btn_height = 120.0
+  var gap = 20.0
+  var desc_height = 280.0
+  # ConfirmBtn at viewport bottom
+  confirm_btn.anchor_left = 0.0
+  confirm_btn.anchor_right = 1.0
+  confirm_btn.anchor_top = 0.0
+  confirm_btn.anchor_bottom = 0.0
+  confirm_btn.offset_left = pad
+  confirm_btn.offset_right = -pad
+  confirm_btn.offset_bottom = vp_size.y - pad
+  confirm_btn.offset_top = confirm_btn.offset_bottom - btn_height
+  # DescriptionPanel above ConfirmBtn
+  description_panel.anchor_left = 0.0
+  description_panel.anchor_right = 1.0
+  description_panel.anchor_top = 0.0
+  description_panel.anchor_bottom = 0.0
+  description_panel.offset_left = pad
+  description_panel.offset_right = -pad
+  description_panel.offset_bottom = confirm_btn.offset_top - gap
+  description_panel.offset_top = description_panel.offset_bottom - desc_height
+  # SkillTreeScroll ends before DescriptionPanel
+  skill_tree_scroll.offset_bottom = description_panel.offset_top - gap
 
 func format_number(num: int) -> String:
   var str_num = str(num)

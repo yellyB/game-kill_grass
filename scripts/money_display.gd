@@ -4,20 +4,18 @@ extends HBoxContainer
 @onready var money_label: Label = $MoneyLabel
 
 func _ready() -> void:
-  # Position relative to visible viewport (top-right)
   var vp_size = get_viewport_rect().size
-  var margin_right = 40.0
-  var margin_top = 30.0
+  var pad = GameManager.SCREEN_PADDING
   var w = 260.0
   var h = 50.0
   anchor_left = 0.0
   anchor_right = 0.0
   anchor_top = 0.0
   anchor_bottom = 0.0
-  offset_left = vp_size.x - w - margin_right
-  offset_top = margin_top
-  offset_right = vp_size.x - margin_right
-  offset_bottom = margin_top + h
+  offset_left = vp_size.x - w - pad
+  offset_top = pad
+  offset_right = vp_size.x - pad
+  offset_bottom = pad + h
   grow_horizontal = GROW_DIRECTION_BEGIN
   GameManager.money_changed.connect(_on_money_changed)
   update_display()
