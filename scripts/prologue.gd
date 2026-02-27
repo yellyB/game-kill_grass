@@ -42,12 +42,12 @@ func _build_ui() -> void:
   # Slide image (upper area)
   _image_rect = TextureRect.new()
   _image_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-  _image_rect.offset_left = 0
-  _image_rect.offset_right = 0
-  _image_rect.offset_top = 80
-  _image_rect.offset_bottom = -320
-  _image_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-  _image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  _image_rect.offset_left = 54
+  _image_rect.offset_right = -54
+  _image_rect.offset_top = 120
+  _image_rect.offset_bottom = -360
+  _image_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+  _image_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
   _image_rect.modulate.a = 0.0
   _image_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
   control.add_child(_image_rect)
