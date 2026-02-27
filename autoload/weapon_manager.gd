@@ -7,7 +7,7 @@ var weapon_textures: Array[Texture2D] = []
 
 const WEAPONS = [
   {"name": "나뭇가지", "price": 0, "damage": 1, "texture": "res://resources/images/weapon/나뭇가지.png"},
-  {"name": "녹슨 식칼", "price": 50, "damage": 2, "texture": "res://resources/images/weapon/녹슨식칼.png"},
+  {"name": "녹슨 식칼", "price": 70, "damage": 2, "texture": "res://resources/images/weapon/녹슨식칼.png"},
   {"name": "피자 커터", "price": 350, "damage": 3, "texture": "res://resources/images/weapon/피자커터.png"},
   {"name": "전기 파리채", "price": 900, "damage": 4, "texture": "res://resources/images/weapon/전기파리채.png"},
   {"name": "뜨거운 다리미", "price": 2000, "damage": 5, "texture": "res://resources/images/weapon/뜨거운다리미.png"},

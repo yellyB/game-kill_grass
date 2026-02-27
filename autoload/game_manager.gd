@@ -384,7 +384,7 @@ func get_grass_density_level() -> int:
   return upgrade_levels.get("grass_density", 0)
 
 func get_magnet_range() -> float:
-  var mult = 1.0 + session_buff_magnet_range * 0.3
+  var mult = 1.0 + session_buff_magnet_range * 0.25
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
   mult += get_part_count("강화 유리 모듈", 6) * 0.15  # 유리 모듈: 개당 +15%, 최대 +90%
@@ -487,7 +487,7 @@ func _apply_double_or_dust() -> void:
     add_money(-lost)
     powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
-const BASE_KNOCKBACK: float = 300.0
+const BASE_KNOCKBACK: float = 200.0
 const KNOCKBACK_PER_LEVEL: float = 120.0
 
 func get_monster_knockback_strength() -> float:

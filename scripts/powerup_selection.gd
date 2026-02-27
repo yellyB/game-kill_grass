@@ -7,7 +7,7 @@ const POWERUP_DATA = [
 		"desc": "공격 속도 +25%",
 		"color": Color(1.0, 0.5, 0.2),
 		"stackable": true,
-		"weight": 10,
+		"weight": 20,
 	},
 	{
 		"type": "attack_range",
@@ -15,15 +15,15 @@ const POWERUP_DATA = [
 		"desc": "공격 범위 +25%",
 		"color": Color(0.3, 0.6, 1.0),
 		"stackable": true,
-		"weight": 10,
+		"weight": 20,
 	},
 	{
 		"type": "magnet_range",
 		"name": "메가 마그넷",
-		"desc": "수집 범위 +30%",
+		"desc": "수집 범위 +25%",
 		"color": Color(0.2, 1.0, 0.8),
 		"stackable": true,
-		"weight": 10,
+		"weight": 20,
 	},
 	{
 		"type": "move_speed",
@@ -31,7 +31,7 @@ const POWERUP_DATA = [
 		"desc": "이동 속도 +25%",
 		"color": Color(1.0, 1.0, 0.3),
 		"stackable": true,
-		"weight": 10,
+		"weight": 20,
 	},
 	{
 		"type": "extra_time",
@@ -39,7 +39,7 @@ const POWERUP_DATA = [
 		"desc": "세션 시간 +5초",
 		"color": Color(0.4, 1.0, 0.4),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 	{
 		"type": "gold_rush",
@@ -47,7 +47,7 @@ const POWERUP_DATA = [
 		"desc": "10초간 코인 2배",
 		"color": Color(1.0, 0.85, 0.0),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 	{
 		"type": "golden_bloom",
@@ -55,7 +55,7 @@ const POWERUP_DATA = [
 		"desc": "주변 풀을 황금풀로",
 		"color": Color(1.0, 0.9, 0.2),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 	{
 		"type": "double_or_dust",
@@ -63,7 +63,7 @@ const POWERUP_DATA = [
 		"desc": "50% 코인 2배 / 50% 전부 증발",
 		"color": Color(0.8, 0.2, 0.8),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 	{
 		"type": "beast_rush",
@@ -71,7 +71,7 @@ const POWERUP_DATA = [
 		"desc": "5초간 몬스터 대량 스폰, 드롭 3배",
 		"color": Color(0.9, 0.2, 0.2),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 	{
 		"type": "overdrive",
@@ -79,7 +79,7 @@ const POWERUP_DATA = [
 		"desc": "10초간 공속 2배, 이속 -80%",
 		"color": Color(1.0, 0.3, 0.5),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 	{
 		"type": "harvest_madness",
@@ -87,7 +87,7 @@ const POWERUP_DATA = [
 		"desc": "5초간 모든 스탯 대폭 증가",
 		"color": Color(1.0, 0.5, 1.0),
 		"stackable": false,
-		"weight": 2,
+		"weight": 4,
 	},
 	{
 		"type": "field_clear",
@@ -103,7 +103,7 @@ const POWERUP_DATA = [
 		"desc": "모든 드롭 코인 흡수",
 		"color": Color(0.2, 0.0, 0.4),
 		"stackable": false,
-		"weight": 5,
+		"weight": 10,
 	},
 ]
 
