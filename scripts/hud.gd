@@ -57,19 +57,21 @@ func _ready() -> void:
   call_deferred("_connect_player_hit")
 
 func _position_stats_container() -> void:
-  var pad = GameManager.SCREEN_PADDING
-  stats_container.offset_left = pad
-  stats_container.offset_top = pad
+  var pad_h = GameManager.SCREEN_PADDING_H
+  var pad_v = GameManager.SCREEN_PADDING_V
+  stats_container.offset_left = pad_h
+  stats_container.offset_top = pad_v
   stats_container.offset_right = 400.0
   stats_container.offset_bottom = 200.0
 
 func _position_notif_container() -> void:
-  var pad = GameManager.SCREEN_PADDING
+  var pad_h = GameManager.SCREEN_PADDING_H
+  var pad_v = GameManager.SCREEN_PADDING_V
   item_notif_container.anchor_left = 1.0
   item_notif_container.anchor_right = 1.0
   item_notif_container.offset_left = -350.0
-  item_notif_container.offset_top = pad + 120.0
-  item_notif_container.offset_right = -pad
+  item_notif_container.offset_top = pad_v + 120.0
+  item_notif_container.offset_right = -pad_h
   item_notif_container.offset_bottom = 400.0
 
 func _process(delta: float) -> void:

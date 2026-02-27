@@ -180,7 +180,8 @@ func update_money_display() -> void:
 # ── Layout building ──
 
 func _build_layout() -> void:
-  var pad = GameManager.SCREEN_PADDING
+  var pad_h = GameManager.SCREEN_PADDING_H
+  var pad_v = GameManager.SCREEN_PADDING_V
 
   # Hide the tscn ScrollContainer — we use a direct VBoxContainer instead
   scroll_container.visible = false
@@ -188,10 +189,10 @@ func _build_layout() -> void:
   content_vbox = VBoxContainer.new()
   content_vbox.anchor_right = 1.0
   content_vbox.anchor_bottom = 1.0
-  content_vbox.offset_left = pad
+  content_vbox.offset_left = pad_h
   content_vbox.offset_top = 190.0
-  content_vbox.offset_right = -pad
-  content_vbox.offset_bottom = -pad
+  content_vbox.offset_right = -pad_h
+  content_vbox.offset_bottom = -pad_v
   content_vbox.add_theme_constant_override("separation", 10)
   panel.add_child(content_vbox)
 
@@ -988,17 +989,18 @@ func _load_texture(res_path: String) -> ImageTexture:
   return ImageTexture.create_from_image(image)
 
 func _position_close_btn() -> void:
-  var pad = GameManager.SCREEN_PADDING
+  var pad_h = GameManager.SCREEN_PADDING_H
+  var pad_v = GameManager.SCREEN_PADDING_V
   var w = 160.0
   var h = 75.0
   close_btn.anchor_left = 0.0
   close_btn.anchor_right = 0.0
   close_btn.anchor_top = 0.0
   close_btn.anchor_bottom = 0.0
-  close_btn.offset_left = pad
-  close_btn.offset_top = pad
-  close_btn.offset_right = pad + w
-  close_btn.offset_bottom = pad + h
+  close_btn.offset_left = pad_h
+  close_btn.offset_top = pad_v
+  close_btn.offset_right = pad_h + w
+  close_btn.offset_bottom = pad_v + h
 
 func format_number(num: int) -> String:
   var str_num = str(num)

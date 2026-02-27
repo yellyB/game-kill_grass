@@ -463,12 +463,12 @@ const DEBUG_ALL_ITEMS: Array = [
 ]
 
 func _build_debug_buttons() -> void:
-  var pad = GameManager.SCREEN_PADDING
+  var pad_h = GameManager.SCREEN_PADDING_H
   var container = HBoxContainer.new()
   container.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
   container.offset_top = -50.0
-  container.offset_left = pad
-  container.offset_right = -pad
+  container.offset_left = pad_h
+  container.offset_right = -pad_h
   container.alignment = BoxContainer.ALIGNMENT_CENTER
   container.add_theme_constant_override("separation", 12)
   add_child(container)
