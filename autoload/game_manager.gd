@@ -67,7 +67,7 @@ var base_magnet_range: float = 75.0  # Half of original 150
 # Grass settings
 const BASE_GRASS_PER_CHUNK: int = 8
 const BASE_MIN_SPACING: float = 60.0
-const GRASS_DROP_CHANCE: float = 0.2
+const GRASS_DROP_CHANCE: float = 0.3
 
 # Grass data
 var grass_data_list: Array[GrassData] = []
