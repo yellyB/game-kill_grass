@@ -146,13 +146,15 @@ func _process(delta: float) -> void:
       _finish_batch()
 
 func get_input_direction() -> Vector2:
-  var direction = Vector2.ZERO
-
   # Keyboard input
+  var direction = Vector2.ZERO
   direction.x = Input.get_axis("move_left", "move_right")
   direction.y = Input.get_axis("move_up", "move_down")
+  if direction != Vector2.ZERO:
+    return direction.normalized()
 
-  return direction.normalized()
+  # Touch/drag input
+  return touch_direction
 
 func update_sprite_direction() -> void:
   if input_direction.x < 0:
@@ -366,6 +368,7 @@ func _on_magnet_range_changed() -> void:
 
 # Mobile touch input support
 var touch_start_pos: Vector2 = Vector2.ZERO
+var touch_direction: Vector2 = Vector2.ZERO
 var is_touching: bool = false
 
 func _input(event: InputEvent) -> void:
