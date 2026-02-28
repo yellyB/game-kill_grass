@@ -3,13 +3,6 @@ extends CanvasLayer
 @onready var money_display = $MoneyDisplay
 @onready var money_label: Label = $MoneyDisplay/MoneyLabel
 @onready var item_notif_container: VBoxContainer = $ItemNotifContainer
-@onready var stats_container: VBoxContainer = $StatsContainer
-
-# Stats labels
-@onready var weapon_label: Label = $StatsContainer/WeaponLabel
-@onready var weapon_stats_label: Label = $StatsContainer/WeaponStatsLabel
-@onready var grass_density_label: Label = $StatsContainer/GrassDensityLabel
-@onready var grass_quality_label: Label = $StatsContainer/GrassQualityLabel
 
 var displayed_money: int = 0
 var target_money: int = 0
@@ -26,16 +19,11 @@ var arrow_container: Node2D = null
 
 func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
-  GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   GameManager.item_added.connect(_on_item_added)
   GameManager.key_acquired.connect(_on_key_acquired)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
   GameManager.timed_buff_started.connect(_on_timed_buff_started)
   GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
-  WeaponManager.weapon_changed.connect(_on_weapon_changed)
-
-  # Position UI elements with unified screen padding
-  _position_stats_container()
   _position_notif_container()
 
   # Create buff timer container (below timer, centered)
@@ -51,18 +39,9 @@ func _ready() -> void:
   displayed_money = GameManager.session_money
   target_money = GameManager.session_money
   update_money_display()
-  update_stats_display()
 
   # Connect player_hit signal (deferred to ensure player exists)
   call_deferred("_connect_player_hit")
-
-func _position_stats_container() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
-  var pad_v = GameManager.SCREEN_PADDING_V
-  stats_container.offset_left = pad_h
-  stats_container.offset_top = pad_v
-  stats_container.offset_right = 400.0
-  stats_container.offset_bottom = 200.0
 
 func _position_notif_container() -> void:
   var pad_h = GameManager.SCREEN_PADDING_H
@@ -99,29 +78,6 @@ func _on_session_money_changed(_new_amount: int) -> void:
 func update_money_display() -> void:
   money_label.text = GameManager.format_number(displayed_money)
 
-
-func _on_upgrade_purchased(_type: String, _level: int) -> void:
-  update_stats_display()
-
-func _on_weapon_changed(_level: int) -> void:
-  update_stats_display()
-
-func update_stats_display() -> void:
-  # Weapon info
-  var weapon = WeaponManager.get_current_weapon()
-  weapon_label.text = "무기: %s (Lv.%d)" % [weapon.name, WeaponManager.current_weapon_level + 1]
-
-  weapon_stats_label.text = "대미지: %d" % WeaponManager.get_weapon_damage()
-
-  # Upgrade stats
-  var grass_density = GameManager.get_grass_density_level()
-  var grass_quality = GameManager.get_grass_quality_level()
-
-  if grass_density >= GameManager.get_skill_max_level("grass_density"):
-    grass_density_label.text = "풀 밀도: Lv.%d (MAX)" % (grass_density + 1)
-  else:
-    grass_density_label.text = "풀 밀도: Lv.%d" % (grass_density + 1)
-  grass_quality_label.text = "풀 등급: Lv.%d" % (grass_quality + 1)
 
 const POWERUP_NAMES = {
   "attack_speed": "어택 부스트",
