@@ -3,10 +3,10 @@ extends Node2D
 const SESSION_TIME: float = 60.0
 
 const BGM_PATHS: Array = [
-  "res://resources/sounds/bgm_world_1.wav",
-  "res://resources/sounds/bgm_world_2.wav",
-  "res://resources/sounds/bgm_world_3.wav",
-  "res://resources/sounds/bgm_world_4.wav",
+  "res://resources/sounds/bgm_world_1.ogg",
+  "res://resources/sounds/bgm_world_2.ogg",
+  "res://resources/sounds/bgm_world_3.ogg",
+  "res://resources/sounds/bgm_world_4.ogg",
 ]
 
 @onready var world_root: Node2D = $WorldRoot

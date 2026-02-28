@@ -172,7 +172,7 @@ func _on_skip() -> void:
 
 func _start_bgm() -> void:
   _bgm = AudioStreamPlayer.new()
-  _bgm.stream = load("res://resources/sounds/prologue.wav")
+  _bgm.stream = load("res://resources/sounds/prologue.ogg")
   _bgm.volume_db = 0.0
   add_child(_bgm)
   _bgm.play()

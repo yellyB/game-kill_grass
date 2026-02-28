@@ -98,7 +98,7 @@ var _menu_bgm: AudioStreamPlayer
 
 func _start_menu_bgm() -> void:
   _menu_bgm = AudioStreamPlayer.new()
-  _menu_bgm.stream = preload("res://resources/sounds/bgm_main.wav")
+  _menu_bgm.stream = preload("res://resources/sounds/bgm_main.ogg")
   _menu_bgm.volume_db = -10.0
   _menu_bgm.finished.connect(_menu_bgm.play)
   add_child(_menu_bgm)
