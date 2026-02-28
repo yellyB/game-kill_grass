@@ -507,7 +507,7 @@ func get_grass_reward_multiplier() -> float:
 # Lv0 나뭇가지, Lv1 녹슨식칼, Lv2 피자커터, Lv3 전기파리채,
 # Lv4 뜨거운다리미, Lv5 매우화난고양이, Lv6 체인소,
 # Lv7 마법지팡이, Lv8 날개달린선풍기, Lv9 위성레이저제초기
-const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 5, 9, 14, 20, 27, 35, 42]
+const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 4, 7, 11, 16, 21, 27, 34]
 
 # Skill tree prerequisites: "type:level" -> Array of {type, level} (all AND)
 const SKILL_PREREQS = {
