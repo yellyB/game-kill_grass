@@ -28,7 +28,7 @@ signal key_acquired(world_index: int)
 const SKILL_DEFS: Array = [
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "max_level": 10,
    "description": "맵에 풀이 더 빽빽하게 자랍니다."},
-  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "max_level": 8,
+  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "max_level": 10,
    "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다."},
   {"type": "grass_regen", "name": "풀 재생", "short_name": "재생", "max_level": 2,
    "description": "베어진 풀이 더 빨리 다시 자랍니다."},
@@ -323,25 +323,29 @@ func _init_grass_data() -> void:
   grass_data_list.append(strong_grass)
   grass_data_list.append(golden_grass)
 
+# 등급 유효 레벨 매핑 (L1-2 소폭, L3-10 정상 증가)
+const QUALITY_EFFECTIVE: Array = [0.0, 0.2, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+
 func get_random_grass_data() -> GrassData:
-  var quality_level = upgrade_levels.get("grass_quality", 0)
+  var raw_level = upgrade_levels.get("grass_quality", 0)
+  var quality_level = QUALITY_EFFECTIVE[clampi(raw_level, 0, QUALITY_EFFECTIVE.size() - 1)]
 
   var roll = randf()
   if roll < get_golden_grass_chance():
     return grass_data_list[3]  # 황금풀
 
-  # 가중치 기반 3종 풀 분배 (겹치는 구간 있음)
-  # 기본풀: Lv.0에서 100%, Lv.6에서 ~2%, Lv.7+ 등장 안 함
-  # 완전 센풀: Lv.2 이하 등장 안 함, Lv.3에서 ~2%, Lv.8에서 100%
-  # 강한풀: 나머지 (중반에 70% 정도로 피크)
+  # 가중치 기반 3종 풀 분배
+  # 기본풀: effective 0에서 100%, 7+ 등장 안 함
+  # 완전 센풀: effective 2 이하 등장 안 함, 8에서 100%
+  # 강한풀: 나머지
   var normal_w: float
-  if quality_level >= 7:
+  if quality_level >= 7.0:
     normal_w = 0.0
   else:
     normal_w = pow((7.0 - quality_level) / 7.0, 1.8)
 
   var strong_w: float
-  if quality_level <= 2:
+  if quality_level <= 2.0:
     strong_w = 0.0
   else:
     strong_w = pow((quality_level - 2.0) / 6.0, 1.8)
@@ -365,13 +369,17 @@ func add_money(amount: int) -> void:
 func get_grass_quality_level() -> int:
   return upgrade_levels.get("grass_quality", 0)
 
+# 밀도 레벨별 누적 보너스 (L1-2 소폭, L3-10 완만한 지수 증가)
+const DENSITY_GRASS_BONUS: Array = [0, 2, 5, 10, 16, 23, 31, 40, 50, 61, 72]
+const DENSITY_SPACING_BONUS: Array = [0.0, 1.0, 2.5, 5.0, 8.5, 13.0, 18.0, 24.0, 30.5, 37.5, 45.0]
+
 func get_grass_per_chunk() -> int:
-  # Level 0: 8, Level 10: 80 (레벨당 +7.2)
-  return int(BASE_GRASS_PER_CHUNK + upgrade_levels.get("grass_density", 0) * 7.2)
+  var level = clampi(upgrade_levels.get("grass_density", 0), 0, DENSITY_GRASS_BONUS.size() - 1)
+  return BASE_GRASS_PER_CHUNK + DENSITY_GRASS_BONUS[level]
 
 func get_grass_min_spacing() -> float:
-  # Level 0: 60, Level 10: 15 (레벨당 -4.5)
-  return BASE_MIN_SPACING - upgrade_levels.get("grass_density", 0) * 4.5
+  var level = clampi(upgrade_levels.get("grass_density", 0), 0, DENSITY_SPACING_BONUS.size() - 1)
+  return BASE_MIN_SPACING - DENSITY_SPACING_BONUS[level]
 
 func get_grass_density_level() -> int:
   return upgrade_levels.get("grass_density", 0)
@@ -514,22 +522,22 @@ const SKILL_PREREQS = {
   # 재생 ← 밀도
   "grass_regen:1": [{"type": "grass_density", "level": 2}],
   "grass_regen:2": [{"type": "grass_density", "level": 5}],
-  # 보상 ← 등급
-  "grass_reward:1": [{"type": "grass_quality", "level": 2}],
-  "grass_reward:2": [{"type": "grass_quality", "level": 4}],
-  "grass_reward:3": [{"type": "grass_quality", "level": 6}],
-  "grass_reward:4": [{"type": "grass_quality", "level": 8}],
+  # 보상 ← 등급 (구 L2,4,6,8 → 신 L4,6,8,10)
+  "grass_reward:1": [{"type": "grass_quality", "level": 4}],
+  "grass_reward:2": [{"type": "grass_quality", "level": 6}],
+  "grass_reward:3": [{"type": "grass_quality", "level": 8}],
+  "grass_reward:4": [{"type": "grass_quality", "level": 10}],
   # 패널티 감소 ← 보상
   "penalty_reduce:1": [{"type": "grass_reward", "level": 2}],
   # 황금풀 ← 밀도
   "golden_chance:1": [{"type": "grass_density", "level": 5}],
   "golden_chance:2": [{"type": "grass_density", "level": 7}],
   "golden_chance:3": [{"type": "grass_density", "level": 9}],
-  # 드롭률 ← 등급
-  "grass_drop:1": [{"type": "grass_quality", "level": 2}],
-  "grass_drop:2": [{"type": "grass_quality", "level": 4}],
-  "grass_drop:3": [{"type": "grass_quality", "level": 6}],
-  "grass_drop:4": [{"type": "grass_quality", "level": 8}],
+  # 드롭률 ← 등급 (구 L2,4,6,8 → 신 L4,6,8,10)
+  "grass_drop:1": [{"type": "grass_quality", "level": 4}],
+  "grass_drop:2": [{"type": "grass_quality", "level": 6}],
+  "grass_drop:3": [{"type": "grass_quality", "level": 8}],
+  "grass_drop:4": [{"type": "grass_quality", "level": 10}],
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
@@ -572,21 +580,30 @@ func get_grass_regen_time(base_time: float) -> float:
   else:
     return 4.0
 
+# Fixed costs for density and quality (level 0→1, 1→2, ..., 9→10)
+const DENSITY_COSTS: Array = [15, 60, 150, 400, 900, 2000, 4500, 10000, 22000, 50000]
+const QUALITY_COSTS: Array = [15, 60, 150, 400, 900, 2000, 4500, 10000, 22000, 50000]
+
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
+  # 밀도/등급: 고정 비용 테이블
+  if upgrade_type == "grass_density" and current_level < DENSITY_COSTS.size():
+    return DENSITY_COSTS[current_level]
+  if upgrade_type == "grass_quality" and current_level < QUALITY_COSTS.size():
+    return QUALITY_COSTS[current_level]
   var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
-  # 보상/드롭 (선행: 등급 L2,4,6,8 = 252~23271)
+  # 보상/드롭 (선행: 등급 L4,6,8,10)
   if upgrade_type in ["grass_reward", "grass_drop"]:
     return int(base * (3.0 + current_level * 14.0))
-  # 재생 (선행: 밀도 L2=252, L5=2728)
+  # 재생 (선행: 밀도 L2, L5)
   if upgrade_type == "grass_regen":
     return int(base * (3.0 + current_level * 15.0))
-  # 패널티 감소 (선행: 보상 L2=3060)
+  # 패널티 감소 (선행: 보상 L2)
   if upgrade_type == "penalty_reduce":
     return int(base * (33.0 + current_level * 15.0))
-  # 황금풀 (선행: 밀도 L5=2728, L7=11567, L9=46299)
+  # 황금풀 (선행: 밀도 L5, L7, L9)
   if upgrade_type == "golden_chance":
     return int(base * (30.0 + current_level * 65.0))
-  # 밀도/등급 (루트 스킬)
+  # 기타
   if current_level > 0:
     return int(base * (1.0 + current_level * 0.4))
   return base
