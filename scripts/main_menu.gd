@@ -545,6 +545,13 @@ func _build_debug_buttons() -> void:
   GameManager.style_button(items_btn)
   _debug_container.add_child(items_btn)
 
+  var unlock_btn = Button.new()
+  unlock_btn.text = "월드 전체해금"
+  unlock_btn.add_theme_font_size_override("font_size", 18)
+  unlock_btn.pressed.connect(_on_debug_unlock_all)
+  GameManager.style_button(unlock_btn, "sub")
+  _debug_container.add_child(unlock_btn)
+
 func _on_debug_reset() -> void:
   SaveManager.reset_all_data()
   update_money_display()
@@ -557,4 +564,10 @@ func _on_debug_add_money() -> void:
 func _on_debug_add_items() -> void:
   for item_id in DEBUG_ALL_ITEMS:
     GameManager.add_item(item_id, 10)
+  SaveManager.save_game()
+
+func _on_debug_unlock_all() -> void:
+  for i in range(GameManager.WORLD_UNLOCK_COSTS.size()):
+    if i not in GameManager.unlocked_worlds:
+      GameManager.unlocked_worlds.append(i)
   SaveManager.save_game()
