@@ -578,10 +578,10 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
     var multiplier = 5.0 + current_level * 16.2
     return int(base * multiplier)
   if upgrade_type == "grass_drop":
-    var multiplier = 2.0 + current_level * 3.0
+    var multiplier = 2.0 + current_level * 6.5
     return int(base * multiplier)
   if upgrade_type == "grass_reward":
-    var multiplier = 2.0 + current_level * 3.0
+    var multiplier = 2.0 + current_level * 6.5
     return int(base * multiplier)
   if upgrade_type == "grass_density" and current_level > 0:
     var multiplier = 1.0 + current_level * 0.4
