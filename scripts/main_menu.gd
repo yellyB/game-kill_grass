@@ -16,6 +16,9 @@ var _ws_selected: int = -1  # Currently highlighted world index in panel
 var _ws_cards_container: VBoxContainer = null
 var _ws_action_btn: Button = null
 var _item_badge: Label = null
+var _debug_container: HBoxContainer = null
+var _debug_tap_count: int = 0
+var _debug_last_tap_time: float = 0.0
 
 const WORLD_DATA: Array = [
   {"name": "슬라임 늪", "monsters": "슬라임"},
@@ -43,9 +46,11 @@ func _ready() -> void:
 
   # Money display is handled by MoneyDisplay scene
 
-  # Debug buttons (bottom of screen, debug builds only)
-  if OS.is_debug_build():
-    _build_debug_buttons()
+  # Debug buttons (hidden, activated by tapping money display 5 times)
+  _build_debug_buttons()
+  _debug_container.visible = false
+  money_display.mouse_filter = Control.MOUSE_FILTER_STOP
+  money_display.gui_input.connect(_on_money_display_input)
 
   # 버튼 스타일 적용 (btn_size로 크기+폰트 자동 비례)
   var viewport_w = get_viewport_rect().size.x
@@ -497,37 +502,48 @@ const DEBUG_ALL_ITEMS: Array = [
   "드래곤 배기가스 결정",
 ]
 
+func _on_money_display_input(event: InputEvent) -> void:
+  if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+    var now = Time.get_ticks_msec() / 1000.0
+    if now - _debug_last_tap_time > 3.0:
+      _debug_tap_count = 0
+    _debug_last_tap_time = now
+    _debug_tap_count += 1
+    if _debug_tap_count >= 5:
+      _debug_container.visible = !_debug_container.visible
+      _debug_tap_count = 0
+
 func _build_debug_buttons() -> void:
   var pad_h = GameManager.SCREEN_PADDING_H
-  var container = HBoxContainer.new()
-  container.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-  container.offset_top = -50.0
-  container.offset_left = pad_h
-  container.offset_right = -pad_h
-  container.alignment = BoxContainer.ALIGNMENT_CENTER
-  container.add_theme_constant_override("separation", 12)
-  add_child(container)
+  _debug_container = HBoxContainer.new()
+  _debug_container.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+  _debug_container.offset_top = -50.0
+  _debug_container.offset_left = pad_h
+  _debug_container.offset_right = -pad_h
+  _debug_container.alignment = BoxContainer.ALIGNMENT_CENTER
+  _debug_container.add_theme_constant_override("separation", 12)
+  add_child(_debug_container)
 
   var reset_btn = Button.new()
   reset_btn.text = "초기화"
   reset_btn.add_theme_font_size_override("font_size", 18)
   reset_btn.pressed.connect(_on_debug_reset)
   GameManager.style_button(reset_btn, "sub")
-  container.add_child(reset_btn)
+  _debug_container.add_child(reset_btn)
 
   var money_btn = Button.new()
   money_btn.text = "+$100000"
   money_btn.add_theme_font_size_override("font_size", 18)
   money_btn.pressed.connect(_on_debug_add_money)
   GameManager.style_button(money_btn, "sub")
-  container.add_child(money_btn)
+  _debug_container.add_child(money_btn)
 
   var items_btn = Button.new()
   items_btn.text = "아이템+10"
   items_btn.add_theme_font_size_override("font_size", 18)
   items_btn.pressed.connect(_on_debug_add_items)
   GameManager.style_button(items_btn)
-  container.add_child(items_btn)
+  _debug_container.add_child(items_btn)
 
 func _on_debug_reset() -> void:
   SaveManager.reset_all_data()
