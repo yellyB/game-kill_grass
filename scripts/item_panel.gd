@@ -32,10 +32,10 @@ const ALL_ITEMS: Array = [
   {"id": "생체 연료 포자", "image": "res://resources/images/items/생체 연료 포자.png"},
   {"id": "뒤틀린 시간 포자", "image": "res://resources/images/items/뒤틀린 시간 포자.png"},
   {"id": "바람 머금은 잔디 섬유", "image": "res://resources/images/items/바람 머금은 잔디 섬유.png"},
-  {"id": "몬스터 핵", "image": "res://resources/images/items/몬스터 핵.png"},
-  {"id": "침식된 백골 프레임", "image": "res://resources/images/items/침식된 백골 프레임.png"},
   {"id": "투명 수정 파편", "image": "res://resources/images/items/투명 수정 파편.png"},
   {"id": "강화 유리 결정핵", "image": "res://resources/images/items/강화 유리 결정핵.png"},
+  {"id": "몬스터 핵", "image": "res://resources/images/items/몬스터 핵.png"},
+  {"id": "침식된 백골 프레임", "image": "res://resources/images/items/침식된 백골 프레임.png"},
   {"id": "과열된 엔진 심장", "image": "res://resources/images/items/과열된 엔진 심장.png"},
   {"id": "드래곤 배기가스 결정", "image": "res://resources/images/items/드래곤 배기가스 결정.png"},
 ]
