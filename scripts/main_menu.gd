@@ -397,10 +397,6 @@ func _ws_update_action_btn() -> void:
   if _ws_action_btn == null:
     return
 
-  # Remove previous coin children
-  for child in _ws_action_btn.get_children():
-    child.queue_free()
-
   var unlocked = _ws_selected in GameManager.unlocked_worlds
   if unlocked:
     _ws_action_btn.text = "게임 입장"
@@ -408,31 +404,12 @@ func _ws_update_action_btn() -> void:
   else:
     var cost = GameManager.WORLD_UNLOCK_COSTS[_ws_selected]
     var has_key = GameManager.has_key(_ws_selected)
-    _ws_action_btn.text = ""
-
-    var btn_hbox = HBoxContainer.new()
-    btn_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-    btn_hbox.add_theme_constant_override("separation", 8)
-    btn_hbox.anchors_preset = Control.PRESET_CENTER
-    btn_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
-    btn_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-    var text_label = Label.new()
-    text_label.add_theme_font_size_override("font_size", 35)
-    text_label.add_theme_color_override("font_color", Color.WHITE)
-    text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
     if has_key:
-      text_label.text = "해금  "
+      _ws_action_btn.text = "해금"
       _ws_action_btn.disabled = GameManager.money < cost
     else:
-      text_label.text = "열쇠 필요  "
+      _ws_action_btn.text = "열쇠 필요"
       _ws_action_btn.disabled = true
-
-    btn_hbox.add_child(text_label)
-    var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 35, Color.WHITE)
-    btn_hbox.add_child(coin_hbox)
-    _ws_action_btn.add_child(btn_hbox)
 
 func _on_action_btn_pressed() -> void:
   GameManager.play_confirm_click()
