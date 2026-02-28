@@ -239,8 +239,8 @@ func _ensure_next_weapon_nodes() -> void:
 
   weapon_buy_btn = Button.new()
   weapon_buy_btn.text = "다음 무기 구매"
-  weapon_buy_btn.custom_minimum_size = Vector2(0, 60)
-  weapon_buy_btn.add_theme_font_size_override("font_size", 26)
+  weapon_buy_btn.custom_minimum_size = Vector2(0, 80)
+  weapon_buy_btn.add_theme_font_size_override("font_size", 34)
   weapon_buy_btn.pressed.connect(_on_weapon_buy_pressed)
   GameManager.style_button(weapon_buy_btn)
   weapon_right_vbox.add_child(weapon_buy_btn)
@@ -332,13 +332,13 @@ func _update_weapon_conditions(has_skill: bool, total_skill: int, skill_req: int
 
   var skill_label = Label.new()
   skill_label.text = "스킬 %d/%d" % [total_skill, skill_req]
-  skill_label.add_theme_font_size_override("font_size", 22)
+  skill_label.add_theme_font_size_override("font_size", 34)
   skill_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if has_skill else Color(0.9, 0.3, 0.3))
   skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   weapon_condition_vbox.add_child(skill_label)
 
   var money_color = Color(0.3, 0.8, 0.55) if has_money else Color(0.9, 0.3, 0.3)
-  var money_cond_hbox = GameManager.create_coin_label(GameManager.format_number(price), 22, money_color, 0, true)
+  var money_cond_hbox = GameManager.create_coin_label(GameManager.format_number(price), 34, money_color, 0, true)
   weapon_condition_vbox.add_child(money_cond_hbox)
 
 func _update_next_weapon_card_style(can_buy: bool) -> void:
@@ -835,17 +835,17 @@ func _update_description_cost(cost: int) -> void:
   hbox.anchor_top = 1.0
   hbox.anchor_bottom = 1.0
   hbox.offset_left = 16
-  hbox.offset_top = -45
+  hbox.offset_top = -52
   hbox.offset_right = 400
   hbox.offset_bottom = -10
 
   var cost_prefix = Label.new()
   cost_prefix.text = "비용: "
-  cost_prefix.add_theme_font_size_override("font_size", 26)
+  cost_prefix.add_theme_font_size_override("font_size", 34)
   cost_prefix.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
   hbox.add_child(cost_prefix)
 
-  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 26, Color(1, 0.9, 0.3))
+  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 34, Color(1, 0.9, 0.3))
   hbox.add_child(coin_hbox)
 
   description_panel.add_child(hbox)
