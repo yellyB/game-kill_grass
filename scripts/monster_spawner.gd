@@ -15,7 +15,7 @@ const MONSTER_TYPES: Array = [
 		"type": "slime",
 		"sprite_path": "res://resources/images/monster/slime/",
 		"max_health": 3,
-		"wander_speed": 40,
+		"wander_speed": 80,
 		"drop_table": [
 			{"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 30},
 			{"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 70},
@@ -29,7 +29,7 @@ const MONSTER_TYPES: Array = [
 		"type": "boar",
 		"sprite_path": "res://resources/images/monster/boar/",
 		"max_health": 8,
-		"wander_speed": 62,
+		"wander_speed": 124,
 		"sprite_scale": 0.18,
 		"drop_table": [
 			{"item_id": "차축 뼈대", "image_path": "res://resources/images/items/차축 뼈대.png", "weight": 25},
@@ -45,7 +45,7 @@ const MONSTER_TYPES: Array = [
 		"type": "knight",
 		"sprite_path": "res://resources/images/monster/knight/",
 		"max_health": 15,
-		"wander_speed": 48,
+		"wander_speed": 96,
 		"sprite_scale": 0.18,
 		"drop_table": [
 			{"item_id": "왜곡된 볼트 조각", "image_path": "res://resources/images/items/왜곡된 볼트 조각.png", "weight": 65},
@@ -60,7 +60,7 @@ const MONSTER_TYPES: Array = [
 		"type": "mage",
 		"sprite_path": "res://resources/images/monster/mage/",
 		"max_health": 12,
-		"wander_speed": 54,
+		"wander_speed": 108,
 		"drop_table": [
 			{"item_id": "생체 연료 포자", "image_path": "res://resources/images/items/생체 연료 포자.png", "weight": 8},
 			{"item_id": "뒤틀린 시간 포자", "image_path": "res://resources/images/items/뒤틀린 시간 포자.png", "weight": 15},
@@ -75,7 +75,7 @@ const MONSTER_TYPES: Array = [
 		"type": "deer",
 		"sprite_path": "res://resources/images/monster/deer/",
 		"max_health": 20,
-		"wander_speed": 72,
+		"wander_speed": 144,
 		"sprite_scale": 0.18,
 		"drop_table": [
 			{"item_id": "투명 수정 파편", "image_path": "res://resources/images/items/투명 수정 파편.png", "weight": 89},
@@ -90,7 +90,7 @@ const MONSTER_TYPES: Array = [
 		"type": "golem",
 		"sprite_path": "res://resources/images/monster/golem/",
 		"max_health": 35,
-		"wander_speed": 40,
+		"wander_speed": 80,
 		"sprite_scale": 0.24,
 		"drop_table": [
 			{"item_id": "몬스터 핵", "image_path": "res://resources/images/items/몬스터 핵.png", "weight": 10},
@@ -106,7 +106,7 @@ const MONSTER_TYPES: Array = [
 		"type": "dragon",
 		"sprite_path": "res://resources/images/monster/dragon/",
 		"max_health": 40,
-		"wander_speed": 80,
+		"wander_speed": 160,
 		"sprite_scale": 0.24,
 		"drop_table": [
 			{"item_id": "과열된 엔진 심장", "image_path": "res://resources/images/items/과열된 엔진 심장.png", "weight": 33},
