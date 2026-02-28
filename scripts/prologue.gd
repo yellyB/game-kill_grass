@@ -20,10 +20,12 @@ var _text_label: Label
 var _skip_btn: Button
 var _touch_btn: Button
 var _control: Control
+var _bgm: AudioStreamPlayer
 
 func _ready() -> void:
   layer = 100
   _build_ui()
+  _start_bgm()
   _advance_slide()
 
 func _build_ui() -> void:
@@ -168,6 +170,13 @@ func _on_tap() -> void:
 func _on_skip() -> void:
   _finish()
 
+func _start_bgm() -> void:
+  _bgm = AudioStreamPlayer.new()
+  _bgm.stream = load("res://resources/sounds/prologue.wav")
+  _bgm.volume_db = 0.0
+  add_child(_bgm)
+  _bgm.play()
+
 func _finish() -> void:
   if _transitioning:
     return
@@ -176,6 +185,8 @@ func _finish() -> void:
   var tween = create_tween()
   tween.tween_property(_text_label, "modulate:a", 0.0, FADE_DURATION)
   tween.parallel().tween_property(_image_rect, "modulate:a", 0.0, FADE_DURATION)
+  if _bgm:
+    tween.parallel().tween_property(_bgm, "volume_db", -40.0, FADE_DURATION * 2)
   tween.tween_property(_bg_rect, "color", Color.BLACK, FADE_DURATION * 0.5)
   tween.tween_property(_bg_rect, "modulate:a", 0.0, FADE_DURATION)
   tween.tween_callback(func():
