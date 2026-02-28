@@ -170,6 +170,10 @@ func _setup_item_badge() -> void:
 func _update_item_badge() -> void:
   var has_craftable = false
   for recipe in item_panel.RECIPES:
+    # Skip if already at max needed for final assembly
+    var needed = item_panel._get_final_recipe_required(recipe.id)
+    if GameManager.get_item_count(recipe.id) >= needed:
+      continue
     var can_craft = true
     for ingredient in recipe.ingredients:
       if GameManager.get_item_count(ingredient.item_id) < ingredient.count:
