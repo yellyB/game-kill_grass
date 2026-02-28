@@ -14,7 +14,7 @@ extends CanvasLayer
 var displayed_money: int = 0
 var target_money: int = 0
 var buff_labels: Dictionary = {}  # type -> Label
-var perm_buff_labels: Dictionary = {}  # type -> Label
+var perm_buff_icons: Array = []  # ordered list of icons
 
 # Monster arrow indicators (내비게이션 부품)
 const ARROW_SIZE: float = 14.0
@@ -222,19 +222,26 @@ func _on_player_hit() -> void:
 
 
 var buff_container: VBoxContainer
+var perm_icons_hbox: HBoxContainer
 
 func _create_buff_container() -> void:
   buff_container = VBoxContainer.new()
   buff_container.anchors_preset = Control.PRESET_CENTER_TOP
   buff_container.anchor_left = 0.5
   buff_container.anchor_right = 0.5
-  buff_container.offset_left = -120.0
-  buff_container.offset_top = 120.0
-  buff_container.offset_right = 120.0
-  buff_container.offset_bottom = 300.0
+  buff_container.offset_left = -200.0
+  buff_container.offset_top = 135.0
+  buff_container.offset_right = 200.0
+  buff_container.offset_bottom = 400.0
   buff_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
   buff_container.add_theme_constant_override("separation", 4)
   add_child(buff_container)
+
+  # Persistent buff icons row (horizontal)
+  perm_icons_hbox = HBoxContainer.new()
+  perm_icons_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  perm_icons_hbox.add_theme_constant_override("separation", 0)
+  buff_container.add_child(perm_icons_hbox)
 
 const TIMED_BUFF_NAMES = {
   "gold_rush": "골드 러시",
@@ -245,14 +252,34 @@ const TIMED_BUFF_NAMES = {
 func _on_timed_buff_started(type: String, _duration: float) -> void:
   if buff_labels.has(type):
     return
+  var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
+
+  var hbox = HBoxContainer.new()
+  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  hbox.add_theme_constant_override("separation", 6)
+
+  var PowerupSelection = preload("res://scripts/powerup_selection.gd")
+  var data = PowerupSelection.get_powerup_data_by_type(type)
+  var tex = PowerupSelection.get_powerup_texture(data) if not data.is_empty() else null
+  if tex:
+    var icon = TextureRect.new()
+    icon.texture = tex
+    icon.custom_minimum_size = Vector2(64, 64)
+    icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    hbox.add_child(icon)
+
   var label = Label.new()
+  label.name = "Label"
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   label.add_theme_font_size_override("font_size", 28)
-  label.add_theme_color_override("font_color", POWERUP_COLORS.get(type, Color.WHITE))
+  label.add_theme_color_override("font_color", pcolor)
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   label.add_theme_constant_override("outline_size", 3)
-  buff_container.add_child(label)
-  buff_labels[type] = label
+  hbox.add_child(label)
+
+  buff_container.add_child(hbox)
+  buff_labels[type] = hbox
 
 func _on_timed_buff_ended(type: String) -> void:
   if buff_labels.has(type):
@@ -261,37 +288,26 @@ func _on_timed_buff_ended(type: String) -> void:
 
 func _update_buff_timers() -> void:
   for type in buff_labels:
-    var label = buff_labels[type]
-    if not is_instance_valid(label):
+    var container = buff_labels[type]
+    if not is_instance_valid(container):
+      continue
+    var label = container.get_node_or_null("Label")
+    if not label:
       continue
     var remaining = GameManager.get_timed_buff_remaining(type)
-    var buff_name = TIMED_BUFF_NAMES.get(type, type)
-    label.text = "%s %.1fs" % [buff_name, remaining]
+    label.text = "%.1fs" % remaining
 
-func _update_perm_buff(type: String, level: int) -> void:
-  var pname = POWERUP_NAMES.get(type, type)
-  var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
-
-  if perm_buff_labels.has(type) and is_instance_valid(perm_buff_labels[type]):
-    # Update existing label
-    if type == "overdrive":
-      perm_buff_labels[type].text = pname
-    else:
-      perm_buff_labels[type].text = "%s Lv.%d" % [pname, level]
-    return
-
-  var label = Label.new()
-  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  label.add_theme_font_size_override("font_size", 28)
-  label.add_theme_color_override("font_color", pcolor)
-  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  label.add_theme_constant_override("outline_size", 3)
-  if type == "overdrive":
-    label.text = pname
-  else:
-    label.text = "%s Lv.%d" % [pname, level]
-  buff_container.add_child(label)
-  perm_buff_labels[type] = label
+func _update_perm_buff(type: String, _level: int) -> void:
+  var PowerupSelection = preload("res://scripts/powerup_selection.gd")
+  var data = PowerupSelection.get_powerup_data_by_type(type)
+  var tex = PowerupSelection.get_powerup_texture(data) if not data.is_empty() else null
+  var icon = TextureRect.new()
+  icon.custom_minimum_size = Vector2(64, 64)
+  icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+  icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  if tex:
+    icon.texture = tex
+  perm_icons_hbox.add_child(icon)
 
 # ── Monster Arrow Indicators (내비게이션) ──
 
