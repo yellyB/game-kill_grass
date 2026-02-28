@@ -126,11 +126,14 @@ const WORLD_MONSTER_MAP: Array = [
 	["golem", "dragon"],
 ]
 
-const CHEST_SPAWN_CHANCE: float = 1.0  # 디버깅용 100%, 나중에 낮춤
+# 청크당 상자 스폰 확률 (~10세션에 1개 = 1/(30청크*10세션) ≈ 0.003)
+const CHEST_CHUNK_CHANCE: float = 0.007
+var chest_on_field: bool = false
 
 var player: Node2D = null
 var spawned: bool = false
 var respawn_timer: float = 0.0
+var grass_spawner: Node2D = null
 
 func _ready() -> void:
 	call_deferred("_find_player_and_spawn")
@@ -155,7 +158,14 @@ func spawn_monsters() -> void:
 	spawned = true
 
 	_spawn_wave(randi_range(respawn_min, respawn_max))
-	_spawn_chest()
+
+	# Connect to grass_spawner's new_chunk_entered signal for chest spawning
+	grass_spawner = get_tree().get_first_node_in_group("grass_spawner")
+	if not grass_spawner:
+		# Fallback: find by name in parent
+		grass_spawner = get_parent().get_node_or_null("GrassSpawner")
+	if grass_spawner and grass_spawner.has_signal("new_chunk_entered"):
+		grass_spawner.new_chunk_entered.connect(_on_new_chunk_entered)
 
 func _get_offscreen_position() -> Vector2:
 	var viewport_size = get_viewport().get_visible_rect().size
@@ -200,35 +210,47 @@ func _pick_random_type() -> Dictionary:
 
 const LAST_WORLD_CHEST_ITEM: String = "졸음 약"
 
-func _spawn_chest() -> void:
+func _on_new_chunk_entered(chunk_coord: Vector2i) -> void:
+	if chest_on_field:
+		return
+	if not _should_spawn_chest():
+		return
+	if randf() > CHEST_CHUNK_CHANCE:
+		return
+	_spawn_chest_at_chunk(chunk_coord)
+
+func _should_spawn_chest() -> bool:
 	var world = GameManager.selected_world
 	var is_last_world = world >= GameManager.WORLD_UNLOCK_COSTS.size() - 1
-
 	if is_last_world:
-		# 마지막 월드: 졸음 약 상자
 		if GameManager.get_item_count(LAST_WORLD_CHEST_ITEM) >= 1:
-			return
+			return false
 	else:
 		var next_world = world + 1
-		# 이미 열쇠 보유 시 상자 미출현
 		if GameManager.has_key(next_world):
-			return
-		# 이미 해금된 월드면 열쇠 불필요
+			return false
 		if next_world in GameManager.unlocked_worlds:
-			return
+			return false
+	return true
 
-	# 확률 체크
-	if randf() > CHEST_SPAWN_CHANCE:
-		return
+func _spawn_chest_at_chunk(chunk_coord: Vector2i) -> void:
+	var chunk_size = 400.0
+	if grass_spawner:
+		chunk_size = grass_spawner.chunk_size
+	var chunk_origin = Vector2(chunk_coord.x * chunk_size, chunk_coord.y * chunk_size)
+	var pos = chunk_origin + Vector2(randf() * chunk_size, randf() * chunk_size)
+
+	var world = GameManager.selected_world
+	var is_last_world = world >= GameManager.WORLD_UNLOCK_COSTS.size() - 1
 
 	var chest = ChestScene.instantiate()
 	if is_last_world:
 		chest.drop_item_id = LAST_WORLD_CHEST_ITEM
 	else:
 		chest.key_world_index = world + 1
-	var angle = randf() * TAU
-	var dist = randf_range(min_distance, spawn_radius)
-	chest.position = Vector2(cos(angle), sin(angle)) * dist
+	chest.position = pos
+	chest.tree_exited.connect(func(): chest_on_field = false)
+	chest_on_field = true
 	get_parent().add_child(chest)
 
 func _on_beast_rush() -> void:

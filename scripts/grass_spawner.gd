@@ -1,6 +1,7 @@
 extends Node2D
 
 signal grass_cut(position: Vector2, value: int)
+signal new_chunk_entered(chunk_coord: Vector2i)
 
 @export var chunk_size: float = 400.0
 @export var render_distance: int = 3
@@ -18,6 +19,7 @@ const SPARKLE_RADIUS: float = 30.0
 # Grass data storage (no nodes, just data)
 var grass_data: Dictionary = {}  # Key: Vector2i (grid pos), Value: {cut: bool, type: int, regen_time: float}
 var loaded_chunks: Dictionary = {}  # Key: Vector2i, Value: Array of grid positions
+var visited_chunks: Dictionary = {}  # Key: Vector2i, tracks first-time visits
 
 # Grid-based positioning (no spacing calculation needed)
 var grid_cell_size: float = 40.0  # Base spacing between grass
@@ -171,7 +173,11 @@ func update_chunks() -> void:
       var chunk_coord = Vector2i(player_chunk.x + x, player_chunk.y + y)
       chunks_to_keep[chunk_coord] = true
       if not loaded_chunks.has(chunk_coord):
+        var is_new = not visited_chunks.has(chunk_coord)
         load_chunk(chunk_coord)
+        if is_new:
+          visited_chunks[chunk_coord] = true
+          new_chunk_entered.emit(chunk_coord)
 
   # Unload distant chunks
   for chunk_coord in loaded_chunks.keys():
