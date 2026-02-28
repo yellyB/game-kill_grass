@@ -20,7 +20,7 @@ const POWERUP_DATA = [
 	{
 		"type": "magnet_range",
 		"name": "메가 마그넷",
-		"desc": "수집 범위 +25%",
+		"desc": "수집 범위 +50%",
 		"color": Color(0.2, 1.0, 0.8),
 		"stackable": true,
 		"weight": 20,
@@ -76,7 +76,7 @@ const POWERUP_DATA = [
 	{
 		"type": "overdrive",
 		"name": "오버드라이브",
-		"desc": "10초간 공속 2배, 이속 -80%",
+		"desc": "10초간 공속 2배, 이속 -50%",
 		"color": Color(1.0, 0.3, 0.5),
 		"stackable": false,
 		"weight": 10,
