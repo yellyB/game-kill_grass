@@ -4,20 +4,21 @@ signal panel_opened
 signal panel_closed
 
 @onready var panel: Panel = $Panel
-@onready var total_skill_label: Label = $Panel/TotalSkillLabel
-@onready var description_panel: Panel = $Panel/DescriptionPanel
-@onready var description_label: Label = $Panel/DescriptionPanel/DescriptionLabel
-@onready var confirm_btn: Button = $Panel/ConfirmBtn
-@onready var close_btn: Button = $Panel/CloseBtn
-@onready var money_display = $Panel/MoneyDisplay
-@onready var skill_tree_scroll: ScrollContainer = $Panel/SkillTreeScroll
-@onready var skill_tree_container: Control = $Panel/SkillTreeScroll/SkillTreeContainer
-@onready var weapon_section: PanelContainer = $Panel/WeaponSection
-@onready var section_label: Label = $Panel/SectionLabel
+@onready var padded_area: Control = $Panel/PaddedArea
+@onready var total_skill_label: Label = $Panel/PaddedArea/TotalSkillLabel
+@onready var description_panel: Panel = $Panel/PaddedArea/DescriptionPanel
+@onready var description_label: Label = $Panel/PaddedArea/DescriptionPanel/DescriptionLabel
+@onready var confirm_btn: Button = $Panel/PaddedArea/ConfirmBtn
+@onready var close_btn: Button = $Panel/PaddedArea/CloseBtn
+@onready var money_display = $Panel/PaddedArea/MoneyDisplay
+@onready var skill_tree_scroll: ScrollContainer = $Panel/PaddedArea/SkillTreeScroll
+@onready var skill_tree_container: Control = $Panel/PaddedArea/SkillTreeScroll/SkillTreeContainer
+@onready var weapon_section: PanelContainer = $Panel/PaddedArea/WeaponSection
+@onready var section_label: Label = $Panel/PaddedArea/SectionLabel
 
 # Weapon nodes
-@onready var weapon_image: TextureRect = $Panel/WeaponSection/WeaponHBox/WeaponImage
-@onready var weapon_info_vbox: VBoxContainer = $Panel/WeaponSection/WeaponHBox/WeaponInfo
+@onready var weapon_image: TextureRect = $Panel/PaddedArea/WeaponSection/WeaponHBox/WeaponImage
+@onready var weapon_info_vbox: VBoxContainer = $Panel/PaddedArea/WeaponSection/WeaponHBox/WeaponInfo
 
 var is_open: bool = false
 
@@ -920,54 +921,28 @@ func update_total_skill_label() -> void:
   total_skill_label.text = "스킬: %d" % GameManager.get_total_skill_level()
 
 func _apply_side_padding() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
-  # WeaponSection
-  weapon_section.offset_left = pad_h
-  weapon_section.offset_right = -pad_h
-  # SectionLabel
-  section_label.offset_left = pad_h
-  section_label.offset_right = -pad_h
-  # SkillTreeScroll
-  skill_tree_scroll.offset_left = pad_h
-  skill_tree_scroll.offset_right = -pad_h
+  pass  # PaddedArea handles padding
 
 func _position_close_btn() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
-  var pad_v = GameManager.SCREEN_PADDING_V
-  var w = 160.0
-  var h = 75.0
-  close_btn.anchor_left = 0.0
-  close_btn.anchor_right = 0.0
-  close_btn.anchor_top = 0.0
-  close_btn.anchor_bottom = 0.0
-  close_btn.offset_left = pad_h
-  close_btn.offset_top = pad_v
-  close_btn.offset_right = pad_h + w
-  close_btn.offset_bottom = pad_v + h
+  pass  # Positioned in tscn within PaddedArea
 
 func _position_bottom_section() -> void:
-  var vp_size = get_viewport_rect().size
-  var pad_h = GameManager.SCREEN_PADDING_H
-  var pad_v = GameManager.SCREEN_PADDING_V
+  var padded_height = padded_area.size.y
   var btn_height = 120.0
   var gap = 20.0
   var desc_height = 280.0
-  # ConfirmBtn at viewport bottom
+  # ConfirmBtn at bottom of PaddedArea
   confirm_btn.anchor_left = 0.0
   confirm_btn.anchor_right = 1.0
   confirm_btn.anchor_top = 0.0
   confirm_btn.anchor_bottom = 0.0
-  confirm_btn.offset_left = pad_h
-  confirm_btn.offset_right = -pad_h
-  confirm_btn.offset_bottom = vp_size.y - pad_v
-  confirm_btn.offset_top = confirm_btn.offset_bottom - btn_height
+  confirm_btn.offset_bottom = padded_height
+  confirm_btn.offset_top = padded_height - btn_height
   # DescriptionPanel above ConfirmBtn
   description_panel.anchor_left = 0.0
   description_panel.anchor_right = 1.0
   description_panel.anchor_top = 0.0
   description_panel.anchor_bottom = 0.0
-  description_panel.offset_left = pad_h
-  description_panel.offset_right = -pad_h
   description_panel.offset_bottom = confirm_btn.offset_top - gap
   description_panel.offset_top = description_panel.offset_bottom - desc_height
   # SkillTreeScroll ends before DescriptionPanel

@@ -1,8 +1,9 @@
 extends CanvasLayer
 
-@onready var money_display = $MoneyDisplay
-@onready var money_label: Label = $MoneyDisplay/MoneyLabel
-@onready var item_notif_container: VBoxContainer = $ItemNotifContainer
+@onready var padded_area: Control = $PaddedArea
+@onready var money_display = $PaddedArea/MoneyDisplay
+@onready var money_label: Label = $PaddedArea/MoneyDisplay/MoneyLabel
+@onready var item_notif_container: VBoxContainer = $PaddedArea/ItemNotifContainer
 
 var displayed_money: int = 0
 var target_money: int = 0
@@ -24,7 +25,6 @@ func _ready() -> void:
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
   GameManager.timed_buff_started.connect(_on_timed_buff_started)
   GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
-  _position_notif_container()
 
   # Create buff timer container (below timer, centered)
   _create_buff_container()
@@ -42,16 +42,6 @@ func _ready() -> void:
 
   # Connect player_hit signal (deferred to ensure player exists)
   call_deferred("_connect_player_hit")
-
-func _position_notif_container() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
-  var pad_v = GameManager.SCREEN_PADDING_V
-  item_notif_container.anchor_left = 1.0
-  item_notif_container.anchor_right = 1.0
-  item_notif_container.offset_left = -350.0
-  item_notif_container.offset_top = pad_v + 120.0
-  item_notif_container.offset_right = -pad_h
-  item_notif_container.offset_bottom = 400.0
 
 func _process(delta: float) -> void:
   # Update timed buff countdowns
@@ -186,12 +176,12 @@ func _create_buff_container() -> void:
   buff_container.anchor_left = 0.5
   buff_container.anchor_right = 0.5
   buff_container.offset_left = -200.0
-  buff_container.offset_top = 135.0
+  buff_container.offset_top = 130.0
   buff_container.offset_right = 200.0
   buff_container.offset_bottom = 400.0
   buff_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
   buff_container.add_theme_constant_override("separation", 4)
-  add_child(buff_container)
+  padded_area.add_child(buff_container)
 
   # Persistent buff icons row (horizontal)
   perm_icons_hbox = HBoxContainer.new()

@@ -6,7 +6,8 @@ extends Control
 @onready var quit_btn: Button = $VBoxContainer/QuitBtn
 @onready var quit_confirm_dialog: Control = $QuitConfirmDialog
 @onready var title_image: TextureRect = $TitleImage
-@onready var money_display = $MoneyDisplay
+@onready var padded_area: Control = $PaddedArea
+@onready var money_display = $PaddedArea/MoneyDisplay
 @onready var upgrade_panel: Control = $UpgradePanel/Control
 @onready var item_panel: Control = $ItemPanel/Control
 
@@ -514,15 +515,12 @@ func _on_money_display_input(event: InputEvent) -> void:
       _debug_tap_count = 0
 
 func _build_debug_buttons() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
   _debug_container = HBoxContainer.new()
   _debug_container.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
   _debug_container.offset_top = -50.0
-  _debug_container.offset_left = pad_h
-  _debug_container.offset_right = -pad_h
   _debug_container.alignment = BoxContainer.ALIGNMENT_CENTER
   _debug_container.add_theme_constant_override("separation", 12)
-  add_child(_debug_container)
+  padded_area.add_child(_debug_container)
 
   var reset_btn = Button.new()
   reset_btn.text = "초기화"

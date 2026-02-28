@@ -21,8 +21,8 @@ const BGM_PATHS: Array = [
 @onready var session_earnings_label: Label = $BackToMenuUI/SessionEndOverlay/SessionEarningsLabel
 @onready var bonus_label: Label = $BackToMenuUI/SessionEndOverlay/BonusLabel
 @onready var tap_to_return_label: Label = $BackToMenuUI/SessionEndOverlay/TapToReturnLabel
-@onready var timer_label: Label = $HUD/TimerLabel
-@onready var timer_progress: ProgressBar = $HUD/TimerProgressBar
+@onready var timer_label: Label = $HUD/PaddedArea/TimerLabel
+@onready var timer_progress: ProgressBar = $HUD/PaddedArea/TimerProgressBar
 
 var session_time_remaining: float = SESSION_TIME
 var session_ended: bool = false

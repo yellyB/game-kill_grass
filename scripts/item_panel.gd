@@ -4,9 +4,10 @@ signal panel_opened
 signal panel_closed
 
 @onready var panel: Panel = $Panel
-@onready var close_btn: Button = $Panel/CloseBtn
-@onready var money_display = $Panel/MoneyDisplay
-@onready var scroll_container: ScrollContainer = $Panel/ScrollContainer
+@onready var padded_area: Control = $Panel/PaddedArea
+@onready var close_btn: Button = $Panel/PaddedArea/CloseBtn
+@onready var money_display = $Panel/PaddedArea/MoneyDisplay
+@onready var scroll_container: ScrollContainer = $Panel/PaddedArea/ScrollContainer
 
 var is_open: bool = false
 var _crafting: bool = false
@@ -182,21 +183,15 @@ func update_money_display() -> void:
 # ── Layout building ──
 
 func _build_layout() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
-  var pad_v = GameManager.SCREEN_PADDING_V
-
   # Hide the tscn ScrollContainer — we use a direct VBoxContainer instead
   scroll_container.visible = false
 
   content_vbox = VBoxContainer.new()
   content_vbox.anchor_right = 1.0
   content_vbox.anchor_bottom = 1.0
-  content_vbox.offset_left = pad_h
-  content_vbox.offset_top = 190.0
-  content_vbox.offset_right = -pad_h
-  content_vbox.offset_bottom = -pad_v
+  content_vbox.offset_top = 130.0
   content_vbox.add_theme_constant_override("separation", 10)
-  panel.add_child(content_vbox)
+  padded_area.add_child(content_vbox)
 
   # Materials section header (centered)
   var mat_header = _create_section_header("재료")
@@ -256,9 +251,9 @@ func _build_layout() -> void:
   detail_container = Control.new()
   detail_container.visible = false
   detail_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-  detail_container.offset_top = 190.0
+  detail_container.offset_top = 130.0
   detail_container.mouse_filter = Control.MOUSE_FILTER_STOP
-  panel.add_child(detail_container)
+  padded_area.add_child(detail_container)
 
 func _create_section_header(text: String) -> Label:
   var label = Label.new()
@@ -990,15 +985,4 @@ func _load_texture(res_path: String) -> Texture2D:
   return load(res_path)
 
 func _position_close_btn() -> void:
-  var pad_h = GameManager.SCREEN_PADDING_H
-  var pad_v = GameManager.SCREEN_PADDING_V
-  var w = 160.0
-  var h = 75.0
-  close_btn.anchor_left = 0.0
-  close_btn.anchor_right = 0.0
-  close_btn.anchor_top = 0.0
-  close_btn.anchor_bottom = 0.0
-  close_btn.offset_left = pad_h
-  close_btn.offset_top = pad_v
-  close_btn.offset_right = pad_h + w
-  close_btn.offset_bottom = pad_v + h
+  pass  # Positioned in tscn within PaddedArea
