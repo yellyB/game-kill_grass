@@ -15,6 +15,7 @@ var world_overlay: Control = null
 var _ws_selected: int = -1  # Currently highlighted world index in panel
 var _ws_cards_container: VBoxContainer = null
 var _ws_action_btn: Button = null
+var _item_badge: Label = null
 
 const WORLD_DATA: Array = [
   {"name": "슬라임 늪", "monsters": "슬라임"},
@@ -69,6 +70,8 @@ func _ready() -> void:
   item_btn.expand_icon = true
   item_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
   GameManager.style_button(item_btn, "sub", Vector2(460, 112))
+  _setup_item_badge()
+  GameManager.inventory_changed.connect(_update_item_badge)
 
 
   quit_btn.text = "종료"
@@ -136,6 +139,47 @@ func _on_prologue_finished() -> void:
   SaveManager.save_game()
   _on_panel_closed()
 
+func _setup_item_badge() -> void:
+  _item_badge = Label.new()
+  _item_badge.text = "!"
+  _item_badge.add_theme_font_size_override("font_size", 28)
+  _item_badge.add_theme_color_override("font_color", Color.WHITE)
+  _item_badge.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  _item_badge.add_theme_constant_override("outline_size", 4)
+  _item_badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+  _item_badge.offset_left = -60
+  _item_badge.offset_right = -20
+  _item_badge.offset_top = 4
+  _item_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  _item_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  # Red circle background
+  var bg = StyleBoxFlat.new()
+  bg.bg_color = Color(0.9, 0.15, 0.15)
+  bg.corner_radius_top_left = 16
+  bg.corner_radius_top_right = 16
+  bg.corner_radius_bottom_left = 16
+  bg.corner_radius_bottom_right = 16
+  bg.content_margin_left = 6
+  bg.content_margin_right = 6
+  bg.content_margin_top = 2
+  bg.content_margin_bottom = 2
+  _item_badge.add_theme_stylebox_override("normal", bg)
+  item_btn.add_child(_item_badge)
+  _update_item_badge()
+
+func _update_item_badge() -> void:
+  var has_craftable = false
+  for recipe in item_panel.RECIPES:
+    var can_craft = true
+    for ingredient in recipe.ingredients:
+      if GameManager.get_item_count(ingredient.item_id) < ingredient.count:
+        can_craft = false
+        break
+    if can_craft:
+      has_craftable = true
+      break
+  _item_badge.visible = has_craftable
+
 func _on_panel_opened() -> void:
   play_btn.disabled = true
   upgrade_btn.disabled = true
@@ -147,6 +191,7 @@ func _on_panel_closed() -> void:
   upgrade_btn.disabled = false
   item_btn.disabled = false
   quit_btn.disabled = false
+  _update_item_badge()
 
 func update_money_display() -> void:
   money_display.update_display()
