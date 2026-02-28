@@ -112,8 +112,8 @@ func update_visual() -> void:
 	var coin_color: Color
 	var shine_color: Color
 	if value > 200:
-		coin_color = Color(0.6, 0.85, 1.0) # Diamond - bright cyan
-		shine_color = Color(0.85, 0.95, 1.0, 0.8)
+		coin_color = Color(0.3, 0.5, 1.0) # Diamond - blue
+		shine_color = Color(0.6, 0.7, 1.0, 0.8)
 	elif value > 100:
 		coin_color = Color(1.0, 0.85, 0.0) # Gold - bright yellow
 		shine_color = Color(1.0, 1.0, 0.6, 0.7)
