@@ -7,4 +7,4 @@ z_index = 20
 script = ExtResource("1_dropped")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.1, 0.1)
+scale = Vector2(0.4, 0.4)

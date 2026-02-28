@@ -30,7 +30,7 @@ const MONSTER_TYPES: Array = [
 		"sprite_path": "res://resources/images/monster/boar/",
 		"max_health": 8,
 		"wander_speed": 124,
-		"sprite_scale": 0.18,
+		"sprite_scale": 0.36,
 		"drop_table": [
 			{"item_id": "차축 뼈대", "image_path": "res://resources/images/items/차축 뼈대.png", "weight": 25},
 			{"item_id": "굴러다니는 바퀴 잔해", "image_path": "res://resources/images/items/굴러다니는 바퀴 잔해.png", "weight": 50},
@@ -46,7 +46,7 @@ const MONSTER_TYPES: Array = [
 		"sprite_path": "res://resources/images/monster/knight/",
 		"max_health": 15,
 		"wander_speed": 96,
-		"sprite_scale": 0.18,
+		"sprite_scale": 0.36,
 		"drop_table": [
 			{"item_id": "왜곡된 볼트 조각", "image_path": "res://resources/images/items/왜곡된 볼트 조각.png", "weight": 65},
 			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 35},
@@ -76,7 +76,7 @@ const MONSTER_TYPES: Array = [
 		"sprite_path": "res://resources/images/monster/deer/",
 		"max_health": 20,
 		"wander_speed": 144,
-		"sprite_scale": 0.18,
+		"sprite_scale": 0.36,
 		"drop_table": [
 			{"item_id": "투명 수정 파편", "image_path": "res://resources/images/items/투명 수정 파편.png", "weight": 89},
 			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 18},
@@ -91,7 +91,7 @@ const MONSTER_TYPES: Array = [
 		"sprite_path": "res://resources/images/monster/golem/",
 		"max_health": 35,
 		"wander_speed": 80,
-		"sprite_scale": 0.24,
+		"sprite_scale": 0.48,
 		"drop_table": [
 			{"item_id": "몬스터 핵", "image_path": "res://resources/images/items/몬스터 핵.png", "weight": 22},
 			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 52},
@@ -107,7 +107,7 @@ const MONSTER_TYPES: Array = [
 		"sprite_path": "res://resources/images/monster/dragon/",
 		"max_health": 40,
 		"wander_speed": 160,
-		"sprite_scale": 0.24,
+		"sprite_scale": 0.48,
 		"drop_table": [
 			{"item_id": "과열된 엔진 심장", "image_path": "res://resources/images/items/과열된 엔진 심장.png", "weight": 33},
 			{"item_id": "드래곤 배기가스 결정", "image_path": "res://resources/images/items/드래곤 배기가스 결정.png", "weight": 67},

@@ -3,11 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://d4jtcbcwlypha"
-valid=false
+path="res://.godot/imported/bgm_main.ogg-8a326419e785a5ac0a0f4225bab94be8.oggvorbisstr"
 
 [deps]
 
 source_file="res://resources/sounds/bgm_main.ogg"
+dest_files=["res://.godot/imported/bgm_main.ogg-8a326419e785a5ac0a0f4225bab94be8.oggvorbisstr"]
 
 [params]
 
