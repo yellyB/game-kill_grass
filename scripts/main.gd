@@ -22,6 +22,7 @@ const BGM_PATHS: Array = [
 @onready var bonus_label: Label = $BackToMenuUI/SessionEndOverlay/BonusLabel
 @onready var tap_to_return_label: Label = $BackToMenuUI/SessionEndOverlay/TapToReturnLabel
 @onready var timer_label: Label = $HUD/TimerLabel
+@onready var timer_progress: ProgressBar = $HUD/TimerProgressBar
 
 var session_time_remaining: float = SESSION_TIME
 var session_ended: bool = false
@@ -48,6 +49,16 @@ func _ready() -> void:
 
   # Extra time powerup
   GameManager.extra_time_requested.connect(_on_extra_time)
+
+  # Style progress bar
+  var bg_style = StyleBoxFlat.new()
+  bg_style.bg_color = Color(0.2, 0.2, 0.2, 0.5)
+  bg_style.set_corner_radius_all(3)
+  timer_progress.add_theme_stylebox_override("background", bg_style)
+  var fill_style = StyleBoxFlat.new()
+  fill_style.bg_color = Color(0.4, 0.8, 1.0)
+  fill_style.set_corner_radius_all(3)
+  timer_progress.add_theme_stylebox_override("fill", fill_style)
 
   # Initialize timer display
   update_timer_display()
@@ -80,9 +91,16 @@ func update_timer_display() -> void:
   var seconds = int(ceil(session_time_remaining))
   timer_label.text = str(seconds)
 
+  # Update progress bar
+  timer_progress.value = clampf((session_time_remaining / SESSION_TIME) * 100.0, 0.0, 100.0)
+
   # Change color when time is low
   if seconds <= 10:
     timer_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+    var fill_style = StyleBoxFlat.new()
+    fill_style.bg_color = Color(1, 0.3, 0.3)
+    fill_style.set_corner_radius_all(3)
+    timer_progress.add_theme_stylebox_override("fill", fill_style)
   else:
     timer_label.add_theme_color_override("font_color", Color(1, 1, 1))
 
