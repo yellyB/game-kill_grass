@@ -610,11 +610,8 @@ func _fx_scratch_lines(pos: Vector2, dir: Vector2) -> void:
     tw.tween_property(line, "modulate:a", 0.0, 0.12)
     tw.tween_callback(line.queue_free)
 
-# Lv6 체인소 — camera shake + orange motion lines
+# Lv6 체인소 — orange motion lines
 func _fx_chainsaw_blur(pos: Vector2, dir: Vector2) -> void:
-  var cam = get_viewport().get_camera_2d()
-  if cam and cam.has_method("shake"):
-    cam.shake(0.3)
   var orange = Color(1.0, 0.6, 0.2, 0.7)
   var perp = Vector2(-dir.y, dir.x)
   for i in range(3):

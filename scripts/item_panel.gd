@@ -980,13 +980,10 @@ func _get_crafted_item_image(item_id: String) -> String:
       return item.get("image", "")
   return ""
 
-func _load_texture(res_path: String) -> ImageTexture:
-  var abs_path = ProjectSettings.globalize_path(res_path)
-  var image = Image.new()
-  var err = image.load(abs_path)
-  if err != OK:
+func _load_texture(res_path: String) -> Texture2D:
+  if not ResourceLoader.exists(res_path):
     return null
-  return ImageTexture.create_from_image(image)
+  return load(res_path)
 
 func _position_close_btn() -> void:
   var pad_h = GameManager.SCREEN_PADDING_H
