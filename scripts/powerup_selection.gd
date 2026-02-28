@@ -68,7 +68,7 @@ const POWERUP_DATA = [
 	{
 		"type": "beast_rush",
 		"name": "비스트 러시",
-		"desc": "5초간 몬스터 대량 스폰, 드롭 3배",
+		"desc": "몬스터 10마리 즉시 스폰",
 		"color": Color(0.9, 0.2, 0.2),
 		"stackable": false,
 		"weight": 10,

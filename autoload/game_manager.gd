@@ -85,6 +85,7 @@ signal extra_time_requested(seconds: float)
 signal golden_bloom_requested()
 signal field_clear_requested()
 signal blackhole_requested()
+signal beast_rush_requested()
 
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
@@ -416,9 +417,6 @@ func get_coin_multiplier() -> int:
     return 2
   return 1
 
-func is_beast_rush_active() -> bool:
-  return timed_buffs.has("beast_rush")
-
 func get_timed_buff_remaining(type: String) -> float:
   return timed_buffs.get(type, 0.0)
 
@@ -451,7 +449,7 @@ func apply_powerup(type: String) -> void:
     "double_or_dust":
       _apply_double_or_dust()
     "beast_rush":
-      _start_timed_buff("beast_rush", 5.0)
+      beast_rush_requested.emit()
       powerup_acquired.emit(type, 0)
     "harvest_madness":
       _start_timed_buff("harvest_madness", 5.0)

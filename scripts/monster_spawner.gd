@@ -134,7 +134,7 @@ var respawn_timer: float = 0.0
 
 func _ready() -> void:
 	call_deferred("_find_player_and_spawn")
-	GameManager.timed_buff_started.connect(_on_timed_buff_started)
+	GameManager.beast_rush_requested.connect(_on_beast_rush)
 
 func _process(delta: float) -> void:
 	if not spawned:
@@ -231,9 +231,5 @@ func _spawn_chest() -> void:
 	chest.position = Vector2(cos(angle), sin(angle)) * dist
 	get_parent().add_child(chest)
 
-func _on_timed_buff_started(type: String, _duration: float) -> void:
-	if type == "beast_rush":
-		_spawn_beast_rush_monsters()
-
-func _spawn_beast_rush_monsters() -> void:
-	_spawn_wave(spawn_count * 2)
+func _on_beast_rush() -> void:
+	_spawn_wave(10)

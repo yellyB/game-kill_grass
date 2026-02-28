@@ -238,7 +238,6 @@ func _create_buff_container() -> void:
 
 const TIMED_BUFF_NAMES = {
   "gold_rush": "골드 러시",
-  "beast_rush": "비스트 러시",
   "harvest_madness": "하베스트 매드니스",
   "overdrive": "오버드라이브",
 }

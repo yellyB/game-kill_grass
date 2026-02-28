@@ -214,10 +214,7 @@ func die() -> void:
 
   await tween2.finished
 
-  # Drop item (3x during beast rush)
-  var drop_count = 3 if GameManager.is_beast_rush_active() else 1
-  for i in drop_count:
-    _drop_item()
+  _drop_item()
 
   # 30% chance to drop a powerup
   if randf() < 0.3:
