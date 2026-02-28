@@ -335,9 +335,11 @@ func _play_drop_animation() -> void:
   # 그림자: 스케일만 변화 (위치 고정)
   tween.tween_property(shadow, "scale", Vector2(1.0, 1.0), 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
   tween.tween_property(shadow, "modulate:a", 0.3, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-  tween.chain().tween_property(shadow, "modulate:a", 0.0, 0.3)
-  tween.chain().tween_callback(shadow.queue_free)
-  tween.chain().tween_callback(func(): set_process(true))
+  # 착지 후 그림자 페이드아웃 + 제거
+  var shadow_tween = create_tween()
+  shadow_tween.tween_property(shadow, "modulate:a", 0.0, 0.3).set_delay(0.7)
+  shadow_tween.tween_callback(shadow.queue_free)
+  shadow_tween.tween_callback(func(): set_process(true))
 
 func _on_attack_timer_timeout() -> void:
   can_attack = true
