@@ -614,6 +614,7 @@ func build_skill_tree() -> void:
       var dot = _create_skill_node(skill_type, level, state)
       dot.position = Vector2(center_x - NODE_SIZE / 2.0, node_y)
       dot.size = Vector2(NODE_SIZE, NODE_SIZE)
+      dot.z_index = 2
       skill_tree_container.add_child(dot)
 
     _skill_card_centers[skill_type] = Vector2(center_x, col_top_y - 20)
