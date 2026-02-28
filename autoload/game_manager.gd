@@ -404,7 +404,7 @@ func get_session_move_speed_mult() -> float:
   var mult = 1.0 + session_buff_move_speed * 0.25
   mult += get_part_count("개념상 바퀴", 4) * 0.08  # 바퀴: 개당 +8%, 최대 +32%
   if timed_buffs.has("overdrive"):
-    mult *= 0.2  # -80%
+    mult *= 0.5  # -50%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
   if hit_penalty_active:
