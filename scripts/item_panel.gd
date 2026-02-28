@@ -57,6 +57,7 @@ const RECIPES: Array = [
       {"item_id": "과열된 엔진 심장", "count": 1},
       {"item_id": "드래곤 배기가스 결정", "count": 2},
       {"item_id": "번개 먹은 배터리 껍질", "count": 4},
+      {"item_id": "몬스터 핵", "count": 1},
     ]
   },
   {
@@ -64,14 +65,14 @@ const RECIPES: Array = [
     "ingredients": [
       {"item_id": "압축된 이세계 철편", "count": 5},
       {"item_id": "생체 연료 포자", "count": 1},
-      {"item_id": "몬스터 핵", "count": 1},
+      {"item_id": "질긴 슬라임 조각", "count": 6},
     ]
   },
   {
     "id": "이세계 내비게이션",
     "ingredients": [
       {"item_id": "뒤틀린 시간 포자", "count": 4},
-      {"item_id": "몬스터 핵", "count": 1},
+      {"item_id": "번개 먹은 배터리 껍질", "count": 3},
     ]
   },
   {
@@ -88,6 +89,7 @@ const RECIPES: Array = [
       {"item_id": "바람 머금은 잔디 섬유", "count": 20},
       {"item_id": "과성장 생체 응축체", "count": 4},
       {"item_id": "침식된 백골 프레임", "count": 12},
+      {"item_id": "몬스터 핵", "count": 1},
     ]
   },
 ]
