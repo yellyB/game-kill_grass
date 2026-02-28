@@ -17,7 +17,7 @@ const MONSTER_TYPES: Array = [
 		"max_health": 3,
 		"wander_speed": 80,
 		"drop_table": [
-			{"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 30},
+			{"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 40},
 			{"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 70},
 		],
 		"has_lightning": true,
@@ -39,7 +39,7 @@ const MONSTER_TYPES: Array = [
 		"has_lightning": false,
 		"penalty_min": 80,
 		"penalty_max": 150,
-		"spawn_weight": 25,
+		"spawn_weight": 20,
 	},
 	{
 		"type": "knight",
@@ -54,7 +54,7 @@ const MONSTER_TYPES: Array = [
 		"has_lightning": false,
 		"penalty_min": 100,
 		"penalty_max": 200,
-		"spawn_weight": 15,
+		"spawn_weight": 20,
 	},
 	{
 		"type": "mage",
@@ -62,14 +62,14 @@ const MONSTER_TYPES: Array = [
 		"max_health": 12,
 		"wander_speed": 108,
 		"drop_table": [
-			{"item_id": "생체 연료 포자", "image_path": "res://resources/images/items/생체 연료 포자.png", "weight": 8},
+			{"item_id": "생체 연료 포자", "image_path": "res://resources/images/items/생체 연료 포자.png", "weight": 15},
 			{"item_id": "뒤틀린 시간 포자", "image_path": "res://resources/images/items/뒤틀린 시간 포자.png", "weight": 15},
 			{"item_id": "바람 머금은 잔디 섬유", "image_path": "res://resources/images/items/바람 머금은 잔디 섬유.png", "weight": 77},
 		],
 		"has_lightning": false,
 		"penalty_min": 400,
 		"penalty_max": 800,
-		"spawn_weight": 15,
+		"spawn_weight": 10,
 	},
 	{
 		"type": "deer",
@@ -79,12 +79,12 @@ const MONSTER_TYPES: Array = [
 		"sprite_scale": 0.18,
 		"drop_table": [
 			{"item_id": "투명 수정 파편", "image_path": "res://resources/images/items/투명 수정 파편.png", "weight": 89},
-			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 11},
+			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 18},
 		],
 		"has_lightning": false,
 		"penalty_min": 500,
 		"penalty_max": 1000,
-		"spawn_weight": 5,
+		"spawn_weight": 10,
 	},
 	{
 		"type": "golem",
@@ -93,7 +93,7 @@ const MONSTER_TYPES: Array = [
 		"wander_speed": 80,
 		"sprite_scale": 0.24,
 		"drop_table": [
-			{"item_id": "몬스터 핵", "image_path": "res://resources/images/items/몬스터 핵.png", "weight": 10},
+			{"item_id": "몬스터 핵", "image_path": "res://resources/images/items/몬스터 핵.png", "weight": 22},
 			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 52},
 			{"item_id": "침식된 백골 프레임", "image_path": "res://resources/images/items/침식된 백골 프레임.png", "weight": 39},
 		],
