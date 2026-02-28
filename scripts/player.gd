@@ -285,7 +285,7 @@ func swing_weapon(target_pos: Vector2) -> void:
   is_swinging = false
 
 func update_attack_range() -> void:
-  const BASE_ATTACK_RANGE: float = 80.0
+  const BASE_ATTACK_RANGE: float = 90.0
   var weapon_range = GameManager.get_session_attack_range_mult()
   attack_radius = BASE_ATTACK_RANGE * weapon_range
   if attack_shape and attack_shape.shape:
