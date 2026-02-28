@@ -335,28 +335,31 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
   var damage = WeaponManager.get_weapon_damage()
   var max_targets = WeaponManager.get_weapon_max_targets()
 
+  # Collect all grass in range, then pick random targets
+  var candidates: Array = []
   for grid_pos in grass_data:
-    if hit_count >= max_targets:
-      break
-
     var data = grass_data[grid_pos]
     if data.cut:
       continue
-
     var world_pos = Vector2(grid_pos.x, grid_pos.y)
-    var distance = center.distance_to(world_pos)
+    if center.distance_to(world_pos) <= radius:
+      candidates.append(grid_pos)
 
-    if distance <= radius:
-      hit_count += 1
-      data.health -= damage
-      data.hit_timer = 0.1  # White flash for 0.1 seconds
-      if data.health > 0:
-        data.hp_bar_timer = 1.5  # Show health bar for 1.5 seconds
-      if data.health <= 0:
-        data.cut = true
-        data.regen_timer = 0.0
-        total_value += data.value
-        attacked_positions.append(world_pos)
+  candidates.shuffle()
+  var targets_count = mini(max_targets, candidates.size())
+  for i in targets_count:
+    var grid_pos = candidates[i]
+    var data = grass_data[grid_pos]
+    hit_count += 1
+    data.health -= damage
+    data.hit_timer = 0.1
+    if data.health > 0:
+      data.hp_bar_timer = 1.5
+    if data.health <= 0:
+      data.cut = true
+      data.regen_timer = 0.0
+      total_value += data.value
+      attacked_positions.append(Vector2(grid_pos.x, grid_pos.y))
 
   # Spawn coins for cut grass (GrassData.drop_chance / guaranteed_drop)
   for pos in attacked_positions:
