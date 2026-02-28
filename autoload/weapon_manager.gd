@@ -7,15 +7,15 @@ var weapon_textures: Array[Texture2D] = []
 
 const WEAPONS = [
   {"name": "나뭇가지", "price": 0, "damage": 1, "max_targets": 3, "texture": "res://resources/images/weapon/나뭇가지.png"},
-  {"name": "녹슨 식칼", "price": 70, "damage": 2, "max_targets": 5, "texture": "res://resources/images/weapon/녹슨식칼.png"},
-  {"name": "피자 커터", "price": 350, "damage": 3, "max_targets": 7, "texture": "res://resources/images/weapon/피자커터.png"},
-  {"name": "전기 파리채", "price": 900, "damage": 4, "max_targets": 9, "texture": "res://resources/images/weapon/전기파리채.png"},
-  {"name": "뜨거운 다리미", "price": 2000, "damage": 5, "max_targets": 12, "texture": "res://resources/images/weapon/뜨거운다리미.png"},
-  {"name": "매우 화난 고양이", "price": 4500, "damage": 7, "max_targets": 15, "texture": "res://resources/images/weapon/매우화난고양이.png"},
-  {"name": "체인소", "price": 10000, "damage": 9, "max_targets": 18, "texture": "res://resources/images/weapon/체인소.png"},
-  {"name": "마법 지팡이", "price": 22000, "damage": 10, "max_targets": 22, "texture": "res://resources/images/weapon/마법지팡이.png"},
-  {"name": "날개달린 선풍기", "price": 45000, "damage": 11, "max_targets": 26, "texture": "res://resources/images/weapon/날개달린선풍기.png"},
-  {"name": "위성 레이저 제초기", "price": 90000, "damage": 12, "max_targets": 30, "texture": "res://resources/images/weapon/위성레이저제초기.png"},
+  {"name": "녹슨 식칼", "price": 90, "damage": 2, "max_targets": 5, "texture": "res://resources/images/weapon/녹슨식칼.png"},
+  {"name": "피자 커터", "price": 450, "damage": 3, "max_targets": 7, "texture": "res://resources/images/weapon/피자커터.png"},
+  {"name": "전기 파리채", "price": 1200, "damage": 4, "max_targets": 9, "texture": "res://resources/images/weapon/전기파리채.png"},
+  {"name": "뜨거운 다리미", "price": 2600, "damage": 5, "max_targets": 12, "texture": "res://resources/images/weapon/뜨거운다리미.png"},
+  {"name": "매우 화난 고양이", "price": 6000, "damage": 7, "max_targets": 15, "texture": "res://resources/images/weapon/매우화난고양이.png"},
+  {"name": "체인소", "price": 13000, "damage": 9, "max_targets": 18, "texture": "res://resources/images/weapon/체인소.png"},
+  {"name": "마법 지팡이", "price": 29000, "damage": 10, "max_targets": 22, "texture": "res://resources/images/weapon/마법지팡이.png"},
+  {"name": "날개달린 선풍기", "price": 60000, "damage": 11, "max_targets": 26, "texture": "res://resources/images/weapon/날개달린선풍기.png"},
+  {"name": "위성 레이저 제초기", "price": 120000, "damage": 12, "max_targets": 30, "texture": "res://resources/images/weapon/위성레이저제초기.png"},
 ]
 
 var current_weapon_level: int = 0
