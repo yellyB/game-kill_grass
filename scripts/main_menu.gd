@@ -382,6 +382,7 @@ func _create_world_card(index: int) -> PanelContainer:
     btn.flat = true
     btn.anchors_preset = Control.PRESET_FULL_RECT
     btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+    btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
     btn.pressed.connect(_on_world_card_pressed.bind(index))
     card.add_child(btn)
 

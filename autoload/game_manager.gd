@@ -574,24 +574,21 @@ func get_grass_regen_time(base_time: float) -> float:
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
+  # 보상/드롭 (선행: 등급 L2,4,6,8 = 252~23271)
+  if upgrade_type in ["grass_reward", "grass_drop"]:
+    return int(base * (3.0 + current_level * 14.0))
+  # 재생 (선행: 밀도 L2=252, L5=2728)
+  if upgrade_type == "grass_regen":
+    return int(base * (3.0 + current_level * 15.0))
+  # 패널티 감소 (선행: 보상 L2=3060)
+  if upgrade_type == "penalty_reduce":
+    return int(base * (33.0 + current_level * 15.0))
+  # 황금풀 (선행: 밀도 L5=2728, L7=11567, L9=46299)
   if upgrade_type == "golden_chance":
-    var multiplier = 5.0 + current_level * 16.2
-    return int(base * multiplier)
-  if upgrade_type == "grass_drop":
-    var multiplier = 4.0 + current_level * 13.0
-    return int(base * multiplier)
-  if upgrade_type == "grass_reward":
-    var multiplier = 4.0 + current_level * 13.0
-    return int(base * multiplier)
-  if upgrade_type == "grass_density" and current_level > 0:
-    var multiplier = 1.0 + current_level * 0.4
-    return int(base * multiplier)
-  if upgrade_type == "grass_quality" and current_level > 0:
-    var multiplier = 1.0 + current_level * 0.15
-    return int(base * multiplier)
-  if upgrade_type in ["grass_regen", "penalty_reduce"] and current_level > 0:
-    var multiplier = 1.0 + current_level * 7.0
-    return int(base * multiplier)
+    return int(base * (30.0 + current_level * 65.0))
+  # 밀도/등급 (루트 스킬)
+  if current_level > 0:
+    return int(base * (1.0 + current_level * 0.4))
   return base
 
 func purchase_upgrade(upgrade_type: String) -> bool:
