@@ -520,8 +520,8 @@ const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 4, 7, 11, 16, 21, 27, 34]
 # Skill tree prerequisites: "type:level" -> Array of {type, level} (all AND)
 const SKILL_PREREQS = {
   # 재생 ← 밀도
-  "grass_regen:1": [{"type": "grass_density", "level": 2}],
-  "grass_regen:2": [{"type": "grass_density", "level": 5}],
+  "grass_regen:1": [{"type": "grass_density", "level": 4}],
+  "grass_regen:2": [{"type": "grass_density", "level": 7}],
   # 보상 ← 등급 (구 L2,4,6,8 → 신 L4,6,8,10)
   "grass_reward:1": [{"type": "grass_quality", "level": 4}],
   "grass_reward:2": [{"type": "grass_quality", "level": 6}],
@@ -594,7 +594,7 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   # 보상/드롭 (선행: 등급 L4,6,8,10)
   if upgrade_type in ["grass_reward", "grass_drop"]:
     return int(base * (3.0 + current_level * 14.0))
-  # 재생 (선행: 밀도 L2, L5)
+  # 재생 (선행: 밀도 L4, L7)
   if upgrade_type == "grass_regen":
     return int(base * (3.0 + current_level * 15.0))
   # 패널티 감소 (선행: 보상 L2)
