@@ -19,7 +19,6 @@ var hit_debuff_timer: float = 0.0
 var invincible_timer: float = 0.0
 const HIT_DEBUFF_DURATION: float = 1.5
 const INVINCIBLE_DURATION: float = 3.0
-const MONSTER_HIT_RADIUS: float = 45.0
 var _hit_overlay_canvas: CanvasLayer = null
 
 @onready var player_visual: Node2D = $PlayerVisual
@@ -46,6 +45,7 @@ var grass_spawner: Node2D = null
 var attack_radius: float = 80.0
 var attack_area: Area2D = null
 var attack_shape: CollisionShape2D = null
+var body_area: Area2D = null
 
 # Coin text batching
 const BATCH_TIMEOUT: float = 0.3
@@ -76,6 +76,16 @@ func _ready() -> void:
   attack_shape.shape = shape
   attack_area.add_child(attack_shape)
   add_child(attack_area)
+  # Body area for monster contact detection (radius = base magnet range)
+  body_area = Area2D.new()
+  body_area.collision_layer = 0
+  body_area.collision_mask = 8  # layer 4: hittable (monsters)
+  var body_shape = CollisionShape2D.new()
+  var body_circle = CircleShape2D.new()
+  body_circle.radius = GameManager.base_magnet_range
+  body_shape.shape = body_circle
+  body_area.add_child(body_shape)
+  add_child(body_area)
   attack_timer.timeout.connect(_on_attack_timer_timeout)
   update_attack_range()
   create_weapon_visual()
@@ -421,10 +431,9 @@ func _finish_batch() -> void:
 func _check_monster_collision() -> void:
   if is_invincible:
     return
-  for monster in get_tree().get_nodes_in_group("monsters"):
-    if not is_instance_valid(monster):
-      continue
-    if global_position.distance_to(monster.global_position) < MONSTER_HIT_RADIUS:
+  for area in body_area.get_overlapping_areas():
+    var monster = area.get_parent()
+    if is_instance_valid(monster) and monster.is_in_group("monsters"):
       _on_monster_hit(monster)
       return
 
