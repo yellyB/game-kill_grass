@@ -439,8 +439,6 @@ func _on_monster_hit(monster: Node2D) -> void:
   invincible_timer = INVINCIBLE_DURATION
   GameManager.hit_penalty_active = true
   player_hit.emit()
-  var penalty_amount = int(randi_range(monster.penalty_min, monster.penalty_max) * GameManager.get_part_penalty_mult())
-  _drop_penalty_coins(penalty_amount)
   # Red screen overlay for debuff duration
   _show_hit_overlay()
 
