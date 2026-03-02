@@ -54,14 +54,17 @@ func _ready() -> void:
   # Extra time powerup
   GameManager.extra_time_requested.connect(_on_extra_time)
 
+  # Boss key → session end
+  GameManager.boss_key_collected.connect(_on_boss_key_collected)
+
   # Style progress bar
   var bg_style = StyleBoxFlat.new()
   bg_style.bg_color = Color(0.2, 0.2, 0.2, 0.5)
-  bg_style.set_corner_radius_all(3)
+  bg_style.set_corner_radius_all(6)
   timer_progress.add_theme_stylebox_override("background", bg_style)
   var fill_style = StyleBoxFlat.new()
   fill_style.bg_color = Color(0.4, 0.8, 1.0)
-  fill_style.set_corner_radius_all(3)
+  fill_style.set_corner_radius_all(6)
   timer_progress.add_theme_stylebox_override("fill", fill_style)
 
   # Initialize timer display
@@ -103,7 +106,7 @@ func update_timer_display() -> void:
     timer_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
     var fill_style = StyleBoxFlat.new()
     fill_style.bg_color = Color(1, 0.3, 0.3)
-    fill_style.set_corner_radius_all(3)
+    fill_style.set_corner_radius_all(6)
     timer_progress.add_theme_stylebox_override("fill", fill_style)
   else:
     timer_label.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -184,23 +187,28 @@ func show_session_end_overlay(earnings: int) -> void:
   tap_to_return_label.modulate = Color(1, 1, 1, 0)
   touch_button.disabled = true
 
-  # Build earnings display with coin icon
+  # Results container (vertical stack)
+  var results_vbox = VBoxContainer.new()
+  results_vbox.name = "ResultsVBox"
+  results_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  results_vbox.add_theme_constant_override("separation", 12)
+  results_vbox.layout_mode = 1
+  results_vbox.anchor_left = session_earnings_label.anchor_left
+  results_vbox.anchor_right = session_earnings_label.anchor_right
+  results_vbox.anchor_top = session_earnings_label.anchor_top
+  results_vbox.anchor_bottom = session_earnings_label.anchor_bottom
+  results_vbox.offset_left = session_earnings_label.offset_left
+  results_vbox.offset_right = session_earnings_label.offset_right
+  results_vbox.offset_top = session_earnings_label.offset_top
+  results_vbox.offset_bottom = session_earnings_label.offset_bottom
+  results_vbox.grow_horizontal = session_earnings_label.grow_horizontal
+  results_vbox.grow_vertical = session_earnings_label.grow_vertical
+  results_vbox.modulate = Color(1, 1, 1, 0)
+
+  # Earnings row
   var earnings_container = HBoxContainer.new()
-  earnings_container.name = "EarningsContainer"
   earnings_container.alignment = BoxContainer.ALIGNMENT_CENTER
   earnings_container.add_theme_constant_override("separation", 8)
-  earnings_container.layout_mode = 1
-  earnings_container.anchor_left = session_earnings_label.anchor_left
-  earnings_container.anchor_right = session_earnings_label.anchor_right
-  earnings_container.anchor_top = session_earnings_label.anchor_top
-  earnings_container.anchor_bottom = session_earnings_label.anchor_bottom
-  earnings_container.offset_left = session_earnings_label.offset_left
-  earnings_container.offset_right = session_earnings_label.offset_right
-  earnings_container.offset_top = session_earnings_label.offset_top
-  earnings_container.offset_bottom = session_earnings_label.offset_bottom
-  earnings_container.grow_horizontal = session_earnings_label.grow_horizontal
-  earnings_container.grow_vertical = session_earnings_label.grow_vertical
-  earnings_container.modulate = Color(1, 1, 1, 0)
 
   var prefix_label = Label.new()
   prefix_label.text = "획득: "
@@ -213,15 +221,30 @@ func show_session_end_overlay(earnings: int) -> void:
   var coin_hbox = GameManager.create_coin_label(
     GameManager.format_number(earnings), 36, Color(1, 1, 1), 3)
   earnings_container.add_child(coin_hbox)
+  results_vbox.add_child(earnings_container)
 
-  session_end_overlay.add_child(earnings_container)
+  # Key row (if boss key acquired this session)
+  var key_world = GameManager.session_key_acquired
+  if key_world >= 0:
+    var world_names = ["슬라임 늪", "들판", "마법의 숲", "용의 봉우리"]
+    var world_name = world_names[key_world] if key_world < world_names.size() else "월드 %d" % key_world
+    var key_label = Label.new()
+    key_label.text = "+ 열쇠 (%s)" % world_name
+    key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    key_label.add_theme_font_size_override("font_size", 34)
+    key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
+    key_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    key_label.add_theme_constant_override("outline_size", 3)
+    results_vbox.add_child(key_label)
+
+  session_end_overlay.add_child(results_vbox)
 
   # Show overlay
   session_end_overlay.visible = true
 
-  # Fade in earnings
+  # Fade in results
   var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-  tween.tween_property(earnings_container, "modulate:a", 1.0, 0.4)
+  tween.tween_property(results_vbox, "modulate:a", 1.0, 0.4)
 
   # Show tap to return
   tween.tween_interval(0.6)
@@ -269,6 +292,32 @@ func _on_confirm_back_to_menu() -> void:
 
 func _on_cancel_back_to_menu() -> void:
   get_tree().paused = false
+
+func _on_boss_key_collected(_world_index: int) -> void:
+  if session_ended:
+    return
+  _boss_end_session()
+
+func _boss_end_session() -> void:
+  session_ended = true
+  get_tree().paused = true
+  back_to_menu_btn.visible = false
+
+  var player = get_tree().get_first_node_in_group("player")
+  if player and player.has_method("_remove_hit_overlay"):
+    player._remove_hit_overlay()
+
+  # 1초 정지 연출 (보스 처치 여운)
+  await get_tree().create_timer(1.0).timeout
+
+  if bgm_player:
+    var bgm_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    bgm_tween.tween_property(bgm_player, "volume_db", -40.0, 1.5)
+    bgm_tween.tween_callback(bgm_player.stop)
+
+  var earnings = GameManager.session_money
+  await animate_coins_disappear()
+  show_session_end_overlay(earnings)
 
 func _on_extra_time(seconds: float) -> void:
   session_time_remaining += seconds

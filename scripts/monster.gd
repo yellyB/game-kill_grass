@@ -42,6 +42,7 @@ var penalty_max: int = 10
 var hit_radius: float = 15.0
 var sprite_scale: float = 0.24
 var hit_radius_scale: float = 1.0
+var key_world_index: int = -1  # >= 0 이면 사망 시 해당 월드 열쇠 드롭
 var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
@@ -55,6 +56,7 @@ func setup(config: Dictionary) -> void:
   penalty_max = config.get("penalty_max", 10)
   sprite_scale = config.get("sprite_scale", 0.24)
   hit_radius_scale = config.get("hit_radius_scale", 1.0)
+  key_world_index = config.get("key_world_index", -1)
 
 func _ready() -> void:
   add_to_group("monsters")
@@ -216,13 +218,15 @@ func die() -> void:
 
   await tween2.finished
 
-  _drop_item()
-
-  # 30% chance to drop a powerup
-  if randf() < 0.3:
-    var powerup = PowerupScene.instantiate()
-    powerup.position = position
-    get_parent().add_child(powerup)
+  if key_world_index >= 0:
+    _drop_key()
+  else:
+    _drop_item()
+    # 30% chance to drop a powerup
+    if randf() < 0.3:
+      var powerup = PowerupScene.instantiate()
+      powerup.position = position
+      get_parent().add_child(powerup)
 
   queue_free()
 
@@ -244,6 +248,16 @@ func _drop_item() -> void:
   var item = DroppedItemScene.instantiate()
   item.setup(drop.item_id, tex, player)
   item.position = position  # 같은 부모(WorldRoot) 기준 로컬 좌표
+  get_parent().add_child(item)
+
+func _drop_key() -> void:
+  var player = get_tree().get_first_node_in_group("player")
+  if not player:
+    return
+  var item = DroppedItemScene.instantiate()
+  item.setup_key(key_world_index, player)
+  item.ends_session = true
+  item.position = position
   get_parent().add_child(item)
 
 func _roll_drop() -> Variant:

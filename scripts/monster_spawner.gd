@@ -121,6 +121,22 @@ const MONSTER_TYPES: Array = [
 	},
 ]
 
+const FURY_BOSS_TYPES: Dictionary = {
+	0: {
+		"type": "slime",
+		"sprite_path": "res://resources/images/monster/slime/",
+		"max_health": 40,
+		"wander_speed": 50,
+		"sprite_scale": 0.96,
+		"drop_table": [],
+		"has_lightning": true,
+		"penalty_min": 0,
+		"penalty_max": 0,
+		"spawn_weight": 1,
+		"hit_radius_scale": 1.2,
+	},
+}
+
 const WORLD_MONSTER_MAP: Array = [
 	["slime"],
 	["boar", "knight"],
@@ -140,6 +156,7 @@ var grass_spawner: Node2D = null
 func _ready() -> void:
 	call_deferred("_find_player_and_spawn")
 	GameManager.beast_rush_requested.connect(_on_beast_rush)
+	GameManager.fury_boss_requested.connect(_on_fury_boss_requested)
 
 func _process(delta: float) -> void:
 	if not spawned:
@@ -257,3 +274,14 @@ func _spawn_chest_at_chunk(chunk_coord: Vector2i) -> void:
 
 func _on_beast_rush() -> void:
 	_spawn_wave(10)
+
+func _on_fury_boss_requested() -> void:
+	var world = GameManager.selected_world
+	if not FURY_BOSS_TYPES.has(world):
+		return
+	var config = FURY_BOSS_TYPES[world].duplicate()
+	config["key_world_index"] = world + 1
+	var monster = MonsterScene.instantiate()
+	monster.setup(config)
+	monster.position = _get_offscreen_position()
+	get_parent().add_child(monster)

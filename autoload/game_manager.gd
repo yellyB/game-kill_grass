@@ -84,6 +84,14 @@ signal golden_bloom_requested()
 signal field_clear_requested()
 signal blackhole_requested()
 signal beast_rush_requested()
+signal fury_changed(value: float)
+signal fury_boss_requested()
+signal boss_key_collected(world_index: int)
+
+# 몬스터분노 시스템
+var fury: float = 0.0
+var session_key_acquired: int = -1  # 세션 중 보스 드롭 열쇠 (-1 = 없음)
+const FURY_MAX: float = 100.0
 
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
@@ -357,6 +365,14 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[1]  # 강한풀
   else:
     return grass_data_list[2]  # 완전 센풀
+
+func add_fury(amount: float) -> void:
+  fury = minf(fury + amount, FURY_MAX)
+  fury_changed.emit(fury)
+  if fury >= FURY_MAX:
+    fury_boss_requested.emit()
+    fury = 0.0
+    fury_changed.emit(fury)
 
 func add_money(amount: int) -> void:
   session_money = max(0, session_money + amount)
@@ -730,4 +746,6 @@ func reset_session_data() -> void:
   session_buff_move_speed = 0
   timed_buffs.clear()
   hit_penalty_active = false
+  fury = 0.0
+  session_key_acquired = -1
   session_money_changed.emit(0)

@@ -9,6 +9,7 @@ var target: Node2D = null  # Player to fly toward
 
 var is_key: bool = false
 var key_world_index: int = -1
+var ends_session: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
 
@@ -171,6 +172,9 @@ func _collect() -> void:
 
 	if is_key:
 		GameManager.add_key(key_world_index)
+		if ends_session:
+			GameManager.session_key_acquired = key_world_index
+			GameManager.boss_key_collected.emit(key_world_index)
 	else:
 		GameManager.add_item(item_id)
 	queue_free()
