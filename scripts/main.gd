@@ -288,6 +288,9 @@ func _on_back_to_menu_pressed() -> void:
 
 func _on_confirm_back_to_menu() -> void:
   get_tree().paused = false
+  var p = get_tree().get_first_node_in_group("player")
+  if p and p.has_method("_remove_hit_overlay"):
+    p._remove_hit_overlay()
   SessionManager.quit_to_menu()
 
 func _on_cancel_back_to_menu() -> void:
