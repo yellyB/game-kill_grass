@@ -43,6 +43,7 @@ var hit_radius: float = 15.0
 var sprite_scale: float = 0.24
 var hit_radius_scale: float = 1.0
 var key_world_index: int = -1  # >= 0 이면 사망 시 해당 월드 열쇠 드롭
+var is_boss_entering: bool = false  # 보스 등장 애니메이션 중
 var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
@@ -78,6 +79,10 @@ func _ready() -> void:
   hit_shape.shape = shape
   hit_radius = shape.radius
   _pick_new_wander()
+  # Scale lightning effect proportionally to sprite
+  if has_lightning and lightning_effect:
+    var lightning_scale = sprite_scale / 0.24
+    lightning_effect.scale = Vector2(lightning_scale, lightning_scale)
   # Disable lightning for non-slime monsters
   if not has_lightning and lightning_effect:
     lightning_effect.set_process(false)
@@ -101,6 +106,9 @@ func _load_texture_from_file(res_path: String) -> Texture2D:
   return null
 
 func _process(delta: float) -> void:
+  if is_boss_entering:
+    return
+
   # Animation
   frame_timer += delta
   if frame_timer >= FRAME_DURATION:
@@ -147,8 +155,40 @@ var knockback_velocity: Vector2 = Vector2.ZERO
 const KNOCKBACK_FRICTION: float = 5.0
 const ITEM_DROP_CHANCE: float = 0.7
 
+func play_boss_entrance() -> void:
+  is_boss_entering = true
+  # 스프라이트를 위로 올려놓고 떨어뜨리기
+  var drop_height = -600.0
+  sprite.position.y = drop_height
+  if shadow:
+    shadow.modulate.a = 0.1
+    shadow.scale = Vector2(sprite_scale * 0.2, sprite_scale * 0.08)
+  # 히트박스 비활성화 (착지까지)
+  hit_area.set_deferred("monitoring", false)
+  hit_area.set_deferred("monitorable", false)
+
+  # 떨어지는 애니메이션
+  var tween = create_tween()
+  tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+  tween.set_parallel(true)
+  tween.tween_property(sprite, "position:y", 0.0, 0.6).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+  if shadow:
+    tween.tween_property(shadow, "scale", Vector2(sprite_scale * 0.67, sprite_scale * 0.25), 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.tween_property(shadow, "modulate:a", 0.3, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+  await tween.finished
+
+  # 착지: 카메라 흔들림
+  var camera = get_tree().get_first_node_in_group("camera")
+  if camera and camera.has_method("shake"):
+    camera.shake(0.8)
+
+  # 히트박스 활성화 (행동 시작은 spawner가 is_boss_entering을 해제)
+  hit_area.set_deferred("monitoring", true)
+  hit_area.set_deferred("monitorable", true)
+
 func take_damage(amount: int, from_global_pos: Variant = null) -> void:
-  if is_dead:
+  if is_dead or is_boss_entering:
     return
   health -= amount
   sfx_hit.play()
