@@ -260,4 +260,4 @@ func _roll_drop() -> Variant:
   return drop_table[0]
 
 func _draw() -> void:
-  draw_arc(Vector2.ZERO, hit_radius, 0, TAU, 32, Color(1.0, 1.0, 0.0, 0.5), 2.0)
+  pass

@@ -708,12 +708,12 @@ func _create_circle_polygon(radius: float, segments: int) -> Polygon2D:
   return poly
 
 func _draw() -> void:
+  if not DEBUG_SHOW_RANGES:
+    return
+
   # Draw monster hit range (yellow)
   var body_radius = 40.0
   draw_arc(Vector2.ZERO, body_radius, 0, TAU, 32, Color(1.0, 1.0, 0.0, 0.5), 2.0)
-
-  if not DEBUG_SHOW_RANGES:
-    return
 
   # Draw coin magnet range (blue)
   var magnet_range = GameManager.get_magnet_range()
