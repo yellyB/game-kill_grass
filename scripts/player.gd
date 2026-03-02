@@ -132,12 +132,7 @@ func _process(delta: float) -> void:
     if invincible_timer <= 0:
       is_invincible = false
 
-  # Update attack area position
   input_direction = get_input_direction()
-  if input_direction != Vector2.ZERO:
-    attack_area.position = input_direction * (attack_radius * 0.5)
-  else:
-    attack_area.position = Vector2.ZERO
   input_direction_changed.emit(input_direction)
 
   if input_direction != Vector2.ZERO:
@@ -213,10 +208,7 @@ func try_attack() -> void:
   if not grass_spawner:
     return
 
-  # Calculate attack position (slightly in front of player in movement direction)
   var attack_center = global_position
-  if input_direction != Vector2.ZERO:
-    attack_center += input_direction * (attack_radius * 0.5)
 
   # Check if anything is in range before attacking
   if not _has_targets_in_range(attack_center, attack_radius):
