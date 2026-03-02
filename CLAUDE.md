@@ -171,7 +171,13 @@ scripts/
   monster_spawner.gd - 몬스터/상자 스폰 (월드별 몬스터 매핑)
   dropped_item.gd    - 드롭 아이템 (포물선 비행, 자석 수집, 열쇠/약 지원)
   chest.gd           - 상자 (파괴 시 열쇠/아이템 드롭)
-  lightning_effect.gd - 슬라임 번개 이펙트
+  effects/lightning_effect.gd      - 슬라임 번개 이펙트
+  effects/dust_cloud_effect.gd     - 멧돼지 먼지구름 이펙트
+  effects/spark_effect.gd          - 잔디 기사 금속 스파크 이펙트
+  effects/spore_effect.gd          - 마도사 포자 이펙트
+  effects/crystal_shimmer_effect.gd - 수정 사슴 반짝임 이펙트
+  effects/rock_debris_effect.gd    - 잔디 골렘 바위 파편 이펙트
+  effects/fire_wisp_effect.gd      - 드래곤 화염 이펙트
   prologue.gd        - 프롤로그 슬라이드쇼
   info_panel.gd      - 정보 패널 UI
   pause_menu.gd      - 일시정지 메뉴
@@ -188,6 +194,13 @@ scenes/
   world/monster.tscn        - 몬스터
   world/dropped_item.tscn   - 드롭 아이템
   world/chest.tscn          - 상자
+  effects/lightning_effect.tscn      - 번개 이펙트 씬
+  effects/dust_cloud_effect.tscn     - 먼지구름 이펙트 씬
+  effects/spark_effect.tscn          - 금속 스파크 이펙트 씬
+  effects/spore_effect.tscn          - 포자 이펙트 씬
+  effects/crystal_shimmer_effect.tscn - 수정 반짝임 이펙트 씬
+  effects/rock_debris_effect.tscn    - 바위 파편 이펙트 씬
+  effects/fire_wisp_effect.tscn      - 화염 이펙트 씬
   ui/main_menu.tscn         - 메인 메뉴
   ui/hud.tscn               - HUD
   ui/upgrade_panel.tscn     - 업그레이드 패널

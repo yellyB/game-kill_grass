@@ -20,11 +20,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 40},
 			{"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 70},
 		],
-		"has_lightning": true,
+		"effect_scene": "res://scenes/effects/lightning_effect.tscn",
 		"penalty_min": 1,
 		"penalty_max": 2,
 		"spawn_weight": 30,
-		"hit_radius_scale": 0.8,
+		"collision_shape": "res://resources/collision/slime.tres",
 	},
 	{
 		"type": "boar",
@@ -37,10 +37,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "굴러다니는 바퀴 잔해", "image_path": "res://resources/images/items/굴러다니는 바퀴 잔해.png", "weight": 50},
 			{"item_id": "과성장 생체 응축체", "image_path": "res://resources/images/items/과성장 생체 응축체.png", "weight": 25},
 		],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/dust_cloud_effect.tscn",
 		"penalty_min": 50,
 		"penalty_max": 120,
 		"spawn_weight": 20,
+		"collision_shape": "res://resources/collision/boar.tres",
 	},
 	{
 		"type": "knight",
@@ -52,11 +53,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "왜곡된 볼트 조각", "image_path": "res://resources/images/items/왜곡된 볼트 조각.png", "weight": 65},
 			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 35},
 		],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/spark_effect.tscn",
 		"penalty_min": 80,
 		"penalty_max": 150,
 		"spawn_weight": 20,
-		"hit_radius_scale": 0.85,
+		"collision_shape": "res://resources/collision/knight.tres",
 	},
 	{
 		"type": "mage",
@@ -68,11 +69,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "뒤틀린 시간 포자", "image_path": "res://resources/images/items/뒤틀린 시간 포자.png", "weight": 15},
 			{"item_id": "바람 머금은 잔디 섬유", "image_path": "res://resources/images/items/바람 머금은 잔디 섬유.png", "weight": 77},
 		],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/spore_effect.tscn",
 		"penalty_min": 400,
 		"penalty_max": 800,
 		"spawn_weight": 10,
-		"hit_radius_scale": 0.7,
+		"collision_shape": "res://resources/collision/mage.tres",
 	},
 	{
 		"type": "deer",
@@ -84,10 +85,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "투명 수정 파편", "image_path": "res://resources/images/items/투명 수정 파편.png", "weight": 89},
 			{"item_id": "강화 유리 결정핵", "image_path": "res://resources/images/items/강화 유리 결정핵.png", "weight": 18},
 		],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/crystal_shimmer_effect.tscn",
 		"penalty_min": 500,
 		"penalty_max": 1000,
 		"spawn_weight": 10,
+		"collision_shape": "res://resources/collision/deer.tres",
 	},
 	{
 		"type": "golem",
@@ -100,10 +102,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "압축된 이세계 철편", "image_path": "res://resources/images/items/압축된 이세계 철편.png", "weight": 52},
 			{"item_id": "침식된 백골 프레임", "image_path": "res://resources/images/items/침식된 백골 프레임.png", "weight": 39},
 		],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/rock_debris_effect.tscn",
 		"penalty_min": 6000,
 		"penalty_max": 12000,
 		"spawn_weight": 5,
+		"collision_shape": "res://resources/collision/golem.tres",
 	},
 	{
 		"type": "dragon",
@@ -115,10 +118,11 @@ const MONSTER_TYPES: Array = [
 			{"item_id": "과열된 엔진 심장", "image_path": "res://resources/images/items/과열된 엔진 심장.png", "weight": 33},
 			{"item_id": "드래곤 배기가스 결정", "image_path": "res://resources/images/items/드래곤 배기가스 결정.png", "weight": 67},
 		],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/fire_wisp_effect.tscn",
 		"penalty_min": 10000,
 		"penalty_max": 20000,
 		"spawn_weight": 3,
+		"collision_shape": "res://resources/collision/dragon.tres",
 	},
 ]
 
@@ -130,11 +134,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 50,
 		"sprite_scale": 0.96,
 		"drop_table": [],
-		"has_lightning": true,
+		"effect_scene": "res://scenes/effects/lightning_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
-		"hit_radius_scale": 0.84,
+		"collision_shape": "res://resources/collision/slime.tres",
+		"collision_base_scale": 0.24,
 	},
 	1: {
 		"type": "boar",
@@ -143,10 +148,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 60,
 		"sprite_scale": 0.84,
 		"drop_table": [],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/dust_cloud_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
+		"collision_shape": "res://resources/collision/boar.tres",
+		"collision_base_scale": 0.36,
 	},
 	2: {
 		"type": "knight",
@@ -155,11 +162,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 48,
 		"sprite_scale": 0.84,
 		"drop_table": [],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/spark_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
-		"hit_radius_scale": 0.85,
+		"collision_shape": "res://resources/collision/knight.tres",
+		"collision_base_scale": 0.36,
 	},
 	3: {
 		"type": "mage",
@@ -168,11 +176,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 54,
 		"sprite_scale": 0.96,
 		"drop_table": [],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/spore_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
-		"hit_radius_scale": 0.7,
+		"collision_shape": "res://resources/collision/mage.tres",
+		"collision_base_scale": 0.24,
 	},
 	4: {
 		"type": "deer",
@@ -181,10 +190,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 72,
 		"sprite_scale": 0.84,
 		"drop_table": [],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/crystal_shimmer_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
+		"collision_shape": "res://resources/collision/deer.tres",
+		"collision_base_scale": 0.36,
 	},
 	5: {
 		"type": "golem",
@@ -193,10 +204,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 40,
 		"sprite_scale": 0.96,
 		"drop_table": [],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/rock_debris_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
+		"collision_shape": "res://resources/collision/golem.tres",
+		"collision_base_scale": 0.48,
 	},
 	6: {
 		"type": "dragon",
@@ -205,10 +218,12 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"wander_speed": 80,
 		"sprite_scale": 0.96,
 		"drop_table": [],
-		"has_lightning": false,
+		"effect_scene": "res://scenes/effects/fire_wisp_effect.tscn",
 		"penalty_min": 0,
 		"penalty_max": 0,
 		"spawn_weight": 1,
+		"collision_shape": "res://resources/collision/dragon.tres",
+		"collision_base_scale": 0.48,
 	},
 }
 
@@ -225,6 +240,7 @@ const WORLD_MONSTER_MAP: Array = [
 # 청크당 상자 스폰 확률 (~10세션에 1개 = 1/(30청크*10세션) ≈ 0.003)
 const CHEST_CHUNK_CHANCE: float = 0.1
 var chest_on_field: bool = false
+var fury_boss_alive: bool = false
 
 var player: Node2D = null
 var spawned: bool = false
@@ -339,6 +355,8 @@ func _is_world_cleared(world: int) -> bool:
 	return GameManager.is_world_cleared(world)
 
 func _on_fury_boss_requested() -> void:
+	if fury_boss_alive:
+		return
 	var world = GameManager.selected_world
 	if not FURY_BOSS_TYPES.has(world):
 		return
@@ -364,6 +382,8 @@ func _on_fury_boss_requested() -> void:
 	# 씬 추가 전에 보스 등장 상태 설정 (움직임 방지)
 	monster.is_boss_entering = true
 	monster.visible = false
+	fury_boss_alive = true
+	monster.tree_exited.connect(func(): fury_boss_alive = false)
 	get_parent().add_child(monster)
 	# 1초 멈춤 + 보스 등장 애니메이션
 	_play_boss_entrance(monster)
