@@ -417,6 +417,17 @@ func _create_world_card(index: int) -> PanelContainer:
       monster_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
     info_vbox.add_child(monster_label)
 
+    var hp_m = GameManager.WORLD_GRASS_HP_MULT[index] if index < GameManager.WORLD_GRASS_HP_MULT.size() else 1.0
+    var rw_m = GameManager.WORLD_GRASS_REWARD_MULT[index] if index < GameManager.WORLD_GRASS_REWARD_MULT.size() else 1.0
+    var mult_label = Label.new()
+    mult_label.text = "체력 x%.1f  보상 x%.1f" % [hp_m, rw_m]
+    mult_label.add_theme_font_size_override("font_size", 18)
+    if unlocked:
+      mult_label.add_theme_color_override("font_color", Color(0.55, 0.6, 0.55))
+    else:
+      mult_label.add_theme_color_override("font_color", Color(0.35, 0.35, 0.42))
+    info_vbox.add_child(mult_label)
+
     # Cost / key status (locked with key)
     if not unlocked:
       var status_vbox = VBoxContainer.new()

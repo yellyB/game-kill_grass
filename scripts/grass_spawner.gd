@@ -221,14 +221,19 @@ func load_chunk(chunk_coord: Vector2i) -> void:
       if not grass_data.has(grid_pos):
         var gd = GameManager.get_random_grass_data()
         var base_regen = gd.regen_time if gd else 5.0
+        var is_golden = gd == GameManager.grass_data_list[3] if gd else false
+        var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
+        var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
+        var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
+        var scaled_value = int(round((randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1) * rw_mult))
         grass_data[grid_pos] = {
           "cut": false,
           "type": get_grass_type_index(gd),
-          "health": gd.max_health if gd else 1,
-          "max_health": gd.max_health if gd else 1,
+          "health": scaled_hp,
+          "max_health": scaled_hp,
           "regen_time": GameManager.get_grass_regen_time(base_regen),
           "regen_timer": 0.0,
-          "value": randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1
+          "value": scaled_value
         }
         positions.append(grid_pos)
 
@@ -268,13 +273,18 @@ func process_regen(delta: float) -> void:
         # Regenerate with new random type
         var gd = GameManager.get_random_grass_data()
         var base_regen = gd.regen_time if gd else 5.0
+        var is_golden = gd == GameManager.grass_data_list[3] if gd else false
+        var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
+        var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
+        var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
         data.cut = false
         data.type = get_grass_type_index(gd)
-        data.health = gd.max_health if gd else 1
-        data.max_health = gd.max_health if gd else 1
+        data.health = scaled_hp
+        data.max_health = scaled_hp
         data.regen_time = GameManager.get_grass_regen_time(base_regen)
         data.regen_timer = 0.0
-        data.value = randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1
+        data.value = int(round((randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1) * rw_mult))
+
 
 func _get_grass_color(grass_type: int) -> Color:
   # 황금풀(3): 월드 무관 샛노란색 + alpha 마커(셰이더 반짝이용)
