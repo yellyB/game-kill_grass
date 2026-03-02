@@ -764,12 +764,9 @@ func _update_skill_description() -> void:
   var stat_text = ""
   match selected_type:
     "grass_density":
-      var current_val = GameManager.get_grass_min_spacing()
-      var temp = GameManager.upgrade_levels["grass_density"]
-      GameManager.upgrade_levels["grass_density"] += 1
-      var next_val = GameManager.get_grass_min_spacing()
-      GameManager.upgrade_levels["grass_density"] = temp
-      stat_text = "풀 간격: %.1f → %.1f" % [current_val, next_val]
+      var cur_grass = _calc_grass_per_chunk(current_level)
+      var next_grass = _calc_grass_per_chunk(current_level + 1)
+      stat_text = "청크당 풀: %d → %d" % [cur_grass, next_grass]
     "grass_quality":
       stat_text = "등급 레벨: %d → %d" % [current_level, current_level + 1]
     "grass_regen":
@@ -944,3 +941,14 @@ func _position_bottom_section() -> void:
   description_panel.offset_top = description_panel.offset_bottom - desc_height
   # SkillTreeScroll ends before DescriptionPanel
   skill_tree_scroll.offset_bottom = description_panel.offset_top - gap
+
+func _calc_grass_per_chunk(density_level: int) -> int:
+  var grass_spawner = get_tree().get_first_node_in_group("grass_spawner")
+  var grid_cell = 115.0
+  var chunk = 400.0
+  if grass_spawner:
+    grid_cell = grass_spawner.grid_cell_size
+    chunk = grass_spawner.chunk_size
+  var cell_size = grid_cell * 2.5 / (1.0 + density_level * 0.525)
+  var cells_per_side = int(chunk / cell_size)
+  return cells_per_side * cells_per_side
