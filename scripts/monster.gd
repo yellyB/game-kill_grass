@@ -42,6 +42,7 @@ var penalty_max: int = 10
 var sprite_scale: float = 0.24
 var collision_shape_path: String = ""
 var collision_base_scale: float = 0.0
+var collision_rotation: float = 0.0
 var key_world_index: int = -1  # >= 0 이면 사망 시 해당 월드 열쇠 드롭
 var boss_reward: int = 0  # > 0 이면 사망 시 해당 금액 코인 드롭 (클리어 후 보상)
 var boss_potion: String = ""  # 비어있지 않으면 사망 시 해당 아이템 드롭
@@ -60,6 +61,7 @@ func setup(config: Dictionary) -> void:
   sprite_scale = config.get("sprite_scale", 0.24)
   collision_shape_path = config.get("collision_shape", "")
   collision_base_scale = config.get("collision_base_scale", 0.0)
+  collision_rotation = config.get("collision_rotation", 0.0)
   key_world_index = config.get("key_world_index", -1)
   boss_reward = config.get("boss_reward", 0)
   boss_potion = config.get("boss_potion", "")
@@ -81,6 +83,7 @@ func _ready() -> void:
   if collision_shape_path != "":
     var shape_res = load(collision_shape_path)
     hit_shape.shape = shape_res.duplicate()
+    hit_shape.rotation = collision_rotation
     # Scale collision for bosses: .tres is designed at base sprite_scale
     if collision_base_scale > 0 and abs(sprite_scale - collision_base_scale) > 0.001:
       var s = sprite_scale / collision_base_scale

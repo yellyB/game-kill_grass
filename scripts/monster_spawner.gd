@@ -25,6 +25,7 @@ const MONSTER_TYPES: Array = [
 		"penalty_max": 2,
 		"spawn_weight": 30,
 		"collision_shape": "res://resources/collision/slime.tres",
+		"collision_rotation": PI / 2.0,
 	},
 	{
 		"type": "boar",
@@ -42,6 +43,7 @@ const MONSTER_TYPES: Array = [
 		"penalty_max": 120,
 		"spawn_weight": 20,
 		"collision_shape": "res://resources/collision/boar.tres",
+		"collision_rotation": PI / 2.0,
 	},
 	{
 		"type": "knight",
@@ -140,6 +142,7 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"spawn_weight": 1,
 		"collision_shape": "res://resources/collision/slime.tres",
 		"collision_base_scale": 0.24,
+		"collision_rotation": PI / 2.0,
 	},
 	1: {
 		"type": "boar",
@@ -154,6 +157,7 @@ const FURY_BOSS_TYPES: Dictionary = {
 		"spawn_weight": 1,
 		"collision_shape": "res://resources/collision/boar.tres",
 		"collision_base_scale": 0.36,
+		"collision_rotation": PI / 2.0,
 	},
 	2: {
 		"type": "knight",
