@@ -172,9 +172,10 @@ func _collect() -> void:
 
 	if is_key:
 		GameManager.add_key(key_world_index)
-		if ends_session:
-			GameManager.session_key_acquired = key_world_index
-			GameManager.boss_key_collected.emit(key_world_index)
 	else:
 		GameManager.add_item(item_id)
+
+	if ends_session:
+		GameManager.session_key_acquired = key_world_index
+		GameManager.boss_key_collected.emit(key_world_index)
 	queue_free()
