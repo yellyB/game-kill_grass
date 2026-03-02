@@ -132,7 +132,7 @@ func _on_powerup_acquired(type: String, level: int) -> void:
   if type in PERSISTENT_BUFFS:
     _update_perm_buff(type, level)
 
-const WORLD_NAMES: Array = ["슬라임 늪", "들판", "마법의 숲", "용의 봉우리"]
+const WORLD_NAMES: Array = ["슬라임 늪", "들판", "기사의 성벽", "마법의 숲", "수정 호수", "고대 유적", "용의 봉우리"]
 
 func _on_key_acquired(world_index: int) -> void:
   var world_name = WORLD_NAMES[world_index] if world_index < WORLD_NAMES.size() else "월드 %d" % world_index

@@ -19,7 +19,7 @@ var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
 var prologue_seen: bool = false
-const WORLD_UNLOCK_COSTS: Array = [0, 2000, 10000, 50000]
+const WORLD_UNLOCK_COSTS: Array = [0, 2000, 5000, 10000, 25000, 50000, 80000]
 
 signal world_unlocked(index: int)
 signal key_acquired(world_index: int)

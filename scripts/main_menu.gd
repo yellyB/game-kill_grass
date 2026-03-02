@@ -23,9 +23,12 @@ var _debug_last_tap_time: float = 0.0
 
 const WORLD_DATA: Array = [
   {"name": "슬라임 늪", "monsters": "슬라임"},
-  {"name": "들판", "monsters": "멧돼지, 잔디 기사"},
-  {"name": "마법의 숲", "monsters": "마도사, 수정 사슴"},
-  {"name": "용의 봉우리", "monsters": "잔디 골렘, 드래곤"},
+  {"name": "들판", "monsters": "멧돼지"},
+  {"name": "기사의 성벽", "monsters": "잔디 기사"},
+  {"name": "마법의 숲", "monsters": "마도사"},
+  {"name": "수정 호수", "monsters": "수정 사슴"},
+  {"name": "고대 유적", "monsters": "잔디 골렘"},
+  {"name": "용의 봉우리", "monsters": "드래곤"},
 ]
 
 func _ready() -> void:
