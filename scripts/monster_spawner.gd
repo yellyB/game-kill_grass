@@ -330,13 +330,34 @@ func _spawn_chest_at_chunk(chunk_coord: Vector2i) -> void:
 func _on_beast_rush() -> void:
 	_spawn_wave(10)
 
+# 보스 처치 보상 (클리어 후 반복 플레이 시 코인 보상, 고정값)
+const BOSS_CLEAR_REWARDS: Array = [0, 30, 500, 1000, 2500, 5000, 8000]
+
+const LAST_WORLD_POTION: String = "졸음 약"
+
+func _is_world_cleared(world: int) -> bool:
+	var next = world + 1
+	var is_last = next >= GameManager.WORLD_UNLOCK_COSTS.size()
+	if is_last:
+		# 마지막 월드: 졸음 약을 이미 갖고 있으면 클리어
+		return GameManager.get_item_count(LAST_WORLD_POTION) >= 1
+	return next in GameManager.unlocked_worlds or GameManager.has_key(next)
+
 func _on_fury_boss_requested() -> void:
 	var world = GameManager.selected_world
 	if not FURY_BOSS_TYPES.has(world):
 		return
 	var config = FURY_BOSS_TYPES[world].duplicate()
-	# 마지막 월드가 아니면 다음 월드 열쇠 드롭
-	if world + 1 < GameManager.WORLD_UNLOCK_COSTS.size():
+	var is_last = world + 1 >= GameManager.WORLD_UNLOCK_COSTS.size()
+	if _is_world_cleared(world):
+		# 이미 클리어한 월드: 코인 보상
+		var reward = BOSS_CLEAR_REWARDS[world] if world < BOSS_CLEAR_REWARDS.size() else 0
+		config["boss_reward"] = reward
+	elif is_last:
+		# 마지막 월드 첫 클리어: 졸음 약 드롭
+		config["boss_potion"] = LAST_WORLD_POTION
+	elif world + 1 < GameManager.WORLD_UNLOCK_COSTS.size():
+		# 첫 클리어: 다음 월드 열쇠 드롭
 		config["key_world_index"] = world + 1
 	var monster = MonsterScene.instantiate()
 	monster.setup(config)

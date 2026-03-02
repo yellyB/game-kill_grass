@@ -43,6 +43,8 @@ var hit_radius: float = 15.0
 var sprite_scale: float = 0.24
 var hit_radius_scale: float = 1.0
 var key_world_index: int = -1  # >= 0 이면 사망 시 해당 월드 열쇠 드롭
+var boss_reward: int = 0  # > 0 이면 사망 시 해당 금액 코인 드롭 (클리어 후 보상)
+var boss_potion: String = ""  # 비어있지 않으면 사망 시 해당 아이템 드롭
 var is_boss_entering: bool = false  # 보스 등장 애니메이션 중
 var sfx_hit: AudioStreamPlayer
 
@@ -58,6 +60,8 @@ func setup(config: Dictionary) -> void:
   sprite_scale = config.get("sprite_scale", 0.24)
   hit_radius_scale = config.get("hit_radius_scale", 1.0)
   key_world_index = config.get("key_world_index", -1)
+  boss_reward = config.get("boss_reward", 0)
+  boss_potion = config.get("boss_potion", "")
 
 func _ready() -> void:
   add_to_group("monsters")
@@ -260,6 +264,10 @@ func die() -> void:
 
   if key_world_index >= 0:
     _drop_key()
+  elif boss_potion != "":
+    _drop_potion()
+  elif boss_reward > 0:
+    _drop_boss_reward()
   else:
     _drop_item()
     # 30% chance to drop a powerup
@@ -288,6 +296,23 @@ func _drop_item() -> void:
   var item = DroppedItemScene.instantiate()
   item.setup(drop.item_id, tex, player)
   item.position = position  # 같은 부모(WorldRoot) 기준 로컬 좌표
+  get_parent().add_child(item)
+
+func _drop_boss_reward() -> void:
+  GameManager.add_money(boss_reward)
+  var FloatingTextScene = preload("res://scenes/ui/floating_text.tscn")
+  var ft = FloatingTextScene.instantiate()
+  ft.position = position
+  get_parent().add_child(ft)
+  ft.setup(boss_reward)
+
+func _drop_potion() -> void:
+  var player = get_tree().get_first_node_in_group("player")
+  if not player:
+    return
+  var item = DroppedItemScene.instantiate()
+  item.setup_potion(boss_potion, player)
+  item.position = position
   get_parent().add_child(item)
 
 func _drop_key() -> void:
