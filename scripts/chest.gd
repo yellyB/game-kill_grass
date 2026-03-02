@@ -1,10 +1,7 @@
 extends Node2D
 
-const DroppedItemScene = preload("res://scenes/world/dropped_item.tscn")
+const PowerupScene = preload("res://scenes/world/powerup.tscn")
 const SFX_BREAK = preload("res://resources/sounds/effect/wood_box_break.wav")
-
-var key_world_index: int = -1
-var drop_item_id: String = ""  # 비어있으면 열쇠, 있으면 해당 아이템 드롭
 var health: int = 1
 var is_dead: bool = false
 
@@ -59,14 +56,6 @@ func die() -> void:
 	queue_free()
 
 func _drop_loot() -> void:
-	var player = get_tree().get_first_node_in_group("player")
-	if not player:
-		return
-
-	var item = DroppedItemScene.instantiate()
-	if drop_item_id != "":
-		item.setup_potion(drop_item_id, player)
-	else:
-		item.setup_key(key_world_index, player)
-	item.position = position
-	get_parent().add_child(item)
+	var powerup = PowerupScene.instantiate()
+	powerup.position = position
+	get_parent().add_child(powerup)

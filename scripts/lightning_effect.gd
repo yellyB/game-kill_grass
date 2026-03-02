@@ -2,8 +2,8 @@ extends Node2D
 
 @export var bolt_count: int = 3
 @export var bolt_radius: float = 18.0
-@export var bolt_length: float = 14.0
-@export var bolt_width: float = 2.0
+@export var bolt_length: float = 28.0
+@export var bolt_width: float = 0.5
 @export var spawn_interval: float = 0.15
 @export var bolt_color: Color = Color(1.0, 0.95, 0.3, 0.9)
 @export var bolt_bright_color: Color = Color(1.0, 1.0, 0.8, 1.0)
@@ -44,14 +44,14 @@ func _create_bolt() -> Dictionary:
 	var points: PackedVector2Array = []
 	points.append(start)
 
-	var segments = randi_range(2, 4)
+	var segments = randi_range(3, 6)
 	var seg_len = bolt_length / segments
 	var pos = start
 
 	for i in segments:
 		# Zigzag: alternate perpendicular offset
 		var perp = Vector2(-dir.y, dir.x)
-		var offset = perp * randf_range(-6.0, 6.0)
+		var offset = perp * randf_range(-4.0, 4.0)
 		pos += dir * seg_len + offset
 		points.append(pos)
 
@@ -74,10 +74,10 @@ func _draw() -> void:
 		var core = bolt_bright_color
 		core.a = alpha
 		for i in range(points.size() - 1):
-			draw_line(points[i], points[i + 1], core, bolt_width + 1.0, true)
+			draw_line(points[i], points[i + 1], core, bolt_width, true)
 
 		# Yellow outer
 		var outer = bolt_color
 		outer.a = alpha * 0.8
 		for i in range(points.size() - 1):
-			draw_line(points[i], points[i + 1], outer, bolt_width + 3.0, true)
+			draw_line(points[i], points[i + 1], outer, bolt_width + 0.8, true)
