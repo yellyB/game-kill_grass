@@ -139,7 +139,7 @@ func _ready() -> void:
   update_money_display()
 
   # Button styles
-  close_btn.icon = preload("res://resources/images/icon/back.png")
+  close_btn.icon = preload("res://resources/images/icon/go_back.png")
   close_btn.expand_icon = true
   GameManager.style_button(close_btn, "muted")
   _position_close_btn()

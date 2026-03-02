@@ -21,8 +21,8 @@ const BGM_PATHS: Array = [
 @onready var session_earnings_label: Label = $BackToMenuUI/SessionEndOverlay/SessionEarningsLabel
 @onready var bonus_label: Label = $BackToMenuUI/SessionEndOverlay/BonusLabel
 @onready var tap_to_return_label: Label = $BackToMenuUI/SessionEndOverlay/TapToReturnLabel
-@onready var timer_label: Label = $HUD/PaddedArea/TimerLabel
-@onready var timer_progress: ProgressBar = $HUD/PaddedArea/TimerProgressBar
+@onready var timer_label: Label = $HUD/PaddedArea/TimerHBox/TimerLabel
+@onready var timer_progress: ProgressBar = $HUD/PaddedArea/TimerHBox/TimerProgressBar
 
 var session_time_remaining: float = SESSION_TIME
 var session_ended: bool = false
@@ -42,6 +42,10 @@ func _ready() -> void:
   confirm_dialog.dialog_cancelled.connect(_on_cancel_back_to_menu)
 
   # Button styles
+  back_to_menu_btn.text = ""
+  back_to_menu_btn.icon = preload("res://resources/images/icon/go_home.png")
+  back_to_menu_btn.expand_icon = true
+  back_to_menu_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
   GameManager.style_button(back_to_menu_btn, "muted")
 
   # Setup session end overlay
