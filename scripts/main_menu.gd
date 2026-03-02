@@ -378,11 +378,13 @@ func _create_world_card(index: int) -> PanelContainer:
   else:
     var hbox = HBoxContainer.new()
     hbox.add_theme_constant_override("separation", 14)
+    hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
     card.add_child(hbox)
 
     # Status icon
     var icon_label = Label.new()
     icon_label.add_theme_font_size_override("font_size", 40)
+    icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       icon_label.text = "O"
       icon_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55))
@@ -395,11 +397,13 @@ func _create_world_card(index: int) -> PanelContainer:
     var info_vbox = VBoxContainer.new()
     info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     info_vbox.add_theme_constant_override("separation", 4)
+    info_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
     hbox.add_child(info_vbox)
 
     var name_label = Label.new()
     name_label.text = world.name
     name_label.add_theme_font_size_override("font_size", 35)
+    name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
     else:
@@ -411,31 +415,66 @@ func _create_world_card(index: int) -> PanelContainer:
     var monster_label = Label.new()
     monster_label.text = world.monsters
     monster_label.add_theme_font_size_override("font_size", 22)
+    monster_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       monster_label.add_theme_color_override("font_color", Color(0.62, 0.7, 0.66))
     else:
       monster_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
     info_vbox.add_child(monster_label)
 
-    var hp_m = GameManager.WORLD_GRASS_HP_MULT[index] if index < GameManager.WORLD_GRASS_HP_MULT.size() else 1.0
-    var rw_m = GameManager.WORLD_GRASS_REWARD_MULT[index] if index < GameManager.WORLD_GRASS_REWARD_MULT.size() else 1.0
+    var base_hp = GameManager.WORLD_GRASS_HP_MULT[index] if index < GameManager.WORLD_GRASS_HP_MULT.size() else 1.0
+    var base_rw = GameManager.WORLD_GRASS_REWARD_MULT[index] if index < GameManager.WORLD_GRASS_REWARD_MULT.size() else 1.0
+    var strength = GameManager.get_world_strength_level(index)
+    var hp_m = base_hp * (1.0 + strength * 0.3)
+    var rw_m = base_rw * (1.0 + strength * 0.5)
     var mult_label = Label.new()
     mult_label.text = "체력 x%.1f  보상 x%.1f" % [hp_m, rw_m]
     mult_label.add_theme_font_size_override("font_size", 18)
+    mult_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       mult_label.add_theme_color_override("font_color", Color(0.55, 0.6, 0.55))
     else:
       mult_label.add_theme_color_override("font_color", Color(0.35, 0.35, 0.42))
     info_vbox.add_child(mult_label)
 
+    # 초월 UI (클리어된 월드만)
+    if unlocked and GameManager.is_world_cleared(index):
+      var str_vbox = VBoxContainer.new()
+      str_vbox.add_theme_constant_override("separation", 4)
+      str_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+      str_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      hbox.add_child(str_vbox)
+
+      if strength > 0:
+        var str_label = Label.new()
+        str_label.text = "초월 Lv.%d" % strength
+        str_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        str_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        str_label.add_theme_font_size_override("font_size", 20)
+        str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+        str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+        str_label.add_theme_constant_override("outline_size", 2)
+        str_vbox.add_child(str_label)
+
+      var str_btn = Button.new()
+      str_btn.text = "초월"
+      str_btn.add_theme_font_size_override("font_size", 18)
+      str_btn.custom_minimum_size = Vector2(120, 40)
+      str_btn.z_index = 1
+      str_btn.pressed.connect(_on_strengthen_pressed.bind(index))
+      GameManager.style_button(str_btn, "main")
+      str_vbox.add_child(str_btn)
+
     # Cost / key status (locked with key)
     if not unlocked:
       var status_vbox = VBoxContainer.new()
       status_vbox.add_theme_constant_override("separation", 2)
+      status_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
       hbox.add_child(status_vbox)
 
       var cost_color = Color(1, 0.9, 0.3) if GameManager.money >= cost else Color(0.5, 0.4, 0.4)
       var cost_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 30, cost_color)
+      cost_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
       status_vbox.add_child(cost_hbox)
 
       var key_label = Label.new()
@@ -443,9 +482,11 @@ func _create_world_card(index: int) -> PanelContainer:
       key_label.add_theme_font_size_override("font_size", 22)
       key_label.text = "열쇠 O"
       key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
+      key_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
       status_vbox.add_child(key_label)
 
   # Clickable overlay button (disabled for fully locked worlds)
+  # 초월 버튼보다 먼저 추가하여, 초월 버튼이 위에 오도록 함
   if not fully_locked:
     var btn = Button.new()
     btn.flat = true
@@ -454,6 +495,7 @@ func _create_world_card(index: int) -> PanelContainer:
     btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
     btn.pressed.connect(_on_world_card_pressed.bind(index))
     card.add_child(btn)
+    card.move_child(btn, 0)
 
   return card
 
@@ -462,6 +504,173 @@ func _on_world_card_pressed(index: int) -> void:
   _ws_selected = index
   _ws_rebuild_cards()
   _ws_update_action_btn()
+
+var _strengthen_dialog: Control = null
+
+func _on_strengthen_pressed(index: int) -> void:
+  GameManager.play_button_click()
+  _show_strengthen_dialog(index)
+
+func _show_strengthen_dialog(world: int) -> void:
+  if _strengthen_dialog:
+    _strengthen_dialog.queue_free()
+
+  var level = GameManager.get_world_strength_level(world)
+  var cost = GameManager.get_strengthen_cost(world)
+  var can_afford = GameManager.money >= cost
+
+  var base_hp = GameManager.WORLD_GRASS_HP_MULT[world] if world < GameManager.WORLD_GRASS_HP_MULT.size() else 1.0
+  var base_rw = GameManager.WORLD_GRASS_REWARD_MULT[world] if world < GameManager.WORLD_GRASS_REWARD_MULT.size() else 1.0
+  var cur_hp = base_hp * (1.0 + level * 0.3)
+  var cur_rw = base_rw * (1.0 + level * 0.5)
+  var next_hp = base_hp * (1.0 + (level + 1) * 0.3)
+  var next_rw = base_rw * (1.0 + (level + 1) * 0.5)
+
+  # Root overlay
+  var root = Control.new()
+  root.set_anchors_preset(Control.PRESET_FULL_RECT)
+  root.mouse_filter = Control.MOUSE_FILTER_STOP
+
+  var overlay = ColorRect.new()
+  overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+  overlay.color = Color(0, 0, 0, 0.6)
+  root.add_child(overlay)
+
+  # Dialog panel
+  var panel_style = StyleBoxFlat.new()
+  panel_style.bg_color = Color(0.15, 0.15, 0.2, 0.98)
+  panel_style.corner_radius_top_left = 15
+  panel_style.corner_radius_top_right = 15
+  panel_style.corner_radius_bottom_right = 15
+  panel_style.corner_radius_bottom_left = 15
+
+  var panel = Panel.new()
+  panel.set_anchors_preset(Control.PRESET_CENTER)
+  panel.offset_left = -300
+  panel.offset_top = -220
+  panel.offset_right = 300
+  panel.offset_bottom = 220
+  panel.add_theme_stylebox_override("panel", panel_style)
+  root.add_child(panel)
+
+  var vbox = VBoxContainer.new()
+  vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+  vbox.offset_left = 28
+  vbox.offset_top = 24
+  vbox.offset_right = -28
+  vbox.offset_bottom = -24
+  vbox.add_theme_constant_override("separation", 14)
+  panel.add_child(vbox)
+
+  # Title
+  var title = Label.new()
+  title.text = "초월 Lv.%d → Lv.%d" % [level, level + 1]
+  title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  title.add_theme_font_size_override("font_size", 32)
+  title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+  title.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  title.add_theme_constant_override("outline_size", 3)
+  vbox.add_child(title)
+
+  # Cost row
+  var cost_row = HBoxContainer.new()
+  cost_row.alignment = BoxContainer.ALIGNMENT_CENTER
+  cost_row.add_theme_constant_override("separation", 8)
+  var cost_label = Label.new()
+  cost_label.text = "비용  "
+  cost_label.add_theme_font_size_override("font_size", 28)
+  cost_label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8))
+  cost_row.add_child(cost_label)
+  var cost_color = Color(1, 0.9, 0.3) if can_afford else Color(0.8, 0.3, 0.3)
+  var coin_label = GameManager.create_coin_label(GameManager.format_number(cost), 28, cost_color)
+  cost_row.add_child(coin_label)
+  vbox.add_child(cost_row)
+
+  # Separator
+  var sep = HSeparator.new()
+  sep.add_theme_constant_override("separation", 4)
+  sep.add_theme_color_override("font_color", Color(0.3, 0.3, 0.35))
+  vbox.add_child(sep)
+
+  # Effects
+  var effects_vbox = VBoxContainer.new()
+  effects_vbox.add_theme_constant_override("separation", 6)
+
+  var hp_rt = RichTextLabel.new()
+  hp_rt.bbcode_enabled = true
+  hp_rt.fit_content = true
+  hp_rt.scroll_active = false
+  hp_rt.text = "[center]풀 체력   x%.1f → [color=#ff6655]x%.1f[/color][/center]" % [cur_hp, next_hp]
+  hp_rt.add_theme_font_size_override("normal_font_size", 25)
+  hp_rt.add_theme_color_override("default_color", Color(0.85, 0.85, 0.9))
+  effects_vbox.add_child(hp_rt)
+
+  var rw_rt = RichTextLabel.new()
+  rw_rt.bbcode_enabled = true
+  rw_rt.fit_content = true
+  rw_rt.scroll_active = false
+  rw_rt.text = "[center]풀 보상   x%.1f → [color=#ff6655]x%.1f[/color][/center]" % [cur_rw, next_rw]
+  rw_rt.add_theme_font_size_override("normal_font_size", 25)
+  rw_rt.add_theme_color_override("default_color", Color(0.85, 0.85, 0.9))
+  effects_vbox.add_child(rw_rt)
+
+  vbox.add_child(effects_vbox)
+
+  # Not enough money warning
+  if not can_afford:
+    var warn = Label.new()
+    warn.text = "돈이 부족합니다"
+    warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    warn.add_theme_font_size_override("font_size", 22)
+    warn.add_theme_color_override("font_color", Color(0.8, 0.3, 0.3))
+    vbox.add_child(warn)
+
+  # Spacer
+  var spacer = Control.new()
+  spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+  vbox.add_child(spacer)
+
+  # Buttons
+  var btn_row = HBoxContainer.new()
+  btn_row.add_theme_constant_override("separation", 20)
+  var confirm_btn = Button.new()
+  confirm_btn.text = "초월하기"
+  confirm_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  confirm_btn.custom_minimum_size = Vector2(0, 80)
+  confirm_btn.add_theme_font_size_override("font_size", 28)
+  confirm_btn.disabled = not can_afford
+  GameManager.style_button(confirm_btn, "main" if can_afford else "muted")
+  confirm_btn.pressed.connect(_on_strengthen_confirmed.bind(world))
+  btn_row.add_child(confirm_btn)
+
+  var cancel_btn = Button.new()
+  cancel_btn.text = "취소"
+  cancel_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  cancel_btn.custom_minimum_size = Vector2(0, 80)
+  cancel_btn.add_theme_font_size_override("font_size", 28)
+  GameManager.style_button(cancel_btn, "muted")
+  cancel_btn.pressed.connect(_on_strengthen_cancelled)
+  btn_row.add_child(cancel_btn)
+
+  vbox.add_child(btn_row)
+
+  _strengthen_dialog = root
+  add_child(root)
+
+func _on_strengthen_confirmed(world: int) -> void:
+  if _strengthen_dialog:
+    _strengthen_dialog.queue_free()
+    _strengthen_dialog = null
+  if GameManager.strengthen_world(world):
+    GameManager.play_skill_upgrade_sound()
+    update_money_display()
+    _ws_rebuild_cards()
+
+func _on_strengthen_cancelled() -> void:
+  GameManager.play_button_click()
+  if _strengthen_dialog:
+    _strengthen_dialog.queue_free()
+    _strengthen_dialog = null
 
 func _ws_update_action_btn() -> void:
   if _ws_action_btn == null:

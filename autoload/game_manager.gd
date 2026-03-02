@@ -21,17 +21,55 @@ var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
 var prologue_seen: bool = false
 const WORLD_UNLOCK_COSTS: Array = [0, 2000, 5000, 10000, 25000, 50000, 80000]
 
-# 월드별 풀 체력/보상 배율 (황금풀 제외)
-const WORLD_GRASS_HP_MULT: Array = [1.0, 1.3, 1.8, 2.5, 3.5, 5.0, 7.0]
-const WORLD_GRASS_REWARD_MULT: Array = [1.0, 1.5, 3.0, 5.0, 8.0, 14.0, 22.0]
+# 월드별 풀 체력/보상 기본 배율 (매 월드 x1.3 균일 증가, 황금풀 제외)
+const WORLD_GRASS_HP_MULT: Array = [1.0, 1.3, 1.69, 2.2, 2.86, 3.71, 4.83]
+const WORLD_GRASS_REWARD_MULT: Array = [1.0, 1.3, 1.69, 2.2, 2.86, 3.71, 4.83]
+
+# 월드 초월 시스템
+var world_strength_levels: Dictionary = {}  # {world_index: level}
+func is_world_cleared(world: int) -> bool:
+  var next = world + 1
+  var is_last = next >= WORLD_UNLOCK_COSTS.size()
+  if is_last:
+    return get_item_count("졸음 약") >= 1
+  return next in unlocked_worlds or has_key(next)
+
+func get_world_strength_level(world: int) -> int:
+  return world_strength_levels.get(world, 0)
+
+func get_strengthen_cost(world: int) -> int:
+  var next = world + 1
+  var base: int
+  if next < WORLD_UNLOCK_COSTS.size():
+    base = int(WORLD_UNLOCK_COSTS[next] * 1.2)
+  else:
+    base = int(WORLD_UNLOCK_COSTS[world] * 2.0)
+  var level = get_world_strength_level(world)
+  return int(base * pow(3, level))
+
+func strengthen_world(world: int) -> bool:
+  if not is_world_cleared(world):
+    return false
+  var cost = get_strengthen_cost(world)
+  if money < cost:
+    return false
+  money -= cost
+  world_strength_levels[world] = get_world_strength_level(world) + 1
+  money_changed.emit(money)
+  SaveManager.save_game()
+  return true
 
 func get_world_grass_hp_mult() -> float:
   var w = selected_world
-  return WORLD_GRASS_HP_MULT[w] if w < WORLD_GRASS_HP_MULT.size() else 1.0
+  var base = WORLD_GRASS_HP_MULT[w] if w < WORLD_GRASS_HP_MULT.size() else 1.0
+  var strength = get_world_strength_level(w)
+  return base * (1.0 + strength * 0.3)
 
 func get_world_grass_reward_mult() -> float:
   var w = selected_world
-  return WORLD_GRASS_REWARD_MULT[w] if w < WORLD_GRASS_REWARD_MULT.size() else 1.0
+  var base = WORLD_GRASS_REWARD_MULT[w] if w < WORLD_GRASS_REWARD_MULT.size() else 1.0
+  var strength = get_world_strength_level(w)
+  return base * (1.0 + strength * 0.5)
 
 signal world_unlocked(index: int)
 signal key_acquired(world_index: int)
@@ -715,6 +753,7 @@ func get_save_data() -> Dictionary:
     "owned_keys": owned_keys,
     "truck_assembled": truck_assembled,
     "prologue_seen": prologue_seen,
+    "world_strength_levels": world_strength_levels.duplicate(),
   }
 
 func load_save_data(data: Dictionary) -> void:
@@ -742,6 +781,11 @@ func load_save_data(data: Dictionary) -> void:
   owned_keys = []
   for k in saved_keys:
     owned_keys.append(int(k))
+  # 월드 초월 레벨 복원 (JSON 키는 문자열이므로 int 변환)
+  world_strength_levels = {}
+  var saved_strength = data.get("world_strength_levels", {})
+  for k in saved_strength:
+    world_strength_levels[int(k)] = int(saved_strength[k])
   money_changed.emit(money)
   inventory_changed.emit()
 

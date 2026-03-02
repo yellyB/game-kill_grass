@@ -336,12 +336,7 @@ const BOSS_CLEAR_REWARDS: Array = [0, 30, 500, 1000, 2500, 5000, 8000]
 const LAST_WORLD_POTION: String = "졸음 약"
 
 func _is_world_cleared(world: int) -> bool:
-	var next = world + 1
-	var is_last = next >= GameManager.WORLD_UNLOCK_COSTS.size()
-	if is_last:
-		# 마지막 월드: 졸음 약을 이미 갖고 있으면 클리어
-		return GameManager.get_item_count(LAST_WORLD_POTION) >= 1
-	return next in GameManager.unlocked_worlds or GameManager.has_key(next)
+	return GameManager.is_world_cleared(world)
 
 func _on_fury_boss_requested() -> void:
 	var world = GameManager.selected_world
