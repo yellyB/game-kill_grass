@@ -65,8 +65,7 @@ const GRID_SIDE: int = 15  # 15x15 = 225 slots per chunk
 const BASE_GRASS_PER_CHUNK: int = 1  # Lv.0 starting count
 
 func get_grass_per_chunk() -> int:
-  var density_level = GameManager.get_grass_density_level()
-  return mini(BASE_GRASS_PER_CHUNK + density_level, GRID_SIDE * GRID_SIDE)
+  return mini(GameManager.get_grass_density_value(), GRID_SIDE * GRID_SIDE)
 
 var player: Node2D = null
 var player_attack_area: Area2D = null
@@ -432,8 +431,12 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
   var hit_count = 0
   var total_max_health = 0
   var attacked_positions: Array = []
-  var damage = WeaponManager.get_weapon_damage()
-  var max_targets = WeaponManager.get_weapon_max_targets()
+  var base_damage = WeaponManager.get_weapon_damage()
+  var is_crit = randf() < GameManager.get_crit_chance()
+  var damage = base_damage
+  if is_crit:
+    damage = roundi(base_damage * GameManager.get_crit_damage_mult())
+  var max_targets = GameManager.get_attack_count()
 
   # Remove invalid locked targets (cut, out of range, unloaded)
   locked_targets = locked_targets.filter(func(grid_pos):
@@ -497,9 +500,13 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
     if grass_data.has(grid_pos):
       var gd = GameManager.grass_data_list[grass_data[grid_pos].type]
       if gd.guaranteed_drop or randf() < GameManager.get_grass_drop_chance():
-        spawn_coin(pos, grass_data[grid_pos].value)
+        var coin_value = grass_data[grid_pos].value
+        # 황금풀(type 3)에 보상 배율 적용
+        if grass_data[grid_pos].type == 3:
+          coin_value = roundi(coin_value * GameManager.get_golden_reward_mult())
+        spawn_coin(pos, coin_value)
 
-  return {"value": total_value, "hit": hit_count > 0, "fury": total_max_health}
+  return {"value": total_value, "hit": hit_count > 0, "fury": total_max_health, "crit": is_crit and hit_count > 0}
 
 func spawn_coin(pos: Vector2, value: int) -> void:
   var CoinScene = preload("res://scenes/world/coin.tscn")

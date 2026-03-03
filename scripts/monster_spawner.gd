@@ -127,7 +127,8 @@ func _find_player() -> void:
   player = get_tree().get_first_node_in_group("player")
 
 func _on_new_chunk_entered(chunk_coord: Vector2i) -> void:
-  if randf() > CHEST_CHUNK_CHANCE:
+  var chest_chance = GameManager.get_chest_spawn_chance()
+  if chest_chance <= 0.0 or randf() > chest_chance:
     return
   _spawn_chest_at_chunk(chunk_coord)
 

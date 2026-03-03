@@ -215,8 +215,9 @@ func try_attack() -> void:
     return
 
   can_attack = false
-  var weapon_speed = GameManager.get_session_attack_speed_mult()
-  var wait = 0.7 / weapon_speed
+  var base_interval = GameManager.get_attack_interval()
+  var speed_mult = GameManager.get_session_attack_speed_mult()
+  var wait = base_interval / speed_mult
   attack_timer.wait_time = wait
   attack_timer.start()
 
@@ -280,9 +281,9 @@ func swing_weapon(target_pos: Vector2) -> void:
   is_swinging = false
 
 func update_attack_range() -> void:
-  const BASE_ATTACK_RANGE: float = 60.0
-  var weapon_range = GameManager.get_session_attack_range_mult()
-  attack_radius = BASE_ATTACK_RANGE * weapon_range
+  var base_range = GameManager.get_attack_range()
+  var session_mult = GameManager.get_session_attack_range_mult()
+  attack_radius = base_range * session_mult
   if attack_shape and attack_shape.shape:
     (attack_shape.shape as CircleShape2D).radius = attack_radius
 
@@ -314,7 +315,12 @@ func create_weapon_sprite() -> Sprite2D:
 
 
 func _attack_monsters_in_area(_center: Vector2, _radius: float) -> void:
-  var damage = WeaponManager.get_weapon_damage()
+  var base_damage = WeaponManager.get_weapon_damage()
+  var monster_mult = GameManager.get_monster_damage_mult()
+  var is_crit = randf() < GameManager.get_crit_chance()
+  var damage = roundi(base_damage * monster_mult)
+  if is_crit:
+    damage = roundi(damage * GameManager.get_crit_damage_mult())
   for area in attack_area.get_overlapping_areas():
     var target = area.get_parent()
     if is_instance_valid(target) and target.has_method("take_damage"):

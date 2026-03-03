@@ -866,6 +866,109 @@ func update_description() -> void:
     return
   _update_skill_description()
 
+# 1틱 진행 시뮬레이션: sub_level+1, 넘치면 level+1 & sub_level=0
+func _simulate_next_tick(type: String) -> void:
+  var sub_max = GameManager.get_skill_sub_max(type)
+  GameManager.upgrade_sub_levels[type] = GameManager.upgrade_sub_levels.get(type, 0) + 1
+  if GameManager.upgrade_sub_levels[type] >= sub_max:
+    GameManager.upgrade_sub_levels[type] = 0
+    GameManager.upgrade_levels[type] = GameManager.upgrade_levels.get(type, 0) + 1
+
+func _restore_tick(type: String, saved_level: int, saved_sub: int) -> void:
+  GameManager.upgrade_levels[type] = saved_level
+  GameManager.upgrade_sub_levels[type] = saved_sub
+
+func _get_skill_stat_text(type: String) -> String:
+  var saved_level = GameManager.upgrade_levels.get(type, 0)
+  var saved_sub = GameManager.upgrade_sub_levels.get(type, 0)
+  var ticks = GameManager.get_skill_total_progress(type)
+  var def = GameManager.get_skill_def(type)
+  var max_ticks = def.get("sub_max", 5) * def.get("max_level", 1)
+  var is_maxed = ticks >= max_ticks
+
+  # Simulate next tick
+  if not is_maxed:
+    _simulate_next_tick(type)
+  var next_ticks = GameManager.get_skill_total_progress(type)
+
+  var label := ""
+  var cur_str := ""
+  var nxt_str := ""
+
+  match type:
+    "attack_speed":
+      label = "공격 간격"
+      cur_str = "%.2f초" % maxf(0.1, 0.7 - ticks * 0.01)
+      nxt_str = "%.2f초" % maxf(0.1, 0.7 - next_ticks * 0.01)
+    "attack_range":
+      label = "범위"
+      cur_str = "%.0f" % (60.0 + ticks * 4.0)
+      nxt_str = "%.0f" % (60.0 + next_ticks * 4.0)
+    "attack_count":
+      label = "동시 타격"
+      var cur_v = maxi(1, roundi(1.0 + 49.0 * pow(float(ticks) / 40.0, 2.0))) if ticks > 0 else 1
+      var nxt_v = maxi(1, roundi(1.0 + 49.0 * pow(float(next_ticks) / 40.0, 2.0)))
+      cur_str = "%d개" % cur_v
+      nxt_str = "%d개" % nxt_v
+    "magnet_range":
+      label = "자석 범위"
+      cur_str = "%.0f" % (40.0 + ticks * 4.0)
+      nxt_str = "%.0f" % (40.0 + next_ticks * 4.0)
+    "grass_density":
+      label = "청크당 풀"
+      var cur_v = maxi(1, roundi(200.0 * pow(float(ticks) / 100.0, 3.0))) if ticks > 0 else 1
+      var nxt_v = maxi(1, roundi(200.0 * pow(float(next_ticks) / 100.0, 3.0)))
+      cur_str = "%d" % cur_v
+      nxt_str = "%d" % nxt_v
+    "grass_quality":
+      label = "유효 등급"
+      cur_str = "%.1f" % GameManager.QUALITY_EFFECTIVE[clampi(saved_level, 0, GameManager.QUALITY_EFFECTIVE.size() - 1)]
+      _restore_tick(type, saved_level, saved_sub)
+      if not is_maxed:
+        _simulate_next_tick(type)
+      var nxt_level = GameManager.upgrade_levels.get(type, 0)
+      nxt_str = "%.1f" % GameManager.QUALITY_EFFECTIVE[clampi(nxt_level, 0, GameManager.QUALITY_EFFECTIVE.size() - 1)]
+    "chest_chance":
+      label = "상자 확률"
+      cur_str = "%.1f%%" % (ticks * 0.2)
+      nxt_str = "%.1f%%" % (next_ticks * 0.2)
+    "crit_chance":
+      label = "치명타 확률"
+      cur_str = "%.0f%%" % (ticks * 2.0)
+      nxt_str = "%.0f%%" % minf(next_ticks * 2.0, 80.0)
+    "crit_damage":
+      label = "치명타 배율"
+      cur_str = "%.0f%%" % (120.0 + ticks * 2.0)
+      nxt_str = "%.0f%%" % (120.0 + next_ticks * 2.0)
+    "monster_damage":
+      label = "몬스터 피해"
+      cur_str = "%.0f%%" % ((1.0 + ticks * 0.1) * 100.0)
+      nxt_str = "%.0f%%" % ((1.0 + next_ticks * 0.1) * 100.0)
+    "fury_rate":
+      label = "분노 배율"
+      cur_str = "%.0f%%" % ((1.0 + ticks * 0.15) * 100.0)
+      nxt_str = "%.0f%%" % ((1.0 + next_ticks * 0.15) * 100.0)
+    "golden_chance":
+      label = "황금풀 확률"
+      cur_str = "%.1f%%" % (ticks * 0.1)
+      nxt_str = "%.1f%%" % (next_ticks * 0.1)
+    "golden_reward":
+      label = "황금풀 보상"
+      cur_str = "%.0f%%" % ((1.0 + ticks * 0.1) * 100.0)
+      nxt_str = "%.0f%%" % ((1.0 + next_ticks * 0.1) * 100.0)
+    "move_speed":
+      label = "이동 속도"
+      cur_str = "%.0f" % (300.0 + ticks * 5.0)
+      nxt_str = "%.0f" % (300.0 + next_ticks * 5.0)
+
+  _restore_tick(type, saved_level, saved_sub)
+
+  if label.is_empty():
+    return ""
+  if is_maxed:
+    return "%s: %s (MAX)" % [label, cur_str]
+  return "%s: %s → %s" % [label, cur_str, nxt_str]
+
 func _update_skill_description() -> void:
   var chain_info = _get_skill_chain(selected_type)
   if chain_info.is_empty():
@@ -874,49 +977,7 @@ func _update_skill_description() -> void:
   var current_level = _get_current_level(selected_type)
   var cost = GameManager.get_upgrade_cost(current_level, selected_type)
 
-  var stat_text = ""
-  match selected_type:
-    "grass_density":
-      var cur_grass = _calc_grass_per_chunk(current_level)
-      var next_grass = _calc_grass_per_chunk(current_level + 1)
-      stat_text = "청크당 풀: %d → %d" % [cur_grass, next_grass]
-    "grass_quality":
-      stat_text = "등급 레벨: %d → %d" % [current_level, current_level + 1]
-    "grass_regen":
-      var current_val = GameManager.get_grass_regen_time(22.0)
-      var temp = GameManager.upgrade_levels["grass_regen"]
-      GameManager.upgrade_levels["grass_regen"] += 1
-      var next_val = GameManager.get_grass_regen_time(22.0)
-      GameManager.upgrade_levels["grass_regen"] = temp
-      stat_text = "재생 시간: %.1f초 → %.1f초" % [current_val, next_val]
-    "grass_reward":
-      var current_mult = GameManager.get_grass_reward_multiplier()
-      var temp = GameManager.upgrade_levels["grass_reward"]
-      GameManager.upgrade_levels["grass_reward"] += 1
-      var next_mult = GameManager.get_grass_reward_multiplier()
-      GameManager.upgrade_levels["grass_reward"] = temp
-      stat_text = "보상 배율: x%.1f → x%.1f" % [current_mult, next_mult]
-    "penalty_reduce":
-      var current_pr = GameManager.get_part_penalty_mult() * 100
-      var temp_pr = GameManager.upgrade_levels["penalty_reduce"]
-      GameManager.upgrade_levels["penalty_reduce"] += 1
-      var next_pr = GameManager.get_part_penalty_mult() * 100
-      GameManager.upgrade_levels["penalty_reduce"] = temp_pr
-      stat_text = "패널티: %.0f%% → %.0f%%" % [current_pr, next_pr]
-    "grass_drop":
-      var current_drop = GameManager.get_grass_drop_chance() * 100
-      var temp_drop = GameManager.upgrade_levels["grass_drop"]
-      GameManager.upgrade_levels["grass_drop"] += 1
-      var next_drop = GameManager.get_grass_drop_chance() * 100
-      GameManager.upgrade_levels["grass_drop"] = temp_drop
-      stat_text = "드롭률: %.0f%% → %.0f%%" % [current_drop, next_drop]
-    "golden_chance":
-      var current_gc = GameManager.get_golden_grass_chance() * 100
-      var temp_gc = GameManager.upgrade_levels["golden_chance"]
-      GameManager.upgrade_levels["golden_chance"] += 1
-      var next_gc = GameManager.get_golden_grass_chance() * 100
-      GameManager.upgrade_levels["golden_chance"] = temp_gc
-      stat_text = "황금풀 확률: %.2f%% → %.2f%%" % [current_gc, next_gc]
+  var stat_text = _get_skill_stat_text(selected_type)
 
   # Build prereq text
   var prereq_text = ""

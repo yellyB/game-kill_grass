@@ -77,35 +77,35 @@ signal key_acquired(world_index: int)
 # Skill definitions — single source of truth for all skills
 const SKILL_DEFS: Array = [
   {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 12,
-   "description": "풀을 베는 속도가 빨라집니다.\n(미정)"},
+   "description": "풀을 베는 속도가 빨라집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.01초)\n단계 5 | 최대 Lv.12"},
   {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 10,
-   "description": "풀을 베는 범위가 넓어집니다.\n(미정)"},
+   "description": "풀을 베는 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +4)\n단계 5 | 최대 Lv.10"},
   {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 5, "max_level": 8,
-   "description": "한 번에 베는 풀의 수가 증가합니다.\n(미정)"},
+   "description": "한 번에 베는 풀의 수가 증가합니다.\n횟수: 1 → ~50 (지수적 증가)\n단계 5 | 최대 Lv.8"},
   {"type": "magnet_range", "name": "자석 범위", "short_name": "자석", "sub_max": 5, "max_level": 8,
-   "description": "코인을 끌어당기는 범위가 넓어집니다.\n(미정)"},
+   "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 40 → 200 (틱당 +4)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 10, "max_level": 10,
-   "description": "맵에 풀이 더 빽빽하게 자랍니다.\n레벨당 청크 내 풀 +1개 (Lv.0: 1개 → Lv.10: 11개)"},
+   "description": "맵에 풀이 더 빽빽하게 자랍니다.\n청크당 풀: 1 → 200 (지수 곡선)\n단계 10 | 최대 Lv.10"},
   {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 5,
-   "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다.\n유효 등급: Lv.1=0.2, Lv.2=0.5, Lv.3=1.0, Lv.4=2.0, Lv.5=3.0"},
+   "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다.\n유효 등급: 0.0 → 3.0 (8단계마다 레벨업)\n단계 8 | 최대 Lv.5"},
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
-   "description": "상자가 등장할 확률이 증가합니다.\n(미정)"},
+   "description": "상자가 등장할 확률이 증가합니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 8,
-   "description": "풀을 벨 때 치명타가 발생할 확률이 증가합니다.\n(미정)"},
+   "description": "풀을 벨 때 치명타가 발생할 확률이 증가합니다.\n확률: 0% → 80% (틱당 +2%)\n단계 5 | 최대 Lv.8"},
   {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 10, "max_level": 9,
-   "description": "치명타 발생 시 추가 피해가 증가합니다.\n(미정)"},
-  {"type": "weapon", "name": "무기", "short_name": "무기", "sub_max": 5, "max_level": 9,
-   "description": "더 강력한 무기로 교체합니다."},
+   "description": "치명타 발생 시 추가 피해가 증가합니다.\n배율: 120% → 300% (틱당 +2%)\n단계 10 | 최대 Lv.9"},
+  {"type": "weapon", "name": "무기", "short_name": "무기", "sub_max": 5, "max_level": 10,
+   "description": "더 강력한 무기로 교체합니다.\n레벨당 공격력 +1, 완료 시 외형 변경\n단계 5 | 최대 Lv.10"},
   {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
-   "description": "몬스터에게 주는 피해가 증가합니다.\n(미정)"},
+   "description": "몬스터에게 주는 피해가 증가합니다.\n배율: 100% → 450% (틱당 +10%) (미정)\n단계 5 | 최대 Lv.7"},
   {"type": "fury_rate", "name": "분노 속도", "short_name": "분노", "sub_max": 4, "max_level": 4,
-   "description": "몬스터분노 게이지가 더 빨리 찹니다.\n(미정)"},
+   "description": "몬스터분노 게이지가 더 빨리 찹니다.\n배율: 100% → 340% (틱당 +15%) (미정)\n단계 4 | 최대 Lv.4"},
   {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "sub_max": 2, "max_level": 5,
-   "description": "황금풀이 등장할 확률이 증가합니다.\nLv.0: 0.02%, Lv.1: 0.2%, Lv.2: 0.4%, Lv.3: 0.6%, Lv.4: 0.8%, Lv.5: 1.0%"},
+   "description": "황금풀이 등장할 확률이 증가합니다.\n확률: 0% → 1.0% (틱당 +0.1%)\n단계 2 | 최대 Lv.5"},
   {"type": "golden_reward", "name": "황금풀 보상", "short_name": "황보", "sub_max": 5, "max_level": 10,
-   "description": "황금풀에서 떨어지는 코인이 증가합니다.\n(미정)"},
+   "description": "황금풀에서 떨어지는 코인이 증가합니다.\n배율: 100% → 600% (틱당 +10%) (미정)\n단계 5 | 최대 Lv.10"},
   {"type": "move_speed", "name": "이동 속도", "short_name": "이속", "sub_max": 6, "max_level": 10,
-   "description": "플레이어의 이동 속도가 빨라집니다.\n(미정)"},
+   "description": "플레이어의 이동 속도가 빨라집니다.\n속도: 300 → 600 (틱당 +5) (미정)\n단계 6 | 최대 Lv.10"},
 ]
 
 const SKILL_GROUPS: Array = [
@@ -460,7 +460,7 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[2]  # 완전 센풀
 
 func add_fury(amount: float) -> void:
-  fury = minf(fury + amount, FURY_MAX)
+  fury = minf(fury + amount * get_fury_rate_mult(), FURY_MAX)
   fury_changed.emit(fury)
   if fury >= FURY_MAX:
     fury_boss_requested.emit()
@@ -471,20 +471,102 @@ func add_money(amount: int) -> void:
   session_money = max(0, session_money + amount)
   session_money_changed.emit(session_money)
 
-# Returns grass quality level for spawning calculations
-# Higher level = more chance for rare grass
+# ── Skill total progress helper ──
+# Combines level and sub_level into a single progress value
+func get_skill_total_progress(type: String) -> int:
+  var level = upgrade_levels.get(type, 0)
+  var sub = upgrade_sub_levels.get(type, 0)
+  var def = get_skill_def(type)
+  var sub_max = def.get("sub_max", 5)
+  return level * sub_max + sub
+
+# ── Permanent upgrade getters ──
+
+# 공격 속도: 0.7s → 0.1s, 틱당 -0.01s (총 60틱)
+func get_attack_interval() -> float:
+  var ticks = get_skill_total_progress("attack_speed")
+  return maxf(0.1, 0.7 - ticks * 0.01)
+
+# 공격 범위: 60 → 260, 틱당 +4 (총 50틱)
+func get_attack_range() -> float:
+  var ticks = get_skill_total_progress("attack_range")
+  return 60.0 + ticks * 4.0
+
+# 공격 횟수: 1 → ~50, 지수적 증가 (총 40틱)
+func get_attack_count() -> int:
+  var ticks = get_skill_total_progress("attack_count")
+  if ticks <= 0:
+    return 1
+  return maxi(1, roundi(1.0 + 49.0 * pow(float(ticks) / 40.0, 2.0)))
+
+# 자석 범위: 40 → 200, 틱당 +4 (총 40틱)
+func get_base_magnet_range() -> float:
+  var ticks = get_skill_total_progress("magnet_range")
+  return 40.0 + ticks * 4.0
+
+# 풀 밀도: 1 → 200, pow 곡선 (총 100틱)
+func get_grass_density_value() -> int:
+  var ticks = get_skill_total_progress("grass_density")
+  if ticks <= 0:
+    return 1
+  return maxi(1, roundi(200.0 * pow(float(ticks) / 100.0, 3.0)))
+
+# 풀 등급 (기존 유지)
 func get_grass_quality_level() -> int:
   return upgrade_levels.get("grass_quality", 0)
+
+# 상자 출현률: 0% → 5%, 틱당 +0.2% (총 25틱)
+func get_chest_spawn_chance() -> float:
+  var ticks = get_skill_total_progress("chest_chance")
+  return ticks * 0.002
+
+# 치명타 확률: 0% → 80%, 틱당 +2% (총 40틱)
+func get_crit_chance() -> float:
+  var ticks = get_skill_total_progress("crit_chance")
+  return minf(ticks * 0.02, 0.8)
+
+# 치명타 데미지: 1.2x → 3.0x, 틱당 +0.02 (총 90틱)
+func get_crit_damage_mult() -> float:
+  var ticks = get_skill_total_progress("crit_damage")
+  return 1.2 + ticks * 0.02
+
+# 몬스터 피해 배율 (미정 — 임시: 틱당 +0.1, 총 35틱)
+func get_monster_damage_mult() -> float:
+  var ticks = get_skill_total_progress("monster_damage")
+  return 1.0 + ticks * 0.1
+
+# 분노 증가 배율 (미정 — 임시: 틱당 +0.15, 총 16틱)
+func get_fury_rate_mult() -> float:
+  var ticks = get_skill_total_progress("fury_rate")
+  return 1.0 + ticks * 0.15
+
+# 황금풀 확률: 0% → (미정), 틱당 +0.1% (총 10틱 = 최대 1%)
+func get_golden_grass_chance() -> float:
+  var ticks = get_skill_total_progress("golden_chance")
+  if ticks <= 0:
+    return 0.0
+  return ticks * 0.001
+
+# 황금풀 보상 배율 (미정 — 임시: 틱당 +0.1, 총 50틱)
+func get_golden_reward_mult() -> float:
+  var ticks = get_skill_total_progress("golden_reward")
+  return 1.0 + ticks * 0.1
+
+# 이동 속도: 300 → (미정 — 임시: 틱당 +5, 총 60틱)
+func get_base_move_speed() -> float:
+  var ticks = get_skill_total_progress("move_speed")
+  return 300.0 + ticks * 5.0
 
 func get_grass_density_level() -> int:
   return upgrade_levels.get("grass_density", 0)
 
 func get_magnet_range() -> float:
+  var base = get_base_magnet_range()
   var mult = 1.0 + session_buff_magnet_range * 0.5
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
   mult += get_part_count("강화 유리 모듈", 6) * 0.15  # 유리 모듈: 개당 +15%, 최대 +90%
-  return base_magnet_range * mult
+  return base * mult
 
 func get_session_attack_speed_mult() -> float:
   var mult = 1.0 + session_buff_attack_speed * 0.25
@@ -590,11 +672,7 @@ func get_grass_drop_chance() -> float:
   # 레벨당 6% 증가 (Lv.5 = 50%)
   return GRASS_DROP_CHANCE + upgrade_levels.get("grass_drop", 0) * 0.06
 
-func get_golden_grass_chance() -> float:
-  var lvl = upgrade_levels.get("golden_chance", 0)
-  if lvl == 0:
-    return 0.0002  # 기본 0.02%
-  return 0.002 * lvl  # Lv.1=0.2%, Lv.5=1.0%
+# get_golden_grass_chance() is defined above in permanent upgrade getters
 
 func get_total_skill_level() -> int:
   var total = 0

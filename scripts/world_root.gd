@@ -36,7 +36,7 @@ func _on_player_input_changed(direction: Vector2) -> void:
 func _process(delta: float) -> void:
 	if current_direction != Vector2.ZERO:
 		# Move world in opposite direction of input
-		var effective_speed = move_speed * GameManager.get_session_move_speed_mult()
+		var effective_speed = GameManager.get_base_move_speed() * GameManager.get_session_move_speed_mult()
 		position -= current_direction * effective_speed * delta
 
 	# Keep background always centered under camera view
