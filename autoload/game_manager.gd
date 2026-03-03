@@ -76,26 +76,44 @@ signal key_acquired(world_index: int)
 
 # Skill definitions — single source of truth for all skills
 const SKILL_DEFS: Array = [
-  {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "max_level": 10,
+  {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 12,
+   "description": "풀을 베는 속도가 빨라집니다."},
+  {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 10,
+   "description": "풀을 베는 범위가 넓어집니다."},
+  {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 5, "max_level": 8,
+   "description": "한 번에 베는 풀의 수가 증가합니다."},
+  {"type": "magnet_range", "name": "자석 범위", "short_name": "자석", "sub_max": 5, "max_level": 8,
+   "description": "코인을 끌어당기는 범위가 넓어집니다."},
+  {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 10, "max_level": 10,
    "description": "맵에 풀이 더 빽빽하게 자랍니다."},
-  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "max_level": 10,
+  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 5,
    "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다."},
-  {"type": "grass_regen", "name": "풀 재생", "short_name": "재생", "max_level": 2,
-   "description": "베어진 풀이 더 빨리 다시 자랍니다."},
-  {"type": "grass_reward", "name": "풀 보상", "short_name": "보상", "max_level": 6,
-   "description": "풀에서 떨어지는 코인이 증가합니다."},
-  {"type": "penalty_reduce", "name": "패널티 감소", "short_name": "패널티", "max_level": 3,
-   "description": "몬스터에게 맞았을 때 코인 손실이 줄어듭니다."},
-  {"type": "grass_drop", "name": "드롭률 증가", "short_name": "드롭", "max_level": 5,
-   "description": "풀에서 코인이 떨어질 확률이 증가합니다."},
-  {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "max_level": 5,
+  {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
+   "description": "상자가 등장할 확률이 증가합니다."},
+  {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 8,
+   "description": "풀을 벨 때 치명타가 발생할 확률이 증가합니다."},
+  {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 10, "max_level": 9,
+   "description": "치명타 발생 시 추가 피해가 증가합니다."},
+  {"type": "weapon", "name": "무기", "short_name": "무기", "sub_max": 5, "max_level": 9,
+   "description": "더 강력한 무기로 교체합니다."},
+  {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
+   "description": "몬스터에게 주는 피해가 증가합니다."},
+  {"type": "fury_rate", "name": "분노 속도", "short_name": "분노", "sub_max": 4, "max_level": 4,
+   "description": "몬스터분노 게이지가 더 빨리 찹니다."},
+  {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "sub_max": 2, "max_level": 5,
    "description": "황금풀이 등장할 확률이 증가합니다."},
+  {"type": "golden_reward", "name": "황금풀 보상", "short_name": "황보", "sub_max": 5, "max_level": 10,
+   "description": "황금풀에서 떨어지는 코인이 증가합니다."},
+  {"type": "move_speed", "name": "이동 속도", "short_name": "이속", "sub_max": 6, "max_level": 10,
+   "description": "플레이어의 이동 속도가 빨라집니다."},
 ]
 
 # Upgrades — Dictionary-based level management
 var upgrade_levels: Dictionary = {}  # {"grass_density": 0, "grass_quality": 0, ...}
 var upgrade_sub_levels: Dictionary = {}  # {"grass_density": 0, ...}  값 범위 0~4
-const SUB_LEVEL_MAX: int = 5
+func get_skill_sub_max(type: String) -> int:
+  var def = get_skill_def(type)
+  return def.get("sub_max", 5)
 
 # Session powerup buffs (reset each session)
 var session_buff_attack_speed: int = 0
@@ -114,7 +132,7 @@ const BASE_UPGRADE_COST: int = 100
 const UPGRADE_COST_MULTIPLIER: float = 1.8
 
 # Game settings
-var base_magnet_range: float = 65.0
+var base_magnet_range: float = 40.0
 
 # Grass settings
 const GRASS_DROP_CHANCE: float = 1.0
@@ -160,6 +178,9 @@ func _ready() -> void:
       upgrade_levels[def.type] = 0
     if not upgrade_sub_levels.has(def.type):
       upgrade_sub_levels[def.type] = 0
+  # Sync weapon level from WeaponManager
+  upgrade_levels["weapon"] = WeaponManager.current_weapon_level
+  WeaponManager.weapon_changed.connect(func(lvl: int): upgrade_levels["weapon"] = lvl)
   _init_grass_data()
   _sfx_click = AudioStreamPlayer.new()
   _sfx_click.stream = preload("res://resources/sounds/effect/button_click.wav")
@@ -559,8 +580,10 @@ func get_golden_grass_chance() -> float:
 
 func get_total_skill_level() -> int:
   var total = 0
-  for level in upgrade_levels.values():
-    total += level
+  for type in upgrade_levels:
+    if type == "weapon":
+      continue
+    total += upgrade_levels[type]
   return total
 
 func get_grass_reward_multiplier() -> float:
@@ -575,25 +598,22 @@ const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 4, 7, 11, 16, 21, 27, 34]
 
 # Skill tree prerequisites: "type:level" -> Array of {type, level} (all AND)
 const SKILL_PREREQS = {
-  # 재생 ← 밀도
-  "grass_regen:1": [{"type": "grass_density", "level": 4}],
-  "grass_regen:2": [{"type": "grass_density", "level": 7}],
-  # 보상 ← 등급 (구 L2,4,6,8 → 신 L4,6,8,10)
-  "grass_reward:1": [{"type": "grass_quality", "level": 4}],
-  "grass_reward:2": [{"type": "grass_quality", "level": 6}],
-  "grass_reward:3": [{"type": "grass_quality", "level": 8}],
-  "grass_reward:4": [{"type": "grass_quality", "level": 10}],
-  # 패널티 감소 ← 보상
-  "penalty_reduce:1": [{"type": "grass_reward", "level": 2}],
-  # 황금풀 ← 밀도
-  "golden_chance:1": [{"type": "grass_density", "level": 5}],
-  "golden_chance:2": [{"type": "grass_density", "level": 7}],
-  "golden_chance:3": [{"type": "grass_density", "level": 9}],
-  # 드롭률 ← 등급 (구 L2,4,6,8 → 신 L4,6,8,10)
-  "grass_drop:1": [{"type": "grass_quality", "level": 4}],
-  "grass_drop:2": [{"type": "grass_quality", "level": 6}],
-  "grass_drop:3": [{"type": "grass_quality", "level": 8}],
-  "grass_drop:4": [{"type": "grass_quality", "level": 10}],
+  # Row 2: 공속 lv1 → 주요 5스킬
+  "weapon:1": [{"type": "attack_speed", "level": 1}],
+  "attack_range:1": [{"type": "attack_speed", "level": 1}],
+  "grass_density:1": [{"type": "attack_speed", "level": 1}],
+  "chest_chance:1": [{"type": "attack_speed", "level": 1}],
+  "grass_quality:1": [{"type": "attack_speed", "level": 1}],
+  # Row 3: 주요 스킬 → 세부 스킬
+  "crit_chance:1": [{"type": "weapon", "level": 1}],
+  "crit_damage:1": [{"type": "weapon", "level": 1}],
+  "monster_damage:1": [{"type": "weapon", "level": 1}],
+  "attack_count:1": [{"type": "attack_range", "level": 1}],
+  "move_speed:1": [{"type": "attack_range", "level": 1}],
+  "magnet_range:1": [{"type": "grass_density", "level": 1}],
+  "fury_rate:1": [{"type": "chest_chance", "level": 1}],
+  "golden_chance:1": [{"type": "grass_quality", "level": 1}],
+  "golden_reward:1": [{"type": "grass_quality", "level": 1}],
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
@@ -644,22 +664,20 @@ const DENSITY_COSTS: Array = [15, 60, 150, 400, 900, 2000, 4500, 10000, 22000, 5
 const QUALITY_COSTS: Array = [15, 60, 150, 400, 900, 2000, 4500, 10000, 22000, 50000]
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
-  # 밀도/등급: 고정 비용 테이블
+  # 무기: WeaponManager 가격 위임
+  if upgrade_type == "weapon":
+    var next = WeaponManager.get_next_weapon()
+    if next.is_empty():
+      return 0
+    return next.price
+  # 밀도: 고정 비용 테이블
   if upgrade_type == "grass_density" and current_level < DENSITY_COSTS.size():
     return DENSITY_COSTS[current_level]
+  # 등급: 고정 비용 테이블 (max_level 5이므로 앞 5개 사용)
   if upgrade_type == "grass_quality" and current_level < QUALITY_COSTS.size():
     return QUALITY_COSTS[current_level]
+  # 황금풀 확률
   var base = int(BASE_UPGRADE_COST * pow(UPGRADE_COST_MULTIPLIER, current_level))
-  # 보상/드롭 (선행: 등급 L4,6,8,10)
-  if upgrade_type in ["grass_reward", "grass_drop"]:
-    return int(base * (3.0 + current_level * 14.0))
-  # 재생 (선행: 밀도 L4, L7)
-  if upgrade_type == "grass_regen":
-    return int(base * (3.0 + current_level * 15.0))
-  # 패널티 감소 (선행: 보상 L2)
-  if upgrade_type == "penalty_reduce":
-    return int(base * (33.0 + current_level * 15.0))
-  # 황금풀 (선행: 밀도 L5, L7, L9)
   if upgrade_type == "golden_chance":
     return int(base * (30.0 + current_level * 65.0))
   # 기타
@@ -668,6 +686,18 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   return base
 
 func purchase_upgrade(upgrade_type: String) -> bool:
+  # Weapon type: delegate to WeaponManager
+  if upgrade_type == "weapon":
+    var wep_next = upgrade_levels.get("weapon", 0) + 1
+    var wep_prereq = check_skill_prereqs("weapon", wep_next)
+    if not wep_prereq.met:
+      return false
+    if not WeaponManager.purchase_next_weapon():
+      return false
+    upgrade_levels["weapon"] = WeaponManager.current_weapon_level
+    upgrade_purchased.emit(upgrade_type, upgrade_levels["weapon"])
+    return true
+
   var current_level = upgrade_levels.get(upgrade_type, -1)
   if current_level < 0:
     return false  # Unknown skill type
@@ -687,7 +717,7 @@ func purchase_upgrade(upgrade_type: String) -> bool:
   money -= cost
   money_changed.emit(money)
   upgrade_sub_levels[upgrade_type] = upgrade_sub_levels.get(upgrade_type, 0) + 1
-  if upgrade_sub_levels[upgrade_type] >= SUB_LEVEL_MAX:
+  if upgrade_sub_levels[upgrade_type] >= get_skill_sub_max(upgrade_type):
     upgrade_levels[upgrade_type] = next_level
     upgrade_sub_levels[upgrade_type] = 0
   upgrade_purchased.emit(upgrade_type, next_level)

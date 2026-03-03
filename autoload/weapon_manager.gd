@@ -6,7 +6,7 @@ signal weapon_changed(weapon_level: int)
 var weapon_textures: Array[Texture2D] = []
 
 const WEAPONS = [
-  {"name": "나뭇가지", "price": 0, "damage": 1, "max_targets": 3, "texture": "res://resources/images/weapon/나뭇가지.png"},
+  {"name": "나뭇가지", "price": 0, "damage": 1, "max_targets": 1, "texture": "res://resources/images/weapon/나뭇가지.png"},
   {"name": "녹슨 식칼", "price": 90, "damage": 2, "max_targets": 5, "texture": "res://resources/images/weapon/녹슨식칼.png"},
   {"name": "피자 커터", "price": 450, "damage": 3, "max_targets": 7, "texture": "res://resources/images/weapon/피자커터.png"},
   {"name": "전기 파리채", "price": 1200, "damage": 4, "max_targets": 9, "texture": "res://resources/images/weapon/전기파리채.png"},
