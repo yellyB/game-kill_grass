@@ -78,7 +78,7 @@ const POWERUP_DATA = [
 	{
 		"type": "beast_rush",
 		"name": "비스트 러시",
-		"desc": "몬스터 10마리 즉시 스폰",
+		"desc": "몬스터분노 +10",
 		"color": Color(0.9, 0.2, 0.2),
 		"image": "비스트러시.png",
 		"stackable": false,

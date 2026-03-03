@@ -135,7 +135,7 @@ signal extra_time_requested(seconds: float)
 signal golden_bloom_requested()
 signal field_clear_requested()
 signal blackhole_requested()
-signal beast_rush_requested()
+
 signal fury_changed(value: float)
 signal fury_boss_requested()
 signal boss_key_collected(world_index: int)
@@ -513,7 +513,7 @@ func apply_powerup(type: String) -> void:
     "double_or_dust":
       _apply_double_or_dust()
     "beast_rush":
-      beast_rush_requested.emit()
+      add_fury(10.0)
       powerup_acquired.emit(type, 0)
     "harvest_madness":
       _start_timed_buff("harvest_madness", 5.0)
