@@ -20,6 +20,13 @@ const SPARKLE_RADIUS: float = 30.0
 var grass_data: Dictionary = {}  # Key: Vector2i (grid pos), Value: {cut: bool, type: int, regen_time: float}
 var loaded_chunks: Dictionary = {}  # Key: Vector2i, Value: Array of grid positions
 var visited_chunks: Dictionary = {}  # Key: Vector2i, tracks first-time visits
+var _cut_grass: Array = []  # Grid positions of cut grass (for regen optimization)
+var _active_timers: Array = []  # Grid positions with active hit/hp_bar timers
+var _dirty_chunks: Dictionary = {}  # Chunks needing multimesh rebuild
+var _cached_visible: Array = []  # Cached visible grass positions
+var _cached_colors: Array = []  # Cached colors
+var _cached_golden: Array = []  # Cached golden positions
+var _mm_needs_rebuild: bool = true  # Full rebuild flag
 
 # Grid-based positioning (no spacing calculation needed)
 var grid_cell_size: float = 115.0  # Base spacing between grass
@@ -53,6 +60,13 @@ const WORLD_GRASS_COLORS: Array = [
   # 6: 용의 봉우리 - 채도 낮춤, 명도 차이 확연
   [Color(0.58, 0.38, 0.32), Color(0.75, 0.45, 0.35), Color(0.92, 0.55, 0.42), null],
 ]
+
+const GRID_SIDE: int = 15  # 15x15 = 225 slots per chunk
+const BASE_GRASS_PER_CHUNK: int = 1  # Lv.0 starting count
+
+func get_grass_per_chunk() -> int:
+  var density_level = GameManager.get_grass_density_level()
+  return mini(BASE_GRASS_PER_CHUNK + density_level, GRID_SIDE * GRID_SIDE)
 
 var player: Node2D = null
 var player_attack_area: Area2D = null
@@ -153,9 +167,11 @@ func find_player() -> void:
 
 func _on_upgrade_purchased(upgrade_type: String, _level: int) -> void:
   if upgrade_type == "grass_density":
-    # Clear and rebuild all
     grass_data.clear()
     loaded_chunks.clear()
+    _cut_grass.clear()
+    _active_timers.clear()
+    _mm_needs_rebuild = true
     update_chunks()
 
 func _process(delta: float) -> void:
@@ -199,24 +215,34 @@ func load_chunk(chunk_coord: Vector2i) -> void:
   var positions: Array[Vector2i] = []
   var chunk_origin = Vector2(chunk_coord.x * chunk_size, chunk_coord.y * chunk_size)
 
-  # Get density - affects grid spacing
-  # Level 0: cell_size = 100 (very sparse), Level 10: cell_size = 16 (dense)
-  var density_level = GameManager.get_grass_density_level()
-  var cell_size = grid_cell_size * 2.5 / (1.0 + density_level * 0.525)
+  var grass_count = get_grass_per_chunk()
+  var cell_size = chunk_size / float(GRID_SIDE)
 
   var rng = RandomNumberGenerator.new()
   rng.seed = hash(chunk_coord)
 
-  # Grid-based spawning with randomized positions for natural look
-  var cells_per_side = int(chunk_size / cell_size)
-  for gx in cells_per_side:
-    for gy in cells_per_side:
-      # Random offset symmetric around cell center for seamless chunk transitions
-      var offset_x = rng.randf_range(-cell_size * 0.5, cell_size * 0.5)
-      var offset_y = rng.randf_range(-cell_size * 0.5, cell_size * 0.5)
+  # Build all grid slots with randomized positions, then pick N
+  var all_slots: Array = []
+  for gx in GRID_SIDE:
+    for gy in GRID_SIDE:
+      var offset_x = rng.randf_range(-cell_size * 0.4, cell_size * 0.4)
+      var offset_y = rng.randf_range(-cell_size * 0.4, cell_size * 0.4)
       var world_x = chunk_origin.x + gx * cell_size + cell_size * 0.5 + offset_x
       var world_y = chunk_origin.y + gy * cell_size + cell_size * 0.5 + offset_y
-      var grid_pos = Vector2i(int(world_x), int(world_y))
+      all_slots.append(Vector2i(int(world_x), int(world_y)))
+
+  # Shuffle with same seed so level-up adds new slots without moving existing ones
+  var shuffle_rng = RandomNumberGenerator.new()
+  shuffle_rng.seed = hash(chunk_coord) + 1
+  for i in range(all_slots.size() - 1, 0, -1):
+    var j = shuffle_rng.randi_range(0, i)
+    var tmp = all_slots[i]
+    all_slots[i] = all_slots[j]
+    all_slots[j] = tmp
+
+  # Activate first N slots
+  for i in mini(grass_count, all_slots.size()):
+      var grid_pos = all_slots[i]
 
       if not grass_data.has(grid_pos):
         var gd = GameManager.get_random_grass_data()
@@ -238,6 +264,7 @@ func load_chunk(chunk_coord: Vector2i) -> void:
         positions.append(grid_pos)
 
   loaded_chunks[chunk_coord] = positions
+  _mm_needs_rebuild = true
 
 func unload_chunk(chunk_coord: Vector2i) -> void:
   if not loaded_chunks.has(chunk_coord):
@@ -246,8 +273,11 @@ func unload_chunk(chunk_coord: Vector2i) -> void:
   var positions = loaded_chunks[chunk_coord]
   for grid_pos in positions:
     grass_data.erase(grid_pos)
+    _cut_grass.erase(grid_pos)
+    _active_timers.erase(grid_pos)
 
   loaded_chunks.erase(chunk_coord)
+  _mm_needs_rebuild = true
 
 func get_grass_type_index(gd: GrassData) -> int:
   if not gd:
@@ -257,33 +287,73 @@ func get_grass_type_index(gd: GrassData) -> int:
       return i
   return 0
 
+func _mark_grass_cut(grid_pos: Vector2i) -> void:
+  if grid_pos not in _cut_grass:
+    _cut_grass.append(grid_pos)
+  _mark_chunk_dirty(grid_pos)
+
+func _mark_chunk_dirty(grid_pos: Vector2i) -> void:
+  var chunk = get_chunk_coord(Vector2(grid_pos.x, grid_pos.y))
+  _dirty_chunks[chunk] = true
+
+func _add_active_timer(grid_pos: Vector2i) -> void:
+  if grid_pos not in _active_timers:
+    _active_timers.append(grid_pos)
+
 func process_regen(delta: float) -> void:
-  for grid_pos in grass_data:
+  # Process active timers (hit flash, hp bar)
+  var i = _active_timers.size() - 1
+  while i >= 0:
+    var grid_pos = _active_timers[i]
+    if not grass_data.has(grid_pos):
+      _active_timers.remove_at(i)
+      i -= 1
+      continue
     var data = grass_data[grid_pos]
-    # Process hit flash timer
+    var still_active = false
     if data.has("hit_timer") and data.hit_timer > 0:
       data.hit_timer -= delta
-    # Process health bar display timer
+      still_active = true
+      _mark_chunk_dirty(grid_pos)
     if data.has("hp_bar_timer") and data.hp_bar_timer > 0:
       data.hp_bar_timer -= delta
       _has_active_hp_bars = true
-    if data.cut:
-      data.regen_timer += delta
-      if data.regen_timer >= data.regen_time:
-        # Regenerate with new random type
-        var gd = GameManager.get_random_grass_data()
-        var base_regen = gd.regen_time if gd else 5.0
-        var is_golden = gd == GameManager.grass_data_list[3] if gd else false
-        var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
-        var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
-        var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
-        data.cut = false
-        data.type = get_grass_type_index(gd)
-        data.health = scaled_hp
-        data.max_health = scaled_hp
-        data.regen_time = GameManager.get_grass_regen_time(base_regen)
-        data.regen_timer = 0.0
-        data.value = int(round((randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1) * rw_mult))
+      still_active = true
+    if not still_active:
+      _active_timers.remove_at(i)
+    i -= 1
+
+  # Process cut grass regen
+  i = _cut_grass.size() - 1
+  while i >= 0:
+    var grid_pos = _cut_grass[i]
+    if not grass_data.has(grid_pos):
+      _cut_grass.remove_at(i)
+      i -= 1
+      continue
+    var data = grass_data[grid_pos]
+    if not data.cut:
+      _cut_grass.remove_at(i)
+      i -= 1
+      continue
+    data.regen_timer += delta
+    if data.regen_timer >= data.regen_time:
+      var gd = GameManager.get_random_grass_data()
+      var base_regen = gd.regen_time if gd else 5.0
+      var is_golden = gd == GameManager.grass_data_list[3] if gd else false
+      var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
+      var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
+      var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
+      data.cut = false
+      data.type = get_grass_type_index(gd)
+      data.health = scaled_hp
+      data.max_health = scaled_hp
+      data.regen_time = GameManager.get_grass_regen_time(base_regen)
+      data.regen_timer = 0.0
+      data.value = int(round((randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1) * rw_mult))
+      _cut_grass.remove_at(i)
+      _mark_chunk_dirty(grid_pos)
+    i -= 1
 
 
 func _get_grass_color(grass_type: int) -> Color:
@@ -300,20 +370,21 @@ func _get_grass_color(grass_type: int) -> Color:
   return gd.color if gd else Color(0.3, 0.7, 0.3)
 
 func update_multimesh() -> void:
+  if not _mm_needs_rebuild and _dirty_chunks.is_empty():
+    return
+
   var visible_grass: Array = []
   var colors_list: Array = []
   var golden_positions: Array = []
 
   for grid_pos in grass_data:
     var data = grass_data[grid_pos]
-    # Skip cut grass - don't render it
     if data.cut:
       continue
 
     var world_pos = Vector2(grid_pos.x, grid_pos.y)
     visible_grass.append(world_pos)
 
-    # Check if grass was recently hit - show white flash (preserve golden alpha marker)
     if data.has("hit_timer") and data.hit_timer > 0:
       var flash_alpha = 0.5 if data.type == 3 else 1.0
       colors_list.append(Color(1.0, 1.0, 1.0, flash_alpha))
@@ -331,8 +402,9 @@ func update_multimesh() -> void:
     multimesh.set_instance_transform_2d(i, t)
     multimesh.set_instance_color(i, colors_list[i])
 
-  # 황금풀 주변 반짝이 업데이트
   update_sparkles(golden_positions)
+  _dirty_chunks.clear()
+  _mm_needs_rebuild = false
 
 func update_sparkles(golden_positions: Array) -> void:
   var total = golden_positions.size() * SPARKLES_PER_GOLDEN
@@ -407,11 +479,14 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
     hit_count += 1
     data.health -= damage
     data.hit_timer = 0.1
+    _add_active_timer(grid_pos)
     if data.health > 0:
       data.hp_bar_timer = 1.5
+      _add_active_timer(grid_pos)
     if data.health <= 0:
       data.cut = true
       data.regen_timer = 0.0
+      _mark_grass_cut(grid_pos)
       total_value += data.value
       total_max_health += GameManager.grass_data_list[data.type].max_health
       attacked_positions.append(Vector2(grid_pos.x, grid_pos.y))
@@ -451,6 +526,7 @@ func _on_golden_bloom() -> void:
       data.health = golden_data.max_health
       data.max_health = golden_data.max_health
       data.value = randi_range(golden_data.min_drop_value, golden_data.max_drop_value)
+      _mark_chunk_dirty(grid_pos)
 
 func _on_field_clear() -> void:
   for grid_pos in grass_data:
@@ -459,8 +535,8 @@ func _on_field_clear() -> void:
       continue
     data.cut = true
     data.regen_timer = 0.0
+    _mark_grass_cut(grid_pos)
     var pos = Vector2(grid_pos.x, grid_pos.y)
-    # Spawn coins for valuable grass
     if data.type == 3 or randf() < GameManager.get_grass_drop_chance():
       spawn_coin(pos, data.value)
 
