@@ -360,15 +360,24 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
   var damage = WeaponManager.get_weapon_damage()
   var max_targets = WeaponManager.get_weapon_max_targets()
 
-  # Collect all grass in range, then pick random targets
+  # Only check chunks that overlap the attack circle
   var candidates: Array = []
-  for grid_pos in grass_data:
-    var data = grass_data[grid_pos]
-    if data.cut:
-      continue
-    var world_pos = Vector2(grid_pos.x, grid_pos.y)
-    if center.distance_to(world_pos) <= radius:
-      candidates.append(grid_pos)
+  var min_chunk = get_chunk_coord(center - Vector2(radius, radius))
+  var max_chunk = get_chunk_coord(center + Vector2(radius, radius))
+  for cx in range(min_chunk.x, max_chunk.x + 1):
+    for cy in range(min_chunk.y, max_chunk.y + 1):
+      var chunk_coord = Vector2i(cx, cy)
+      if not loaded_chunks.has(chunk_coord):
+        continue
+      for grid_pos in loaded_chunks[chunk_coord]:
+        if not grass_data.has(grid_pos):
+          continue
+        var data = grass_data[grid_pos]
+        if data.cut:
+          continue
+        var world_pos = Vector2(grid_pos.x, grid_pos.y)
+        if center.distance_to(world_pos) <= radius:
+          candidates.append(grid_pos)
 
   candidates.shuffle()
   var targets_count = mini(max_targets, candidates.size())
