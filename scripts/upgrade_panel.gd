@@ -40,6 +40,16 @@ const SKILL_ICONS = {
   "crit_chance": preload("res://resources/images/skill/crit_chance.png"),
   "crit_damage": preload("res://resources/images/skill/crit_damage.png"),
   "monster_damage": preload("res://resources/images/skill/monster_damage.png"),
+  "attack_range": preload("res://resources/images/skill/attack_range.png"),
+  "attack_count": preload("res://resources/images/skill/attack_count.png"),
+  "move_speed": preload("res://resources/images/skill/move_speed.png"),
+  "magnet_range": preload("res://resources/images/skill/magnet_range.png"),
+  "grass_density": preload("res://resources/images/skill/grass_density.png"),
+  "grass_quality": preload("res://resources/images/skill/grass_quality.png"),
+  "chest_chance": preload("res://resources/images/skill/chest_chance.png"),
+  "fury_rate": preload("res://resources/images/skill/fury_rate.png"),
+  "golden_chance": preload("res://resources/images/skill/golden_chance.png"),
+  "golden_reward": preload("res://resources/images/skill/golden_reward.png"),
 }
 const LOCK_ICON = preload("res://resources/images/icon/lock.png")
 
@@ -580,6 +590,11 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   match state:
     "completed":
       style.bg_color = gc.completed
+      style.border_width_top = 3
+      style.border_width_bottom = 3
+      style.border_width_left = 3
+      style.border_width_right = 3
+      style.border_color = Color(1, 0.85, 0.3)
       btn.disabled = false
       btn.pressed.connect(_on_skill_node_pressed.bind(btn, skill_type, max_level))
     "in_progress":
@@ -647,23 +662,28 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
       icon_rect.modulate = Color(0.5, 0.5, 0.5)
     btn.add_child(icon_rect)
 
-  # Lock icon (center) — for locked/prereq_locked
+  # Lock icon (center) — for locked states
   if is_locked:
-    var lock_size = node_size * 1.35
-    var center_container = CenterContainer.new()
-    center_container.anchors_preset = Control.PRESET_FULL_RECT
-    center_container.anchor_right = 1.0
-    center_container.anchor_bottom = 1.0
-    center_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    btn.add_child(center_container)
+    var lock_icon_size = node_size * 0.75
+    var margin = style.content_margin_left
+    var inner = node_size - margin * 2
+    var cx = margin + inner / 2.0
+    var cy = margin + inner / 2.0
     var lock_rect = TextureRect.new()
     lock_rect.texture = LOCK_ICON
-    lock_rect.expand_mode = TextureRect.EXPAND_FIT_HEIGHT
+    lock_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     lock_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    lock_rect.custom_minimum_size = Vector2(lock_size, lock_size)
+    lock_rect.anchor_left = 0
+    lock_rect.anchor_top = 0
+    lock_rect.anchor_right = 0
+    lock_rect.anchor_bottom = 0
+    lock_rect.offset_left = cx - lock_icon_size / 2.0
+    lock_rect.offset_top = cy - lock_icon_size / 2.0
+    lock_rect.offset_right = cx + lock_icon_size / 2.0
+    lock_rect.offset_bottom = cy + lock_icon_size / 2.0
     lock_rect.modulate = Color(0.45, 0.45, 0.5)
     lock_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    center_container.add_child(lock_rect)
+    btn.add_child(lock_rect)
 
   var label_color = Color(0.5, 0.5, 0.55) if not is_active else Color.WHITE
 
@@ -687,7 +707,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   # Bottom bar — level & progress info
   var bar_h: float = 28.0
   var bar = ColorRect.new()
-  bar.color = Color(0, 0, 0, 0.4)
+  bar.color = Color(0.25, 0.2, 0.05, 0.8) if state == "completed" else Color(0, 0, 0, 0.4)
   bar.anchors_preset = Control.PRESET_BOTTOM_WIDE
   bar.anchor_top = 1.0
   bar.anchor_right = 1.0
@@ -729,8 +749,8 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
     # Sub-level / MAX (right side)
     var sub_label = Label.new()
     if state == "completed":
-      sub_label.text = "MAX"
-      sub_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5))
+      sub_label.text = "✦ MAX"
+      sub_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
     elif sub_level > 0:
       sub_label.text = "%d/%d" % [sub_level, sub_max]
       sub_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
