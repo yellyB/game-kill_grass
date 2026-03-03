@@ -351,6 +351,9 @@ func update_sparkles(golden_positions: Array) -> void:
       sparkle_mm.set_instance_color(idx, Color(1.0, 1.0, 0.7, 1.0))
       idx += 1
 
+# Locked targets: attack same grass until dead or out of range
+var locked_targets: Array = []  # Array of Vector2i (grid positions)
+
 # Called by player to attack grass in range
 func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
   var total_value = 0
@@ -360,29 +363,46 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
   var damage = WeaponManager.get_weapon_damage()
   var max_targets = WeaponManager.get_weapon_max_targets()
 
-  # Only check chunks that overlap the attack circle
-  var candidates: Array = []
-  var min_chunk = get_chunk_coord(center - Vector2(radius, radius))
-  var max_chunk = get_chunk_coord(center + Vector2(radius, radius))
-  for cx in range(min_chunk.x, max_chunk.x + 1):
-    for cy in range(min_chunk.y, max_chunk.y + 1):
-      var chunk_coord = Vector2i(cx, cy)
-      if not loaded_chunks.has(chunk_coord):
-        continue
-      for grid_pos in loaded_chunks[chunk_coord]:
-        if not grass_data.has(grid_pos):
-          continue
-        var data = grass_data[grid_pos]
-        if data.cut:
-          continue
-        var world_pos = Vector2(grid_pos.x, grid_pos.y)
-        if center.distance_to(world_pos) <= radius:
-          candidates.append(grid_pos)
+  # Remove invalid locked targets (cut, out of range, unloaded)
+  locked_targets = locked_targets.filter(func(grid_pos):
+    if not grass_data.has(grid_pos):
+      return false
+    var data = grass_data[grid_pos]
+    if data.cut:
+      return false
+    var world_pos = Vector2(grid_pos.x, grid_pos.y)
+    return center.distance_to(world_pos) <= radius
+  )
 
-  candidates.shuffle()
-  var targets_count = mini(max_targets, candidates.size())
-  for i in targets_count:
-    var grid_pos = candidates[i]
+  # Fill empty slots with new targets from nearby chunks
+  if locked_targets.size() < max_targets:
+    var candidates: Array = []
+    var min_chunk = get_chunk_coord(center - Vector2(radius, radius))
+    var max_chunk = get_chunk_coord(center + Vector2(radius, radius))
+    for cx in range(min_chunk.x, max_chunk.x + 1):
+      for cy in range(min_chunk.y, max_chunk.y + 1):
+        var chunk_coord = Vector2i(cx, cy)
+        if not loaded_chunks.has(chunk_coord):
+          continue
+        for grid_pos in loaded_chunks[chunk_coord]:
+          if grid_pos in locked_targets:
+            continue
+          if not grass_data.has(grid_pos):
+            continue
+          var data = grass_data[grid_pos]
+          if data.cut:
+            continue
+          var world_pos = Vector2(grid_pos.x, grid_pos.y)
+          if center.distance_to(world_pos) <= radius:
+            candidates.append(grid_pos)
+    candidates.shuffle()
+    var needed = mini(max_targets - locked_targets.size(), candidates.size())
+    for i in needed:
+      locked_targets.append(candidates[i])
+
+  # Attack locked targets
+  for i in locked_targets.size():
+    var grid_pos = locked_targets[i]
     var data = grass_data[grid_pos]
     hit_count += 1
     data.health -= damage
