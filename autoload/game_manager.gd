@@ -108,6 +108,24 @@ const SKILL_DEFS: Array = [
    "description": "플레이어의 이동 속도가 빨라집니다."},
 ]
 
+const SKILL_GROUPS: Array = [
+  {
+    "name": "무기",
+    "skills": ["attack_speed", "weapon", "crit_chance", "crit_damage", "monster_damage"],
+    "columns": 2,
+  },
+  {
+    "name": "수집",
+    "skills": ["attack_range", "attack_count", "move_speed", "magnet_range"],
+    "columns": 2,
+  },
+  {
+    "name": "수확",
+    "skills": ["grass_density", "grass_quality", "chest_chance", "fury_rate", "golden_chance", "golden_reward"],
+    "columns": 2,
+  },
+]
+
 # Upgrades — Dictionary-based level management
 var upgrade_levels: Dictionary = {}  # {"grass_density": 0, "grass_quality": 0, ...}
 var upgrade_sub_levels: Dictionary = {}  # {"grass_density": 0, ...}  값 범위 0~4
@@ -597,34 +615,65 @@ func get_grass_reward_multiplier() -> float:
 const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 4, 7, 11, 16, 21, 27, 34]
 
 # Skill tree prerequisites: "type:level" -> Array of {type, level} (all AND)
+# Row 0 = root (centered, no prereq). Row 1+ = 2-col grid, prereq = skill above in same column
 const SKILL_PREREQS = {
-  # Row 2: 공속 lv1 → 주요 5스킬
+  # 무기: row1 ← root(attack_speed)
   "weapon:1": [{"type": "attack_speed", "level": 1}],
-  "attack_range:1": [{"type": "attack_speed", "level": 1}],
-  "grass_density:1": [{"type": "attack_speed", "level": 1}],
-  "chest_chance:1": [{"type": "attack_speed", "level": 1}],
-  "grass_quality:1": [{"type": "attack_speed", "level": 1}],
-  # Row 3: 주요 스킬 → 세부 스킬
-  "crit_chance:1": [{"type": "weapon", "level": 1}],
+  "crit_chance:1": [{"type": "attack_speed", "level": 1}],
+  # 무기: row2 ← row1
   "crit_damage:1": [{"type": "weapon", "level": 1}],
-  "monster_damage:1": [{"type": "weapon", "level": 1}],
+  "monster_damage:1": [{"type": "crit_chance", "level": 1}],
+  # 수집: row1 ← root(attack_range)
   "attack_count:1": [{"type": "attack_range", "level": 1}],
   "move_speed:1": [{"type": "attack_range", "level": 1}],
-  "magnet_range:1": [{"type": "grass_density", "level": 1}],
-  "fury_rate:1": [{"type": "chest_chance", "level": 1}],
-  "golden_chance:1": [{"type": "grass_quality", "level": 1}],
-  "golden_reward:1": [{"type": "grass_quality", "level": 1}],
+  # 수집: row2 ← row1
+  "magnet_range:1": [{"type": "attack_count", "level": 1}],
+  # 수확: row1 ← root(grass_density)
+  "grass_quality:1": [{"type": "grass_density", "level": 1}],
+  "chest_chance:1": [{"type": "grass_density", "level": 1}],
+  # 수확: row2 ← row1
+  "fury_rate:1": [{"type": "grass_quality", "level": 1}],
+  "golden_chance:1": [{"type": "chest_chance", "level": 1}],
+  # 수확: row3 ← row2
+  "golden_reward:1": [{"type": "fury_rate", "level": 1}],
+}
+
+# Required total skill levels to unlock (해금 게이트)
+const SKILL_REQUIRED_TOTAL = {
+  # Row 1
+  "weapon": 3, "crit_chance": 3,
+  "attack_count": 3, "move_speed": 3,
+  "grass_quality": 3, "chest_chance": 3,
+  # Row 2
+  "crit_damage": 3, "monster_damage": 3,
+  "magnet_range": 3,
+  "fury_rate": 3, "golden_chance": 3,
+  # Row 3
+  "golden_reward": 3,
+  # Level-specific gates (type:level)
+  "attack_range:2": 10,
 }
 
 func check_skill_prereqs(type: String, level: int) -> Dictionary:
-  var key = "%s:%d" % [type, level]
-  if not SKILL_PREREQS.has(key):
-    return {"met": true, "missing": []}
   var missing: Array = []
-  for req in SKILL_PREREQS[key]:
-    var current = get_upgrade_level(req.type)
-    if current < req.level:
-      missing.append({"type": req.type, "level": req.level, "current": current})
+  # Check required_total gate (level-specific key first, then type-wide)
+  var total_key = "%s:%d" % [type, level]
+  var required = -1
+  if SKILL_REQUIRED_TOTAL.has(total_key):
+    required = SKILL_REQUIRED_TOTAL[total_key]
+  elif SKILL_REQUIRED_TOTAL.has(type):
+    required = SKILL_REQUIRED_TOTAL[type]
+  if required >= 0:
+    var total = get_total_skill_level()
+    if total < required:
+      missing.append({"type": "_total", "level": required, "current": total})
+  # Check skill prereqs
+  var key = "%s:%d" % [type, level]
+  if SKILL_PREREQS.has(key):
+    for req in SKILL_PREREQS[key]:
+      var current = get_upgrade_level(req.type)
+      if current < req.level:
+        missing.append({"type": req.type, "level": req.level, "current": current})
   return {"met": missing.is_empty(), "missing": missing}
 
 func get_upgrade_level(type: String) -> int:

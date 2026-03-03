@@ -24,35 +24,68 @@ var is_open: bool = false
 # Selection: "weapon" or skill type ("grass_density" etc), "" = none
 var selected_type: String = ""
 var selected_level: int = -1
-
-# Column order computed at runtime from GameManager.SKILL_DEFS + SKILL_PREREQS
-var _skill_columns: Array = []    # skill types only (no "weapon")
-var _display_columns: Array = []  # skill types + "weapon" inserted in the middle
-
-# Computed at runtime from GameManager.SKILL_PREREQS
-var _skill_connections: Array = []
-var _skill_node_steps: Dictionary = {}  # type -> { level -> step }
+var _selected_btn: Button = null  # Currently selected skill node button
 
 var _desc_cost_node: HBoxContainer = null
 
-# Node visual settings
-const NODE_SIZE: int = 52
-const NODE_GAP: int = 24
-const COL_HEADER_HEIGHT: float = 45.0
+# Grid layout constants
+const NODE_MARGIN: float = 6.0
+const NODE_INNER_PAD: float = 12.0
+const NODE_CORNER_RADIUS: int = 8
+const GROUP_GAP: float = 34.0
+const GROUP_HEADER_H: float = 32.0
+const PLACEHOLDER_ICON = preload("res://resources/images/skill/skill_temp.png")
+const SKILL_ICONS = {
+  "attack_speed": preload("res://resources/images/skill/attack_speed.png"),
+  "crit_chance": preload("res://resources/images/skill/crit_chance.png"),
+  "crit_damage": preload("res://resources/images/skill/crit_damage.png"),
+  "monster_damage": preload("res://resources/images/skill/monster_damage.png"),
+}
+const LOCK_ICON = preload("res://resources/images/icon/lock.png")
 
-# Colors
-const COLOR_COMPLETED = Color(0.2, 0.55, 0.3)
-const COLOR_PURCHASABLE = Color(0.85, 0.7, 0.15)
-const COLOR_PURCHASABLE_BORDER = Color(1.0, 0.9, 0.3)
-const COLOR_PREREQ_LOCKED = Color(0.55, 0.25, 0.15)
-const COLOR_LOCKED = Color(0.25, 0.25, 0.3)
-const COLOR_LABEL = Color(0.7, 0.75, 0.8)
-const COLOR_LINE_MET = Color(0.3, 0.65, 0.4, 0.7)
-const COLOR_LINE_UNMET = Color(0.4, 0.4, 0.5, 0.4)
+# Group node colors [무기, 수집, 수확]
+const GROUP_NODE_COLORS = [
+  { # 무기 — 붉은 계열
+    "completed": Color(0.55, 0.2, 0.2),
+    "in_progress": Color(0.45, 0.2, 0.22),
+    "in_progress_border": Color(0.7, 0.4, 0.35),
+    "purchasable": Color(0.22, 0.15, 0.15),
+    "purchasable_border": Color(0.45, 0.2, 0.18),
+    "locked": Color(0.18, 0.13, 0.13),
+    "locked_border": Color(0.4, 0.18, 0.16),
+  },
+  { # 수집 — 푸른 계열
+    "completed": Color(0.2, 0.35, 0.55),
+    "in_progress": Color(0.2, 0.32, 0.48),
+    "in_progress_border": Color(0.4, 0.6, 0.8),
+    "purchasable": Color(0.15, 0.17, 0.25),
+    "purchasable_border": Color(0.18, 0.3, 0.45),
+    "locked": Color(0.13, 0.14, 0.2),
+    "locked_border": Color(0.16, 0.28, 0.42),
+  },
+  { # 수확 — 초록 계열
+    "completed": Color(0.2, 0.5, 0.25),
+    "in_progress": Color(0.2, 0.4, 0.25),
+    "in_progress_border": Color(0.4, 0.65, 0.4),
+    "purchasable": Color(0.15, 0.2, 0.15),
+    "purchasable_border": Color(0.22, 0.4, 0.18),
+    "locked": Color(0.13, 0.17, 0.13),
+    "locked_border": Color(0.2, 0.38, 0.16),
+  },
+]
+const GROUP_LINE_COLORS_MET = [
+  Color(0.8, 0.35, 0.3, 0.8),     # 무기 — 밝은 붉은색
+  Color(0.3, 0.55, 0.85, 0.8),    # 수집 — 밝은 푸른색
+  Color(0.4, 0.75, 0.35, 0.8),    # 수확 — 밝은 초록색
+]
+const GROUP_LINE_COLORS_UNMET = [
+  Color(0.65, 0.25, 0.25, 0.45),  # 무기 — 어두운 붉은색
+  Color(0.25, 0.45, 0.65, 0.45),  # 수집 — 어두운 푸른색
+  Color(0.35, 0.6, 0.25, 0.45),   # 수확 — 어두운 초록색
+]
 
-# Stores center positions for connection line drawing
-var _skill_card_centers: Dictionary = {}  # type -> Vector2
-var _node_positions: Dictionary = {}      # type -> {level: Vector2}
+# Grid node positions for connection lines: skill_type -> Vector2 (center of node)
+var _grid_node_centers: Dictionary = {}
 
 func _ready() -> void:
   panel.visible = false
@@ -364,7 +397,7 @@ func _update_next_weapon_card_style(can_buy: bool) -> void:
     style.border_color = Color(0.7, 0.55, 0.15)
   next_weapon_panel.add_theme_stylebox_override("panel", style)
 
-# ── Skill Tree ──
+# ── Skill Tree (3-Group Grid) ──
 
 func _get_current_level(skill_type: String) -> int:
   return GameManager.get_upgrade_level(skill_type)
@@ -372,383 +405,399 @@ func _get_current_level(skill_type: String) -> int:
 func _get_skill_chain(skill_type: String) -> Dictionary:
   return GameManager.get_skill_def(skill_type)
 
-func _get_node_state(skill_type: String, level: int) -> String:
+func _get_node_state(skill_type: String) -> String:
   var current_level = _get_current_level(skill_type)
   var chain = _get_skill_chain(skill_type)
   var max_level = chain.max_level
   var is_maxed = max_level >= 0 and current_level >= max_level
 
-  if level <= current_level:
+  if is_maxed:
     return "completed"
-  elif level == current_level + 1 and not is_maxed:
-    # Check prereqs for this level
-    var prereq = GameManager.check_skill_prereqs(skill_type, level)
-    if prereq.met:
-      return "purchasable"
-    else:
-      return "prereq_locked"
-  else:
-    # Check if any level between current+1 and this level has unmet prereqs
-    # For locked nodes, check if they would be prereq_locked if they were next
-    return "locked"
 
-func _compute_column_order() -> void:
-  # Build parent-children tree from :1 prereqs
-  var children_map: Dictionary = {}  # parent_type -> [child_type]
-  var has_parent: Dictionary = {}
-  for key in GameManager.SKILL_PREREQS:
-    var parts = key.split(":")
-    if int(parts[1]) == 1:
-      var parent = GameManager.SKILL_PREREQS[key][0].type
-      if not children_map.has(parent):
-        children_map[parent] = []
-      if parts[0] not in children_map[parent]:
-        children_map[parent].append(parts[0])
-      has_parent[parts[0]] = true
+  var has_started = current_level > 0 or GameManager.get_upgrade_sub_level(skill_type) > 0
+  var next_level = current_level + 1
+  var prereq = GameManager.check_skill_prereqs(skill_type, next_level)
 
-  # Find root skills (no parent) in SKILL_DEFS order
-  var roots: Array = []
-  for def in GameManager.SKILL_DEFS:
-    if not has_parent.has(def.type):
-      roots.append(def.type)
+  if not prereq.met:
+    if has_started:
+      return "in_progress"  # 찍은 적 있지만 조건 미충족 → 비활성화
+    return "locked"  # 한 번도 안 찍음 → 잠금
 
-  # Layout each root tree, then insert "weapon" in the middle
-  var groups: Array = []
-  for root in roots:
-    groups.append(_layout_tree(root, children_map))
-
-  _skill_columns = []
-  _display_columns = []
-  for i in range(groups.size()):
-    _skill_columns += groups[i]
-    _display_columns += groups[i]
-
-func _layout_tree(root: String, children_map: Dictionary) -> Array:
-  if not children_map.has(root):
-    return [root]
-  var children = children_map[root].duplicate()
-  # Sort by subtree depth (deepest first → placed left)
-  children.sort_custom(func(a, b):
-    return _subtree_depth(a, children_map) > _subtree_depth(b, children_map))
-  var left: Array = []
-  var right: Array = []
-  for i in range(children.size()):
-    if i % 2 == 0:
-      left.append(children[i])
-    else:
-      right.append(children[i])
-  var left_layout: Array = []
-  for child in left:
-    left_layout = _layout_tree(child, children_map) + left_layout
-  var right_layout: Array = []
-  for child in right:
-    right_layout += _layout_tree(child, children_map)
-  return left_layout + [root] + right_layout
-
-func _subtree_depth(node: String, children_map: Dictionary) -> int:
-  if not children_map.has(node):
-    return 0
-  var max_d = 0
-  for child in children_map[node]:
-    max_d = max(max_d, 1 + _subtree_depth(child, children_map))
-  return max_d
-
-func _compute_prereq_data() -> void:
-  _compute_column_order()
-  _skill_connections.clear()
-  _skill_node_steps.clear()
-
-  # 1. SKILL_PREREQS → connection lines
-  for key in GameManager.SKILL_PREREQS:
-    var parts = key.split(":")
-    var to_type = parts[0]
-    var to_level = int(parts[1])
-    for req in GameManager.SKILL_PREREQS[key]:
-      _skill_connections.append({
-        "from": req.type, "from_level": req.level,
-        "to": to_type, "to_level": to_level,
-      })
-
-  # 2. Compute per-node step positions (each skill level gets its own row)
-  _skill_node_steps.clear()
-
-  # Identify dependency parent for each skill (from :1 prereq)
-  var parent_map: Dictionary = {}  # child_type -> parent_type
-  for key in GameManager.SKILL_PREREQS:
-    var parts = key.split(":")
-    var child_type = parts[0]
-    var child_level = int(parts[1])
-    if child_level == 1 and not parent_map.has(child_type):
-      parent_map[child_type] = GameManager.SKILL_PREREQS[key][0].type
-
-  # Root skills (no parent): level N → step N-1
-  for skill_type in _skill_columns:
-    if not parent_map.has(skill_type):
-      _skill_node_steps[skill_type] = {}
-      var chain = _get_skill_chain(skill_type)
-      for lv in range(1, chain.max_level + 1):
-        _skill_node_steps[skill_type][lv] = lv - 1
-
-  # Resolve dependent skills iteratively (handles chains like 등급→보상→드롭)
-  var max_iter = _skill_columns.size()
-  var iter = 0
-  while _skill_node_steps.size() < _skill_columns.size() and iter < max_iter:
-    for skill_type in _skill_columns:
-      if _skill_node_steps.has(skill_type):
-        continue
-      if not _skill_node_steps.has(parent_map[skill_type]):
-        continue
-      _skill_node_steps[skill_type] = {}
-      var chain = _get_skill_chain(skill_type)
-      var prev_step: int = -1
-      for lv in range(1, chain.max_level + 1):
-        var step = prev_step + 1
-        var key = "%s:%d" % [skill_type, lv]
-        if GameManager.SKILL_PREREQS.has(key):
-          for req in GameManager.SKILL_PREREQS[key]:
-            if _skill_node_steps.has(req.type) and _skill_node_steps[req.type].has(req.level):
-              step = max(step, _skill_node_steps[req.type][req.level] + 1)
-        _skill_node_steps[skill_type][lv] = step
-        prev_step = step
-    iter += 1
+  if has_started:
+    return "in_progress"
+  return "purchasable"
 
 func build_skill_tree() -> void:
-  _compute_prereq_data()
   for child in skill_tree_container.get_children():
+    skill_tree_container.remove_child(child)
     child.queue_free()
-  _skill_card_centers.clear()
-  _node_positions.clear()
+  _grid_node_centers.clear()
 
   var container_width = skill_tree_container.size.x
   if container_width <= 0:
     container_width = skill_tree_container.get_parent().size.x
   if container_width <= 0:
-    container_width = panel.size.x - 40
+    container_width = panel.size.x - 80
 
-  var tree_margin: float = 50.0
-  var usable_width = container_width - tree_margin * 2
-  var col_count = _display_columns.size()
-  var col_width = usable_width / float(col_count)
-  var step_size = NODE_SIZE + NODE_GAP
+  var group_count = GameManager.SKILL_GROUPS.size()
+  var group_width = (container_width - GROUP_GAP * (group_count - 1)) / float(group_count)
+  var max_group_height: float = 0.0
 
-  # Find total steps needed (max step across all skill nodes + 1)
-  var max_steps: int = 0
-  for skill_type in _skill_columns:
-    var chain = _get_skill_chain(skill_type)
-    var last_step = _skill_node_steps[skill_type][chain.max_level]
-    max_steps = max(max_steps, last_step + 1)
+  for group_idx in range(group_count):
+    var group = GameManager.SKILL_GROUPS[group_idx]
+    var group_name: String = group["name"]
+    var skills: Array = group["skills"]
+    var columns: int = group["columns"]
+    var group_x = group_idx * (group_width + GROUP_GAP)
 
-  for col_idx in range(col_count):
-    var skill_type = _display_columns[col_idx]
-    var col_x = tree_margin + col_idx * col_width
-    var chain = _get_skill_chain(skill_type)
-    var current_level = _get_current_level(skill_type)
-    var max_level = chain.max_level
-    var first_step = _skill_node_steps[skill_type][1]
-    var last_step = _skill_node_steps[skill_type][max_level]
+    # Group header
+    var header = Label.new()
+    header.text = group_name
+    header.add_theme_font_size_override("font_size", 22)
+    header.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+    header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    header.position = Vector2(group_x, 0)
+    header.size = Vector2(group_width, GROUP_HEADER_H)
+    skill_tree_container.add_child(header)
 
-    var center_x = col_x + col_width / 2.0
-    var col_top_y = COL_HEADER_HEIGHT +first_step * step_size
+    # Node size: fit 2 columns with padding, then shrink a bit
+    var node_size = (group_width - NODE_MARGIN * (columns + 1)) / float(columns) - NODE_INNER_PAD
+    # Row gap = same as horizontal gap between nodes
+    var row_gap = NODE_MARGIN + NODE_INNER_PAD * 2
 
-    _node_positions[skill_type] = {}
+    # Row 0: first skill centered, row 1+: remaining skills in 2-column grid
+    var root_type = skills[0]
+    var root_x = group_x + (group_width - node_size) / 2.0
+    var root_y = GROUP_HEADER_H
 
-    # Column background panel (spans first node to last node)
-    var col_height = 45 + (last_step - first_step) * step_size + NODE_SIZE + 10
-    var bg = Panel.new()
-    var bg_style = StyleBoxFlat.new()
-    bg_style.bg_color = Color(0.1, 0.1, 0.15, 0.5)
-    bg_style.corner_radius_top_left = 8
-    bg_style.corner_radius_top_right = 8
-    bg_style.corner_radius_bottom_left = 8
-    bg_style.corner_radius_bottom_right = 8
-    bg.add_theme_stylebox_override("panel", bg_style)
-    bg.position = Vector2(col_x + 1, col_top_y - 45)
-    bg.size = Vector2(col_width - 2, col_height)
-    skill_tree_container.add_child(bg)
+    var root_state = _get_node_state(root_type)
+    var root_node = _create_skill_node(root_type, root_state, node_size, group_idx)
+    root_node.position = Vector2(root_x, root_y)
+    root_node.size = Vector2(node_size, node_size)
+    root_node.z_index = 2
+    skill_tree_container.add_child(root_node)
+    _grid_node_centers[root_type] = Vector2(root_x + node_size / 2.0, root_y + node_size / 2.0)
 
-    # Skill name (short)
-    var name_label = Label.new()
-    name_label.text = GameManager.get_skill_def(skill_type).short_name
-    name_label.add_theme_font_size_override("font_size", 20)
-    name_label.add_theme_color_override("font_color", Color.WHITE if current_level > 0 else Color(0.5, 0.55, 0.6))
-    name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    name_label.position = Vector2(col_x, col_top_y - 43)
-    name_label.size = Vector2(col_width, 22)
-    skill_tree_container.add_child(name_label)
+    # Remaining skills in 2-column rows
+    var remaining = skills.slice(1)
+    var row_count = ceili(remaining.size() / float(columns))
+    for row in range(row_count):
+      var skills_in_row: int = mini(columns, remaining.size() - row * columns)
+      for col in range(skills_in_row):
+        var idx = row * columns + col
+        var skill_type = remaining[idx]
+        var x: float
+        if skills_in_row == 1:
+          x = group_x + (group_width - node_size) / 2.0
+        else:
+          x = group_x + NODE_MARGIN + col * (node_size + NODE_MARGIN + NODE_INNER_PAD * 2)
+        var y = GROUP_HEADER_H + (row + 1) * (node_size + row_gap)
 
-    # Level count
-    var level_label = Label.new()
-    var sub_level = GameManager.get_upgrade_sub_level(skill_type)
-    var level_text = "%d/%d" % [current_level, max_level]
-    if sub_level > 0 and current_level < max_level:
-      level_text += " (%d/%d)" % [sub_level, GameManager.SUB_LEVEL_MAX]
-    level_label.text = level_text
-    level_label.add_theme_font_size_override("font_size", 16)
-    level_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.7) if current_level > 0 or sub_level > 0 else Color(0.45, 0.45, 0.5))
-    level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    level_label.position = Vector2(col_x, col_top_y - 22)
-    level_label.size = Vector2(col_width, 18)
-    skill_tree_container.add_child(level_label)
+        var state = _get_node_state(skill_type)
+        var node = _create_skill_node(skill_type, state, node_size, group_idx)
+        node.position = Vector2(x, y)
+        node.size = Vector2(node_size, node_size)
+        node.z_index = 2
+        skill_tree_container.add_child(node)
+        _grid_node_centers[skill_type] = Vector2(x + node_size / 2.0, y + node_size / 2.0)
 
-    # Level nodes (vertical column) + connecting lines between them
-    for i in range(max_level):
-      var level = i + 1
-      var state = _get_node_state(skill_type, level)
-      var node_step = _skill_node_steps[skill_type][level]
-      var node_y = COL_HEADER_HEIGHT +node_step * step_size
-      _node_positions[skill_type][level] = Vector2(center_x, node_y + NODE_SIZE / 2.0)
+    # Connection lines based on SKILL_PREREQS (orthogonal L-shape)
+    for skill_type in skills:
+      var key = "%s:1" % skill_type
+      if not GameManager.SKILL_PREREQS.has(key):
+        continue
+      var parent_type = GameManager.SKILL_PREREQS[key][0].type
+      if not _grid_node_centers.has(parent_type) or not _grid_node_centers.has(skill_type):
+        continue
+      var from_center = _grid_node_centers[parent_type]
+      var to_center = _grid_node_centers[skill_type]
+      var is_met = _get_current_level(parent_type) >= 1 or GameManager.get_upgrade_sub_level(parent_type) > 0
+      var line_color = GROUP_LINE_COLORS_MET[group_idx] if is_met else GROUP_LINE_COLORS_UNMET[group_idx]
 
-      # Vertical line from previous node to this node
-      if i > 0:
-        var prev_step = _skill_node_steps[skill_type][level - 1]
-        var prev_bottom = COL_HEADER_HEIGHT +prev_step * step_size + NODE_SIZE
-        var curr_top = node_y
-        if curr_top > prev_bottom:
-          var prev_state = _get_node_state(skill_type, level - 1)
-          var line_met = prev_state == "completed"
-          var vline = Line2D.new()
-          vline.z_index = 1
-          vline.width = 4.0
-          vline.default_color = Color(0.3, 0.65, 0.4, 0.9) if line_met else Color(0.4, 0.4, 0.5, 0.6)
-          vline.antialiased = true
-          vline.add_point(Vector2(center_x, prev_bottom))
-          vline.add_point(Vector2(center_x, curr_top))
-          skill_tree_container.add_child(vline)
+      var dx = to_center.x - from_center.x
+      var line = Line2D.new()
+      line.z_index = 1
+      line.width = 4.5
+      line.antialiased = true
+      line.default_color = line_color
 
-      var dot = _create_skill_node(skill_type, level, state)
-      dot.position = Vector2(center_x - NODE_SIZE / 2.0, node_y)
-      dot.size = Vector2(NODE_SIZE, NODE_SIZE)
-      dot.z_index = 2
-      skill_tree_container.add_child(dot)
+      if abs(dx) < 2.0:
+        # Vertically aligned — straight line bottom→top
+        var start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
+        var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
+        if end_pt.y <= start_pt.y:
+          continue
+        line.add_point(start_pt)
+        line.add_point(end_pt)
+      else:
+        # L-shape: parent side → horizontal → 90° down → child top
+        var start_pt: Vector2
+        if dx < 0:
+          start_pt = Vector2(from_center.x - node_size / 2.0, from_center.y)
+        else:
+          start_pt = Vector2(from_center.x + node_size / 2.0, from_center.y)
+        var corner_pt = Vector2(to_center.x, start_pt.y)
+        var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
+        line.add_point(start_pt)
+        line.add_point(corner_pt)
+        line.add_point(end_pt)
 
-    _skill_card_centers[skill_type] = Vector2(center_x, col_top_y - 20)
+      skill_tree_container.add_child(line)
 
-  var total_height = COL_HEADER_HEIGHT + max_steps * step_size + 20
-  skill_tree_container.custom_minimum_size = Vector2(0, total_height)
+    var total_rows = 1 + row_count
+    var group_height = GROUP_HEADER_H + total_rows * (node_size + row_gap) - row_gap
+    max_group_height = max(max_group_height, group_height)
 
-  _add_connection_lines()
+  skill_tree_container.custom_minimum_size = Vector2(0, max_group_height + 20)
 
-func _create_skill_node(skill_type: String, level: int, state: String) -> Button:
+func _create_skill_node(skill_type: String, state: String, node_size: float, group_idx: int) -> Button:
   var btn = Button.new()
-  btn.custom_minimum_size = Vector2(NODE_SIZE, NODE_SIZE)
+  btn.custom_minimum_size = Vector2(node_size, node_size)
+  btn.clip_text = true
 
   var style = StyleBoxFlat.new()
-  var radius = int(NODE_SIZE / 2)
-  style.corner_radius_top_left = radius
-  style.corner_radius_top_right = radius
-  style.corner_radius_bottom_left = radius
-  style.corner_radius_bottom_right = radius
-  style.content_margin_left = 2
-  style.content_margin_right = 2
-  style.content_margin_top = 2
-  style.content_margin_bottom = 2
+  style.corner_radius_top_left = NODE_CORNER_RADIUS
+  style.corner_radius_top_right = NODE_CORNER_RADIUS
+  style.corner_radius_bottom_left = NODE_CORNER_RADIUS
+  style.corner_radius_bottom_right = NODE_CORNER_RADIUS
+  style.content_margin_left = 4
+  style.content_margin_right = 4
+  style.content_margin_top = 4
+  style.content_margin_bottom = 4
 
+  var current_level = _get_current_level(skill_type)
+  var chain = _get_skill_chain(skill_type)
+  var max_level = chain.max_level
+  var sub_level = GameManager.get_upgrade_sub_level(skill_type)
+  var sub_max = GameManager.get_skill_sub_max(skill_type)
+  var next_level = current_level + 1
+
+  # Apply style based on state (group-colored)
+  var gc = GROUP_NODE_COLORS[group_idx]
+  var is_sub_complete = sub_level > 0 and sub_level >= sub_max
+  var is_blocked = not GameManager.check_skill_prereqs(skill_type, next_level).met
+  var is_dim = is_sub_complete or is_blocked
   match state:
     "completed":
-      style.bg_color = COLOR_COMPLETED
-      btn.text = str(level)
-      btn.disabled = true
-      btn.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0.9))
-    "purchasable":
-      style.bg_color = COLOR_PURCHASABLE
-      style.border_width_top = 3
-      style.border_width_bottom = 3
-      style.border_width_left = 3
-      style.border_width_right = 3
-      style.border_color = COLOR_PURCHASABLE_BORDER
-      var p_sub = GameManager.get_upgrade_sub_level(skill_type)
-      if p_sub > 0:
-        btn.text = "%d/%d" % [p_sub, GameManager.SUB_LEVEL_MAX]
-        btn.add_theme_font_size_override("font_size", 13)
-      else:
-        btn.text = str(level)
+      style.bg_color = gc.completed
       btn.disabled = false
-      btn.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
-      btn.pressed.connect(_on_skill_node_pressed.bind(skill_type, level))
-    "prereq_locked":
-      style.bg_color = COLOR_PREREQ_LOCKED
+      btn.pressed.connect(_on_skill_node_pressed.bind(btn, skill_type, max_level))
+    "in_progress":
+      if is_dim:
+        style.bg_color = gc.purchasable
+        style.border_width_top = 2
+        style.border_width_bottom = 2
+        style.border_width_left = 2
+        style.border_width_right = 2
+        style.border_color = gc.purchasable_border
+      else:
+        style.bg_color = gc.in_progress
+        style.border_width_top = 2
+        style.border_width_bottom = 2
+        style.border_width_left = 2
+        style.border_width_right = 2
+        style.border_color = gc.in_progress_border
+      btn.disabled = false
+      btn.pressed.connect(_on_skill_node_pressed.bind(btn, skill_type, next_level))
+    "purchasable":
+      style.bg_color = gc.in_progress
       style.border_width_top = 2
       style.border_width_bottom = 2
       style.border_width_left = 2
       style.border_width_right = 2
-      style.border_color = Color(0.7, 0.3, 0.2, 0.6)
-      btn.text = str(level)
+      style.border_color = gc.in_progress_border
       btn.disabled = false
-      btn.add_theme_color_override("font_color", Color(0.9, 0.7, 0.5))
-      btn.pressed.connect(_on_skill_node_pressed.bind(skill_type, level))
+      btn.pressed.connect(_on_skill_node_pressed.bind(btn, skill_type, next_level))
     "locked":
-      style.bg_color = COLOR_LOCKED
-      btn.text = ""
+      style.bg_color = gc.locked
+      style.border_width_top = 2
+      style.border_width_bottom = 2
+      style.border_width_left = 2
+      style.border_width_right = 2
+      style.border_color = gc.locked_border
       btn.disabled = true
-      btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.55))
 
   btn.add_theme_stylebox_override("normal", style)
   btn.add_theme_stylebox_override("hover", style)
   btn.add_theme_stylebox_override("pressed", style)
   btn.add_theme_stylebox_override("disabled", style)
   btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-  btn.add_theme_font_size_override("font_size", 16)
+  btn.set_meta("base_style", style)
+  btn.set_meta("skill_type", skill_type)
+
+  var is_locked = state == "locked"
+  var is_active = (state == "completed" or state == "purchasable"
+    or (state == "in_progress" and not is_dim))
+
+  # Skill icon (center) — hidden for locked states
+  if not is_locked:
+    var icon_rect = TextureRect.new()
+    icon_rect.texture = SKILL_ICONS.get(skill_type, PLACEHOLDER_ICON)
+    icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+    icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    icon_rect.anchors_preset = Control.PRESET_FULL_RECT
+    icon_rect.anchor_right = 1.0
+    icon_rect.anchor_bottom = 1.0
+    icon_rect.offset_left = 2
+    icon_rect.offset_top = 2
+    icon_rect.offset_right = -2
+    icon_rect.offset_bottom = -2
+    icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    if not is_active:
+      icon_rect.modulate = Color(0.5, 0.5, 0.5)
+    btn.add_child(icon_rect)
+
+  # Lock icon (center) — for locked/prereq_locked
+  if is_locked:
+    var lock_size = node_size * 1.35
+    var center_container = CenterContainer.new()
+    center_container.anchors_preset = Control.PRESET_FULL_RECT
+    center_container.anchor_right = 1.0
+    center_container.anchor_bottom = 1.0
+    center_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    btn.add_child(center_container)
+    var lock_rect = TextureRect.new()
+    lock_rect.texture = LOCK_ICON
+    lock_rect.expand_mode = TextureRect.EXPAND_FIT_HEIGHT
+    lock_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    lock_rect.custom_minimum_size = Vector2(lock_size, lock_size)
+    lock_rect.modulate = Color(0.45, 0.45, 0.5)
+    lock_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    center_container.add_child(lock_rect)
+
+  var label_color = Color(0.5, 0.5, 0.55) if not is_active else Color.WHITE
+
+  # Skill name label (top)
+  var name_label = Label.new()
+  name_label.text = chain.short_name
+  name_label.add_theme_font_size_override("font_size", 16)
+  name_label.add_theme_color_override("font_color", label_color)
+  name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  name_label.add_theme_constant_override("outline_size", 5)
+  name_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+  name_label.add_theme_constant_override("shadow_offset_x", 2)
+  name_label.add_theme_constant_override("shadow_offset_y", 2)
+  name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  name_label.anchors_preset = Control.PRESET_TOP_WIDE
+  name_label.anchor_right = 1.0
+  name_label.offset_top = 2
+  name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  btn.add_child(name_label)
+
+  # Bottom bar — level & progress info
+  var bar_h: float = 28.0
+  var bar = ColorRect.new()
+  bar.color = Color(0, 0, 0, 0.4)
+  bar.anchors_preset = Control.PRESET_BOTTOM_WIDE
+  bar.anchor_top = 1.0
+  bar.anchor_right = 1.0
+  bar.anchor_bottom = 1.0
+  bar.offset_top = -bar_h
+  bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  btn.add_child(bar)
+
+  if is_locked:
+    var req_label = Label.new()
+    var required_total = GameManager.SKILL_REQUIRED_TOTAL.get(skill_type, 0)
+    req_label.text = "스킬 %d 필요" % required_total if required_total > 0 else "잠김"
+    req_label.add_theme_font_size_override("font_size", 14)
+    req_label.add_theme_color_override("font_color", Color(0.55, 0.5, 0.5))
+    req_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    req_label.add_theme_constant_override("outline_size", 3)
+    req_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    req_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    req_label.anchors_preset = Control.PRESET_FULL_RECT
+    req_label.anchor_right = 1.0
+    req_label.anchor_bottom = 1.0
+    req_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    bar.add_child(req_label)
+  else:
+    # Level label (left side)
+    var level_label = Label.new()
+    level_label.text = "Lv.%d" % current_level
+    level_label.add_theme_font_size_override("font_size", 16)
+    level_label.add_theme_color_override("font_color", label_color)
+    level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    level_label.add_theme_constant_override("outline_size", 4)
+    level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    level_label.anchors_preset = Control.PRESET_LEFT_WIDE
+    level_label.anchor_bottom = 1.0
+    level_label.offset_left = 6
+    level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    bar.add_child(level_label)
+
+    # Sub-level / MAX (right side)
+    var sub_label = Label.new()
+    if state == "completed":
+      sub_label.text = "MAX"
+      sub_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5))
+    elif sub_level > 0:
+      sub_label.text = "%d/%d" % [sub_level, sub_max]
+      sub_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.5))
+    else:
+      sub_label.text = "0/%d" % sub_max
+      sub_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+    sub_label.add_theme_font_size_override("font_size", 14)
+    sub_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    sub_label.add_theme_constant_override("outline_size", 3)
+    sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    sub_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    sub_label.anchors_preset = Control.PRESET_RIGHT_WIDE
+    sub_label.anchor_left = 1.0
+    sub_label.anchor_bottom = 1.0
+    sub_label.offset_left = -50
+    sub_label.offset_right = -6
+    sub_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    bar.add_child(sub_label)
 
   return btn
 
-func _add_connection_lines() -> void:
-  for conn in _skill_connections:
-    var from_type: String = conn["from"]
-    var to_type: String = conn["to"]
-    var from_level: int = conn["from_level"]
-    var to_level: int = conn["to_level"]
-
-    if not _node_positions.has(from_type) or not _node_positions.has(to_type):
-      continue
-    if not _node_positions[from_type].has(from_level) or not _node_positions[to_type].has(to_level):
-      continue
-
-    var from_pos = _node_positions[from_type][from_level]
-    var to_pos = _node_positions[to_type][to_level]
-
-    var is_met = _get_current_level(from_type) >= from_level
-    var color = Color(0.3, 0.65, 0.4, 0.9) if is_met else Color(0.4, 0.4, 0.5, 0.6)
-    var width = 4.0 if is_met else 3.0
-
-    if is_met:
-      var line = Line2D.new()
-      line.z_index = 1
-      line.width = width
-      line.default_color = color
-      line.antialiased = true
-      line.add_point(from_pos)
-      line.add_point(to_pos)
-      skill_tree_container.add_child(line)
-    else:
-      # Dashed line
-      var length = from_pos.distance_to(to_pos)
-      var dir = (to_pos - from_pos).normalized()
-      var dash_len = 10.0
-      var gap_len = 8.0
-      var d = 0.0
-      while d < length:
-        var seg_start = from_pos + dir * d
-        var seg_end = from_pos + dir * min(d + dash_len, length)
-        var dash = Line2D.new()
-        dash.z_index = 1
-        dash.width = width
-        dash.default_color = color
-        dash.antialiased = true
-        dash.add_point(seg_start)
-        dash.add_point(seg_end)
-        skill_tree_container.add_child(dash)
-        d += dash_len + gap_len
-
-func _on_skill_node_pressed(skill_type: String, level: int) -> void:
+func _on_skill_node_pressed(btn: Button, skill_type: String, level: int) -> void:
   GameManager.play_button_click()
+  _deselect_btn()
   selected_type = skill_type
   selected_level = level
+  _selected_btn = btn
+  _apply_select_border(btn)
   update_description()
   update_confirm_button()
+
+func _reselect_current() -> void:
+  # build_skill_tree() 후 선택된 스킬의 새 버튼을 찾아 선택 UI 복원
+  _selected_btn = null
+  if selected_type.is_empty():
+    return
+  for child in skill_tree_container.get_children():
+    if child is Button and child.has_meta("skill_type") and child.get_meta("skill_type") == selected_type:
+      _selected_btn = child
+      _apply_select_border(child)
+      break
+
+func _apply_select_border(btn: Button) -> void:
+  var base: StyleBoxFlat = btn.get_meta("base_style")
+  var sel = base.duplicate()
+  sel.border_width_top = 6
+  sel.border_width_bottom = 6
+  sel.border_width_left = 6
+  sel.border_width_right = 6
+  sel.border_color = Color(1.0, 1.0, 1.0)
+  sel.bg_color = base.bg_color.lightened(0.35)
+  btn.add_theme_stylebox_override("normal", sel)
+  btn.add_theme_stylebox_override("hover", sel)
+  btn.add_theme_stylebox_override("pressed", sel)
+
+func _deselect_btn() -> void:
+  if _selected_btn and is_instance_valid(_selected_btn):
+    var base: StyleBoxFlat = _selected_btn.get_meta("base_style")
+    _selected_btn.add_theme_stylebox_override("normal", base)
+    _selected_btn.add_theme_stylebox_override("hover", base)
+    _selected_btn.add_theme_stylebox_override("pressed", base)
+  _selected_btn = null
 
 # ── Selection / Confirm ──
 
 func clear_selection() -> void:
+  _deselect_btn()
   selected_type = ""
   selected_level = -1
   description_label.text = "강화할 항목을 선택하세요"
@@ -820,13 +869,16 @@ func _update_skill_description() -> void:
   if not prereq_result.met:
     prereq_text = "\n[필요 조건]"
     for m in prereq_result.missing:
-      var req_name = GameManager.get_skill_def(m.type).get("name", m.type)
-      prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]
+      if m.type == "_total":
+        prereq_text += "\n  전체 스킬 Lv.%d (현재: %d)" % [m.level, m.current]
+      else:
+        var req_name = GameManager.get_skill_def(m.type).get("name", m.type)
+        prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]
 
   var sub_level = GameManager.get_upgrade_sub_level(selected_type)
   var title_text = "%s Lv.%d → Lv.%d" % [chain_info.name, current_level, selected_level]
   if sub_level > 0:
-    title_text += " (%d/%d)" % [sub_level, GameManager.SUB_LEVEL_MAX]
+    title_text += " (%d/%d)" % [sub_level, GameManager.get_skill_sub_max(selected_type)]
   description_label.text = "%s\n\n%s\n%s%s" % [title_text, chain_info.description, stat_text, prereq_text]
 
   # Add cost with coin icon below description
@@ -897,7 +949,7 @@ func update_confirm_button() -> void:
     confirm_btn.disabled = false
     var c_sub = GameManager.get_upgrade_sub_level(selected_type)
     if c_sub > 0:
-      confirm_btn.text = "업그레이드 (%d/%d)" % [c_sub, GameManager.SUB_LEVEL_MAX]
+      confirm_btn.text = "업그레이드 (%d/%d)" % [c_sub, GameManager.get_skill_sub_max(selected_type)]
     else:
       confirm_btn.text = "업그레이드 하기"
 
@@ -912,15 +964,11 @@ func _on_confirm_pressed() -> void:
     SaveManager.save_game()
 
     build_skill_tree()
+    _reselect_current()
     update_weapon_display()
     update_money_display()
-    # Sub-level purchase (didn't reach 5/5): keep selection for quick re-click
-    var new_sub = GameManager.get_upgrade_sub_level(selected_type)
-    if new_sub > 0:
-      update_description()
-      update_confirm_button()
-    else:
-      clear_selection()
+    update_description()
+    update_confirm_button()
 
 func _on_money_changed(_amount: int) -> void:
   update_money_display()
@@ -929,8 +977,8 @@ func _on_money_changed(_amount: int) -> void:
     _update_weapon_buy_button()
 
 func _on_upgrade_purchased(_type: String, _level: int) -> void:
-
   build_skill_tree()
+  _reselect_current()
   update_weapon_display()
   update_money_display()
 
