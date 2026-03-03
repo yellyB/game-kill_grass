@@ -578,9 +578,13 @@ func build_skill_tree() -> void:
 
     # Level count
     var level_label = Label.new()
-    level_label.text = "%d/%d" % [current_level, max_level]
+    var sub_level = GameManager.get_upgrade_sub_level(skill_type)
+    var level_text = "%d/%d" % [current_level, max_level]
+    if sub_level > 0 and current_level < max_level:
+      level_text += " (%d/%d)" % [sub_level, GameManager.SUB_LEVEL_MAX]
+    level_label.text = level_text
     level_label.add_theme_font_size_override("font_size", 16)
-    level_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.7) if current_level > 0 else Color(0.45, 0.45, 0.5))
+    level_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.7) if current_level > 0 or sub_level > 0 else Color(0.45, 0.45, 0.5))
     level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     level_label.position = Vector2(col_x, col_top_y - 22)
     level_label.size = Vector2(col_width, 18)
@@ -652,7 +656,12 @@ func _create_skill_node(skill_type: String, level: int, state: String) -> Button
       style.border_width_left = 3
       style.border_width_right = 3
       style.border_color = COLOR_PURCHASABLE_BORDER
-      btn.text = str(level)
+      var p_sub = GameManager.get_upgrade_sub_level(skill_type)
+      if p_sub > 0:
+        btn.text = "%d/%d" % [p_sub, GameManager.SUB_LEVEL_MAX]
+        btn.add_theme_font_size_override("font_size", 13)
+      else:
+        btn.text = str(level)
       btn.disabled = false
       btn.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
       btn.pressed.connect(_on_skill_node_pressed.bind(skill_type, level))
@@ -814,7 +823,11 @@ func _update_skill_description() -> void:
       var req_name = GameManager.get_skill_def(m.type).get("name", m.type)
       prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]
 
-  description_label.text = "%s Lv.%d\n\n%s\n%s%s" % [chain_info.name, selected_level, chain_info.description, stat_text, prereq_text]
+  var sub_level = GameManager.get_upgrade_sub_level(selected_type)
+  var title_text = "%s Lv.%d → Lv.%d" % [chain_info.name, current_level, selected_level]
+  if sub_level > 0:
+    title_text += " (%d/%d)" % [sub_level, GameManager.SUB_LEVEL_MAX]
+  description_label.text = "%s\n\n%s\n%s%s" % [title_text, chain_info.description, stat_text, prereq_text]
 
   # Add cost with coin icon below description
   _update_description_cost(cost)
@@ -882,21 +895,32 @@ func update_confirm_button() -> void:
     confirm_btn.text = "돈 부족"
   else:
     confirm_btn.disabled = false
-    confirm_btn.text = "업그레이드 하기"
+    var c_sub = GameManager.get_upgrade_sub_level(selected_type)
+    if c_sub > 0:
+      confirm_btn.text = "업그레이드 (%d/%d)" % [c_sub, GameManager.SUB_LEVEL_MAX]
+    else:
+      confirm_btn.text = "업그레이드 하기"
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
   if selected_type.is_empty():
     return
 
+  var prev_sub = GameManager.get_upgrade_sub_level(selected_type)
   if GameManager.purchase_upgrade(selected_type):
     GameManager.play_skill_upgrade_sound()
     SaveManager.save_game()
-  
+
     build_skill_tree()
     update_weapon_display()
     update_money_display()
-    clear_selection()
+    # Sub-level purchase (didn't reach 5/5): keep selection for quick re-click
+    var new_sub = GameManager.get_upgrade_sub_level(selected_type)
+    if new_sub > 0:
+      update_description()
+      update_confirm_button()
+    else:
+      clear_selection()
 
 func _on_money_changed(_amount: int) -> void:
   update_money_display()

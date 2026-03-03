@@ -57,6 +57,8 @@ func reset_all_data() -> void:
 	GameManager.money = 0
 	for type in GameManager.upgrade_levels:
 		GameManager.upgrade_levels[type] = 0
+	for type in GameManager.upgrade_sub_levels:
+		GameManager.upgrade_sub_levels[type] = 0
 	GameManager.inventory = {}
 	GameManager.discovered_items = []
 	GameManager.selected_world = 0
