@@ -96,6 +96,8 @@ const GROUP_LINE_COLORS_UNMET = [
 
 # Grid node positions for connection lines: skill_type -> Vector2 (center of node)
 var _grid_node_centers: Dictionary = {}
+# How many skills share the same row as this skill: skill_type -> int
+var _grid_row_counts: Dictionary = {}
 
 func _ready() -> void:
   panel.visible = false
@@ -442,6 +444,7 @@ func build_skill_tree() -> void:
     skill_tree_container.remove_child(child)
     child.queue_free()
   _grid_node_centers.clear()
+  _grid_row_counts.clear()
 
   var container_width = skill_tree_container.size.x
   if container_width <= 0:
@@ -487,6 +490,7 @@ func build_skill_tree() -> void:
     root_node.z_index = 2
     skill_tree_container.add_child(root_node)
     _grid_node_centers[root_type] = Vector2(root_x + node_size / 2.0, root_y + node_size / 2.0)
+    _grid_row_counts[root_type] = 1
 
     # Remaining skills in 2-column rows
     var remaining = skills.slice(1)
@@ -498,7 +502,17 @@ func build_skill_tree() -> void:
         var skill_type = remaining[idx]
         var x: float
         if skills_in_row == 1:
-          x = group_x + (group_width - node_size) / 2.0
+          # Check if single prereq → align under it
+          var prereq_key = "%s:1" % skill_type
+          var single_parent := ""
+          if GameManager.SKILL_PREREQS.has(prereq_key):
+            var reqs = GameManager.SKILL_PREREQS[prereq_key]
+            if reqs.size() == 1 and "_or_" not in reqs[0].type:
+              single_parent = reqs[0].type
+          if not single_parent.is_empty() and _grid_node_centers.has(single_parent):
+            x = _grid_node_centers[single_parent].x - node_size / 2.0
+          else:
+            x = group_x + (group_width - node_size) / 2.0
         else:
           x = group_x + NODE_MARGIN + col * (node_size + NODE_MARGIN + NODE_INNER_PAD * 2)
         var y = GROUP_HEADER_H + (row + 1) * (node_size + row_gap)
@@ -510,49 +524,70 @@ func build_skill_tree() -> void:
         node.z_index = 2
         skill_tree_container.add_child(node)
         _grid_node_centers[skill_type] = Vector2(x + node_size / 2.0, y + node_size / 2.0)
+        _grid_row_counts[skill_type] = skills_in_row
 
     # Connection lines based on SKILL_PREREQS (orthogonal L-shape)
     for skill_type in skills:
       var key = "%s:1" % skill_type
       if not GameManager.SKILL_PREREQS.has(key):
         continue
-      var parent_type = GameManager.SKILL_PREREQS[key][0].type
-      if not _grid_node_centers.has(parent_type) or not _grid_node_centers.has(skill_type):
-        continue
-      var from_center = _grid_node_centers[parent_type]
-      var to_center = _grid_node_centers[skill_type]
-      var is_met = _get_current_level(parent_type) >= 1 or GameManager.get_upgrade_sub_level(parent_type) > 0
-      var line_color = GROUP_LINE_COLORS_MET[group_idx] if is_met else GROUP_LINE_COLORS_UNMET[group_idx]
-
-      var dx = to_center.x - from_center.x
-      var line = Line2D.new()
-      line.z_index = 1
-      line.width = 4.5
-      line.antialiased = true
-      line.default_color = line_color
-
-      if abs(dx) < 2.0:
-        # Vertically aligned — straight line bottom→top
-        var start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
-        var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
-        if end_pt.y <= start_pt.y:
-          continue
-        line.add_point(start_pt)
-        line.add_point(end_pt)
-      else:
-        # L-shape: parent side → horizontal → 90° down → child top
-        var start_pt: Vector2
-        if dx < 0:
-          start_pt = Vector2(from_center.x - node_size / 2.0, from_center.y)
+      # Collect parent types (OR: single entry with "_or_", AND: multiple entries)
+      var parent_types: Array = []
+      for req in GameManager.SKILL_PREREQS[key]:
+        if "_or_" in req.type:
+          for ot in req.type.split("_or_"):
+            parent_types.append(ot)
         else:
-          start_pt = Vector2(from_center.x + node_size / 2.0, from_center.y)
-        var corner_pt = Vector2(to_center.x, start_pt.y)
-        var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
-        line.add_point(start_pt)
-        line.add_point(corner_pt)
-        line.add_point(end_pt)
+          parent_types.append(req.type)
+      for parent_type in parent_types:
+        if not _grid_node_centers.has(parent_type) or not _grid_node_centers.has(skill_type):
+          continue
+        var from_center = _grid_node_centers[parent_type]
+        var to_center = _grid_node_centers[skill_type]
+        var is_met = _get_current_level(parent_type) >= 1 or GameManager.get_upgrade_sub_level(parent_type) > 0
+        var line_color = GROUP_LINE_COLORS_MET[group_idx] if is_met else GROUP_LINE_COLORS_UNMET[group_idx]
 
-      skill_tree_container.add_child(line)
+        var dx = to_center.x - from_center.x
+        var line = Line2D.new()
+        line.z_index = 1
+        line.width = 4.5
+        line.antialiased = true
+        line.default_color = line_color
+
+        if abs(dx) < 2.0:
+          # Straight vertical line
+          var start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
+          var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
+          if end_pt.y > start_pt.y:
+            line.add_point(start_pt)
+            line.add_point(end_pt)
+            skill_tree_container.add_child(line)
+        elif _grid_row_counts.get(parent_type, 1) == 1:
+          # Fan out: parent is single → exit from parent SIDE → horizontal → down to child TOP
+          var start_pt: Vector2
+          if dx > 0:
+            start_pt = Vector2(from_center.x + node_size / 2.0, from_center.y)
+          else:
+            start_pt = Vector2(from_center.x - node_size / 2.0, from_center.y)
+          var corner_pt = Vector2(to_center.x, start_pt.y)
+          var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
+          line.add_point(start_pt)
+          line.add_point(corner_pt)
+          line.add_point(end_pt)
+          skill_tree_container.add_child(line)
+        else:
+          # Converge: child is single → exit from parent BOTTOM → down → into child SIDE
+          var start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
+          var corner_pt = Vector2(from_center.x, to_center.y)
+          var end_pt: Vector2
+          if dx > 0:
+            end_pt = Vector2(to_center.x - node_size / 2.0, to_center.y)
+          else:
+            end_pt = Vector2(to_center.x + node_size / 2.0, to_center.y)
+          line.add_point(start_pt)
+          line.add_point(corner_pt)
+          line.add_point(end_pt)
+          skill_tree_container.add_child(line)
 
     var total_rows = 1 + row_count
     var group_height = GROUP_HEADER_H + total_rows * (node_size + row_gap) - row_gap
@@ -891,6 +926,8 @@ func _update_skill_description() -> void:
     for m in prereq_result.missing:
       if m.type == "_total":
         prereq_text += "\n  전체 스킬 Lv.%d (현재: %d)" % [m.level, m.current]
+      elif m.has("or_names"):
+        prereq_text += "\n  %s 중 하나 Lv.%d" % [" 또는 ".join(m.or_names), m.level]
       else:
         var req_name = GameManager.get_skill_def(m.type).get("name", m.type)
         prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]

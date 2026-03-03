@@ -77,51 +77,51 @@ signal key_acquired(world_index: int)
 # Skill definitions — single source of truth for all skills
 const SKILL_DEFS: Array = [
   {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 12,
-   "description": "풀을 베는 속도가 빨라집니다."},
+   "description": "풀을 베는 속도가 빨라집니다.\n(미정)"},
   {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 10,
-   "description": "풀을 베는 범위가 넓어집니다."},
+   "description": "풀을 베는 범위가 넓어집니다.\n(미정)"},
   {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 5, "max_level": 8,
-   "description": "한 번에 베는 풀의 수가 증가합니다."},
+   "description": "한 번에 베는 풀의 수가 증가합니다.\n(미정)"},
   {"type": "magnet_range", "name": "자석 범위", "short_name": "자석", "sub_max": 5, "max_level": 8,
-   "description": "코인을 끌어당기는 범위가 넓어집니다."},
+   "description": "코인을 끌어당기는 범위가 넓어집니다.\n(미정)"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 10, "max_level": 10,
-   "description": "맵에 풀이 더 빽빽하게 자랍니다."},
+   "description": "맵에 풀이 더 빽빽하게 자랍니다.\n레벨당 청크 내 풀 +1개 (Lv.0: 1개 → Lv.10: 11개)"},
   {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 5,
-   "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다."},
+   "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다.\n유효 등급: Lv.1=0.2, Lv.2=0.5, Lv.3=1.0, Lv.4=2.0, Lv.5=3.0"},
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
-   "description": "상자가 등장할 확률이 증가합니다."},
+   "description": "상자가 등장할 확률이 증가합니다.\n(미정)"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 8,
-   "description": "풀을 벨 때 치명타가 발생할 확률이 증가합니다."},
+   "description": "풀을 벨 때 치명타가 발생할 확률이 증가합니다.\n(미정)"},
   {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 10, "max_level": 9,
-   "description": "치명타 발생 시 추가 피해가 증가합니다."},
+   "description": "치명타 발생 시 추가 피해가 증가합니다.\n(미정)"},
   {"type": "weapon", "name": "무기", "short_name": "무기", "sub_max": 5, "max_level": 9,
    "description": "더 강력한 무기로 교체합니다."},
   {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
-   "description": "몬스터에게 주는 피해가 증가합니다."},
+   "description": "몬스터에게 주는 피해가 증가합니다.\n(미정)"},
   {"type": "fury_rate", "name": "분노 속도", "short_name": "분노", "sub_max": 4, "max_level": 4,
-   "description": "몬스터분노 게이지가 더 빨리 찹니다."},
+   "description": "몬스터분노 게이지가 더 빨리 찹니다.\n(미정)"},
   {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "sub_max": 2, "max_level": 5,
-   "description": "황금풀이 등장할 확률이 증가합니다."},
+   "description": "황금풀이 등장할 확률이 증가합니다.\nLv.0: 0.02%, Lv.1: 0.2%, Lv.2: 0.4%, Lv.3: 0.6%, Lv.4: 0.8%, Lv.5: 1.0%"},
   {"type": "golden_reward", "name": "황금풀 보상", "short_name": "황보", "sub_max": 5, "max_level": 10,
-   "description": "황금풀에서 떨어지는 코인이 증가합니다."},
+   "description": "황금풀에서 떨어지는 코인이 증가합니다.\n(미정)"},
   {"type": "move_speed", "name": "이동 속도", "short_name": "이속", "sub_max": 6, "max_level": 10,
-   "description": "플레이어의 이동 속도가 빨라집니다."},
+   "description": "플레이어의 이동 속도가 빨라집니다.\n(미정)"},
 ]
 
 const SKILL_GROUPS: Array = [
   {
-    "name": "무기",
-    "skills": ["attack_speed", "weapon", "crit_chance", "crit_damage", "monster_damage"],
-    "columns": 2,
-  },
-  {
-    "name": "수집",
-    "skills": ["attack_range", "attack_count", "move_speed", "magnet_range"],
-    "columns": 2,
-  },
-  {
     "name": "수확",
-    "skills": ["grass_density", "grass_quality", "chest_chance", "fury_rate", "golden_chance", "golden_reward"],
+    "skills": ["grass_density", "grass_quality", "golden_chance", "golden_reward"],
+    "columns": 2,
+  },
+  {
+    "name": "무기",
+    "skills": ["attack_speed", "attack_range", "crit_chance", "attack_count", "crit_damage", "monster_damage"],
+    "columns": 2,
+  },
+  {
+    "name": "탐험",
+    "skills": ["move_speed", "magnet_range", "chest_chance", "fury_rate"],
     "columns": 2,
   },
 ]
@@ -618,38 +618,41 @@ const WEAPON_SKILL_REQUIREMENTS = [0, 0, 2, 4, 7, 11, 16, 21, 27, 34]
 # Row 0 = root (centered, no prereq). Row 1+ = 2-col grid, prereq = skill above in same column
 const SKILL_PREREQS = {
   # 무기: row1 ← root(attack_speed)
-  "weapon:1": [{"type": "attack_speed", "level": 1}],
+  "attack_range:1": [{"type": "attack_speed", "level": 1}],
   "crit_chance:1": [{"type": "attack_speed", "level": 1}],
-  # 무기: row2 ← row1
-  "crit_damage:1": [{"type": "weapon", "level": 1}],
-  "monster_damage:1": [{"type": "crit_chance", "level": 1}],
-  # 수집: row1 ← root(attack_range)
+  # 무기: row2 ← row1 (각 열 직선)
   "attack_count:1": [{"type": "attack_range", "level": 1}],
-  "move_speed:1": [{"type": "attack_range", "level": 1}],
-  # 수집: row2 ← row1
-  "magnet_range:1": [{"type": "attack_count", "level": 1}],
+  "crit_damage:1": [{"type": "crit_chance", "level": 1}],
+  # 무기: row3 ← crit_damage
+  "monster_damage:1": [{"type": "crit_damage", "level": 1}],
   # 수확: row1 ← root(grass_density)
   "grass_quality:1": [{"type": "grass_density", "level": 1}],
-  "chest_chance:1": [{"type": "grass_density", "level": 1}],
-  # 수확: row2 ← row1
-  "fury_rate:1": [{"type": "grass_quality", "level": 1}],
-  "golden_chance:1": [{"type": "chest_chance", "level": 1}],
-  # 수확: row3 ← row2
-  "golden_reward:1": [{"type": "fury_rate", "level": 1}],
+  "golden_chance:1": [{"type": "grass_density", "level": 1}],
+  # 수확: row2 ← golden_chance
+  "golden_reward:1": [{"type": "golden_chance", "level": 1}],
+  # 탐험: row1 ← root(move_speed)
+  "magnet_range:1": [{"type": "move_speed", "level": 1}],
+  "chest_chance:1": [{"type": "move_speed", "level": 1}],
+  # 탐험: row2 ← row1 (OR)
+  "fury_rate:1": [{"type": "magnet_range_or_chest_chance", "level": 1}],
 }
 
 # Required total skill levels to unlock (해금 게이트)
 const SKILL_REQUIRED_TOTAL = {
-  # Row 1
-  "weapon": 3, "crit_chance": 3,
-  "attack_count": 3, "move_speed": 3,
-  "grass_quality": 3, "chest_chance": 3,
-  # Row 2
-  "crit_damage": 3, "monster_damage": 3,
-  "magnet_range": 3,
-  "fury_rate": 3, "golden_chance": 3,
-  # Row 3
+  # 무기: row1
+  "attack_range": 3, "attack_count": 3,
+  # 무기: row2
+  "crit_chance": 3, "crit_damage": 3,
+  # 무기: row3
+  "monster_damage": 3,
+  # 수확: row1
+  "grass_quality": 3, "golden_chance": 3,
+  # 수확: row2
   "golden_reward": 3,
+  # 탐험: row1
+  "move_speed": 3, "chest_chance": 3,
+  # 탐험: row2
+  "fury_rate": 3,
   # Level-specific gates (type:level)
   "attack_range:2": 10,
 }
@@ -671,9 +674,23 @@ func check_skill_prereqs(type: String, level: int) -> Dictionary:
   var key = "%s:%d" % [type, level]
   if SKILL_PREREQS.has(key):
     for req in SKILL_PREREQS[key]:
-      var current = get_upgrade_level(req.type)
-      if current < req.level:
-        missing.append({"type": req.type, "level": req.level, "current": current})
+      if "_or_" in req.type:
+        # OR condition: any one of the types meeting the level is enough
+        var or_types = req.type.split("_or_")
+        var any_met = false
+        for ot in or_types:
+          if get_upgrade_level(ot) >= req.level:
+            any_met = true
+            break
+        if not any_met:
+          var names = []
+          for ot in or_types:
+            names.append(get_skill_def(ot).get("short_name", ot))
+          missing.append({"type": req.type, "level": req.level, "current": 0, "or_names": names})
+      else:
+        var current = get_upgrade_level(req.type)
+        if current < req.level:
+          missing.append({"type": req.type, "level": req.level, "current": current})
   return {"met": missing.is_empty(), "missing": missing}
 
 func get_upgrade_level(type: String) -> int:
