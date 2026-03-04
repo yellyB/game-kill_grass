@@ -86,8 +86,8 @@ const SKILL_DEFS: Array = [
    "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 40 → 200 (틱당 +4)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 10, "max_level": 10,
    "description": "맵에 풀이 더 빽빽하게 자랍니다.\n청크당 풀: 1 → 200 (지수 곡선)\n단계 10 | 최대 Lv.10"},
-  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 5,
-   "description": "더 높은 등급의 풀이 등장할 확률이 증가합니다.\n유효 등급: 0.0 → 3.0 (8단계마다 레벨업)\n단계 8 | 최대 Lv.5"},
+  {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 4,
+   "description": "더 높은 등급의 풀이 등장합니다.\n틱마다 다음 등급 확률 증가 (8틱 완료 = 다음 등급 100%)\n단계 8 | 최대 Lv.4"},
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
    "description": "상자가 등장할 확률이 증가합니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 8,
@@ -446,40 +446,27 @@ func _init_grass_data() -> void:
   grass_data_list.append(g4)
   grass_data_list.append(g5)
 
-# 등급 유효 레벨 매핑 (L1-2 소폭, L3-10 정상 증가)
-const QUALITY_EFFECTIVE: Array = [0.0, 0.2, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+# 풀 등급 이름 (UI 표시용)
+const GRASS_TYPE_NAMES: Array = ["새싹", "잔디", "여린풀", "강한풀", "초강풀"]
 
 func get_random_grass_data() -> GrassData:
-  var raw_level = upgrade_levels.get("grass_quality", 0)
-  var quality_level = QUALITY_EFFECTIVE[clampi(raw_level, 0, QUALITY_EFFECTIVE.size() - 1)]
-
-  var roll = randf()
-  if roll < get_golden_grass_chance():
+  if randf() < get_golden_grass_chance():
     return grass_data_list[5]  # 황금풀
 
-  # 가중치 기반 5종 풀 분배 (bell curve)
-  # 각 등급 피크: 새싹(0), 잔디(0.75), 여린풀(1.5), 강한풀(2.25), 초강풀(3.0)
-  var centers = [0.0, 0.75, 1.5, 2.25, 3.0]
-  var width = 1.2
-  var weights: Array = []
-  var total_w = 0.0
-  for c in centers:
-    var d = (quality_level - c) / width
-    var w = maxf(0.0, 1.0 - d * d)
-    weights.append(w)
-    total_w += w
+  # 레벨별 풀 등급 전환: 8틱(sub)으로 현재→다음 등급 확률 전환
+  # Lv.0: 새싹→잔디, Lv.1: 잔디→여린풀, Lv.2: 여린풀→강한풀, Lv.3: 강한풀→초강풀
+  var level = upgrade_levels.get("grass_quality", 0)
+  var sub = upgrade_sub_levels.get("grass_quality", 0)
+  var current_type = mini(level, 4)
 
-  if total_w <= 0:
-    return grass_data_list[0]
+  if current_type >= 4:
+    return grass_data_list[4]  # 초강풀 100%
 
-  var r = randf() * total_w
-  var cumulative = 0.0
-  for i in weights.size():
-    cumulative += weights[i]
-    if r <= cumulative:
-      return grass_data_list[i]
-
-  return grass_data_list[0]
+  # sub 0 = 100% 현재, sub 7 = 100% 다음
+  var transition = float(sub) / 7.0
+  if randf() < transition:
+    return grass_data_list[current_type + 1]
+  return grass_data_list[current_type]
 
 func add_fury(amount: float) -> void:
   fury = minf(fury + amount * get_fury_rate_mult(), FURY_MAX)
@@ -537,10 +524,6 @@ func get_grass_density_value() -> int:
   if ticks <= 0:
     return 1
   return maxi(1, roundi(200.0 * pow(float(ticks) / 100.0, 3.0)))
-
-# 풀 등급 (기존 유지)
-func get_grass_quality_level() -> int:
-  return upgrade_levels.get("grass_quality", 0)
 
 # 상자 출현률: 0% → 5%, 틱당 +0.2% (총 25틱)
 func get_chest_spawn_chance() -> float:

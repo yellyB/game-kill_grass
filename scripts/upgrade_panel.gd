@@ -906,10 +906,11 @@ func _get_skill_stat_text(type: String) -> String:
       nxt_str = "%.0f" % (60.0 + next_ticks * 4.0)
     "attack_count":
       label = "동시 타격"
-      var cur_v = maxi(1, roundi(1.0 + 49.0 * pow(float(ticks) / 40.0, 2.0))) if ticks > 0 else 1
-      var nxt_v = maxi(1, roundi(1.0 + 49.0 * pow(float(next_ticks) / 40.0, 2.0)))
-      cur_str = "%d개" % cur_v
-      nxt_str = "%d개" % nxt_v
+      _restore_tick(type, saved_level, saved_sub)
+      cur_str = "%d개" % GameManager.get_attack_count()
+      if not is_maxed:
+        _simulate_next_tick(type)
+        nxt_str = "%d개" % GameManager.get_attack_count()
     "magnet_range":
       label = "자석 범위"
       cur_str = "%.0f" % (40.0 + ticks * 4.0)
@@ -921,13 +922,29 @@ func _get_skill_stat_text(type: String) -> String:
       cur_str = "%d" % cur_v
       nxt_str = "%d" % nxt_v
     "grass_quality":
-      label = "유효 등급"
-      cur_str = "%.1f" % GameManager.QUALITY_EFFECTIVE[clampi(saved_level, 0, GameManager.QUALITY_EFFECTIVE.size() - 1)]
+      label = "등장 풀"
+      var cur_type = mini(saved_level, 4)
+      var cur_sub = saved_sub
+      var cur_name = GameManager.GRASS_TYPE_NAMES[cur_type]
+      if cur_type < 4 and cur_sub > 0:
+        var nxt_name = GameManager.GRASS_TYPE_NAMES[cur_type + 1]
+        var pct = int(float(cur_sub) / 7.0 * 100)
+        cur_str = "%s %d%%" % [nxt_name, pct]
+      else:
+        cur_str = "%s" % cur_name
       _restore_tick(type, saved_level, saved_sub)
       if not is_maxed:
         _simulate_next_tick(type)
-      var nxt_level = GameManager.upgrade_levels.get(type, 0)
-      nxt_str = "%.1f" % GameManager.QUALITY_EFFECTIVE[clampi(nxt_level, 0, GameManager.QUALITY_EFFECTIVE.size() - 1)]
+      var n_level = GameManager.upgrade_levels.get(type, 0)
+      var n_sub = GameManager.upgrade_sub_levels.get(type, 0)
+      var n_type = mini(n_level, 4)
+      var n_name = GameManager.GRASS_TYPE_NAMES[n_type]
+      if n_type < 4 and n_sub > 0:
+        var nn_name = GameManager.GRASS_TYPE_NAMES[n_type + 1]
+        var n_pct = int(float(n_sub) / 7.0 * 100)
+        nxt_str = "%s %d%%" % [nn_name, n_pct]
+      else:
+        nxt_str = "%s" % n_name
     "chest_chance":
       label = "상자 확률"
       cur_str = "%.1f%%" % (ticks * 0.2)
@@ -954,12 +971,15 @@ func _get_skill_stat_text(type: String) -> String:
       nxt_str = "%.1f%%" % (next_ticks * 0.1)
     "golden_reward":
       label = "황금풀 보상"
-      cur_str = "%.0f%%" % ((1.0 + ticks * 0.1) * 100.0)
-      nxt_str = "%.0f%%" % ((1.0 + next_ticks * 0.1) * 100.0)
+      _restore_tick(type, saved_level, saved_sub)
+      cur_str = "%d원" % roundi(100.0 * GameManager.get_golden_reward_mult())
+      if not is_maxed:
+        _simulate_next_tick(type)
+      nxt_str = "%d원" % roundi(100.0 * GameManager.get_golden_reward_mult())
     "move_speed":
       label = "이동 속도"
-      cur_str = "%.0f" % (300.0 + ticks * 5.0)
-      nxt_str = "%.0f" % (300.0 + next_ticks * 5.0)
+      cur_str = "%.0f" % (300.0 + ticks * 10.0)
+      nxt_str = "%.0f" % (300.0 + next_ticks * 10.0)
 
   _restore_tick(type, saved_level, saved_sub)
 
