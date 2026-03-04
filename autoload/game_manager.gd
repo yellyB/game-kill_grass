@@ -19,7 +19,7 @@ var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
 var prologue_seen: bool = false
-const WORLD_UNLOCK_COSTS: Array = [0, 2000, 5000, 10000, 25000, 50000, 80000]
+const WORLD_UNLOCK_COSTS: Array = [0, 100, 5000, 10000, 25000, 50000, 80000]
 
 # 월드별 풀 체력/보상 기본 배율 (매 월드 x1.3 균일 증가, 황금풀 제외)
 const WORLD_GRASS_HP_MULT: Array = [1.0, 1.3, 1.69, 2.2, 2.86, 3.71, 4.83]

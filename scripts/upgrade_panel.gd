@@ -1258,9 +1258,9 @@ func _update_stat_display(data: Dictionary, base_y: float) -> void:
       rt.text = "[center][color=#ffdd77]%s[/color]   %s[/center]" % [lbl, data.cur]
   else:
     if lbl.is_empty():
-      rt.text = "[center]%s → [color=#ff6655]%s[/color][/center]" % [data.cur, data.nxt]
+      rt.text = "[center]%s → [color=#66ff88]%s[/color][/center]" % [data.cur, data.nxt]
     else:
-      rt.text = "[center][color=#ffdd77]%s[/color]   %s → [color=#ff6655]%s[/color][/center]" % [lbl, data.cur, data.nxt]
+      rt.text = "[center][color=#ffdd77]%s[/color]   %s → [color=#66ff88]%s[/color][/center]" % [lbl, data.cur, data.nxt]
 
   description_panel.add_child(rt)
   _desc_stat_node = rt
