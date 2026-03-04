@@ -122,12 +122,12 @@ func _ready() -> void:
     title_label.visible = false
 
   # Reposition section label (스킬) to top
-  section_label.add_theme_font_size_override("font_size", 40)
-  section_label.offset_top = 160.0
-  section_label.offset_bottom = 205.0
+  section_label.add_theme_font_size_override("font_size", 37)
+  section_label.offset_top = 130.0
+  section_label.offset_bottom = 175.0
 
   # Reposition skill tree scroll to start below section label
-  skill_tree_scroll.offset_top = 295.0
+  skill_tree_scroll.offset_top = 220.0
 
   # Style description panel to stand out from background
   var desc_style = StyleBoxFlat.new()
@@ -473,20 +473,33 @@ func build_skill_tree() -> void:
     container_width = panel.size.x - 80
 
   var group_count = GameManager.SKILL_GROUPS.size()
-  var group_width = (container_width - GROUP_GAP * (group_count - 1)) / float(group_count)
   var accumulated_y: float = 0.0
-
-  # Compute base_x once: center based on widest tree (max col_count)
+  var row_gap = NODE_MARGIN + NODE_INNER_PAD * 2
   var first_columns: int = GameManager.SKILL_GROUPS[0]["columns"]
-  var node_size_pre = (group_width - NODE_MARGIN * (first_columns + 1)) / float(first_columns) - NODE_INNER_PAD
-  var row_gap_pre = NODE_MARGIN + NODE_INNER_PAD * 2
+
+  # Compute node_size: fit both horizontally and vertically (no scroll)
   var max_col_count: int = 0
   for g in GameManager.SKILL_GROUPS:
     var rc = ceili((g["skills"].size() - 1) / float(g["columns"]))
     max_col_count = maxi(max_col_count, rc)
   var max_total_cols = 1 + max_col_count
-  var max_tree_width = max_total_cols * node_size_pre + (max_total_cols - 1) * row_gap_pre
   var tree_area_width = container_width - GROUP_HEADER_H
+  var node_size_h = (tree_area_width - (max_total_cols - 1) * row_gap) / float(max_total_cols)
+
+  # Vertical constraint: total height must fit in scroll area
+  var scroll_height = skill_tree_scroll.size.y
+  if scroll_height <= 0:
+    scroll_height = 700.0
+  # total_height = group_count * group_width + (group_count - 1) * GROUP_GAP
+  # group_width = (node_size + NODE_INNER_PAD) * first_columns + NODE_MARGIN * (first_columns + 1)
+  var avail_v = scroll_height - (group_count - 1) * GROUP_GAP
+  var group_width_max = avail_v / float(group_count)
+  var node_size_v = (group_width_max - NODE_MARGIN * (first_columns + 1)) / float(first_columns) - NODE_INNER_PAD
+
+  var node_size = minf(node_size_h, node_size_v) * 0.92
+  var group_width = (node_size + NODE_INNER_PAD) * first_columns + NODE_MARGIN * (first_columns + 1)
+  # Center tree horizontally if vertical constraint was tighter
+  var max_tree_width = max_total_cols * node_size + (max_total_cols - 1) * row_gap
   var base_x_shared = GROUP_HEADER_H + (tree_area_width - max_tree_width) / 2.0
 
   for group_idx in range(group_count):
@@ -495,10 +508,6 @@ func build_skill_tree() -> void:
     var skills: Array = group["skills"]
     var columns: int = group["columns"]
     var group_y = accumulated_y
-
-    # Node size: same formula as before
-    var node_size = (group_width - NODE_MARGIN * (columns + 1)) / float(columns) - NODE_INNER_PAD
-    var row_gap = NODE_MARGIN + NODE_INNER_PAD * 2
 
     # Group header — left side, vertically centered in node area
     var header = Label.new()
@@ -759,8 +768,8 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   if is_locked:
     return btn
   var name_label = Label.new()
-  name_label.text = chain.short_name
-  name_label.add_theme_font_size_override("font_size", 16)
+  name_label.text = chain.name
+  name_label.add_theme_font_size_override("font_size", 20)
   name_label.add_theme_color_override("font_color", label_color)
   name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   name_label.add_theme_constant_override("outline_size", 5)
@@ -775,7 +784,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   btn.add_child(name_label)
 
   # Bottom bar — level & progress info
-  var bar_h: float = 28.0
+  var bar_h: float = 34.0
   var bar = ColorRect.new()
   bar.color = Color(0.25, 0.2, 0.05, 0.8) if state == "completed" else Color(0, 0, 0, 0.4)
   bar.anchors_preset = Control.PRESET_BOTTOM_WIDE
@@ -805,7 +814,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
     # Level label (left side)
     var level_label = Label.new()
     level_label.text = "Lv.%d" % (current_level + 1)
-    level_label.add_theme_font_size_override("font_size", 16)
+    level_label.add_theme_font_size_override("font_size", 20)
     level_label.add_theme_color_override("font_color", label_color)
     level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
     level_label.add_theme_constant_override("outline_size", 4)
@@ -827,7 +836,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
     else:
       sub_label.text = "0/%d" % sub_max
       sub_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
-    sub_label.add_theme_font_size_override("font_size", 14)
+    sub_label.add_theme_font_size_override("font_size", 20)
     sub_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
     sub_label.add_theme_constant_override("outline_size", 3)
     sub_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -1003,7 +1012,7 @@ func _get_skill_stat_data(type: String) -> Dictionary:
         var d = nv - cv
         delta = "+%d" % d if d >= 0 else "%d" % d
     "magnet_range":
-      label = "자석범위"
+      label = "수집범위"
       var cv = int(40.0 + ticks * 4.0)
       var nv = int(40.0 + next_ticks * 4.0)
       cur = "%d" % cv
@@ -1133,7 +1142,7 @@ func _update_skill_description() -> void:
     var empty = sub_max - sub_level
     title_bbcode = "[center][color=#ffdd77]%s[/color] Lv.%d  %s%s (%d/%d)[/center]" % [chain_info.name, current_level + 1, "■".repeat(filled), "□".repeat(empty), sub_level, sub_max]
 
-  var pad_top: float = 24.0
+  var pad_top: float = 28.0
   var pad_lr: float = 24.0
   var base_y: float = pad_top
 
@@ -1215,7 +1224,8 @@ func _update_skill_description() -> void:
   base_y += 63
 
   # Cost line
-  _update_description_cost(cost, base_y, is_maxed)
+  var sub_filled = sub_level >= sub_max
+  _update_description_cost(cost, base_y, is_maxed or sub_filled)
 
 func _update_stat_display(data: Dictionary, base_y: float) -> void:
   if _desc_stat_node:
@@ -1257,9 +1267,9 @@ func _update_stat_display(data: Dictionary, base_y: float) -> void:
 
 
 func _clear_description_extras() -> void:
-  if _desc_cost_node:
-    _desc_cost_node.queue_free()
-    _desc_cost_node = null
+  if _btn_cost_node:
+    _btn_cost_node.queue_free()
+    _btn_cost_node = null
   if _desc_stat_node:
     _desc_stat_node.queue_free()
     _desc_stat_node = null
@@ -1413,12 +1423,13 @@ func _position_bottom_section() -> void:
   _bottom_hbox.anchor_bottom = 1.0
   _bottom_hbox.offset_left = 0
   _bottom_hbox.offset_right = 0
-  _bottom_hbox.offset_top = -section_height - 20
-  _bottom_hbox.offset_bottom = -20
+  _bottom_hbox.offset_top = -section_height
+  _bottom_hbox.offset_bottom = 0
 
   # SkillTreeScroll ends before bottom section
   skill_tree_scroll.anchor_bottom = 1.0
   skill_tree_scroll.offset_bottom = -section_height - gap
+  skill_tree_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 
 func _calc_grass_per_chunk(density_level: int) -> int:
   var grass_spawner = get_tree().get_first_node_in_group("grass_spawner")
