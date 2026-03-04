@@ -888,7 +888,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   return btn
 
 func _on_skill_node_pressed(btn: Button, skill_type: String, level: int) -> void:
-  GameManager.play_button_click()
+  GameManager.play_skill_click()
   _deselect_btn()
   selected_type = skill_type
   selected_level = level

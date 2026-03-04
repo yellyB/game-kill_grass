@@ -192,6 +192,7 @@ var _sfx_craft: AudioStreamPlayer
 var _sfx_weapon_upgrade: AudioStreamPlayer
 var _sfx_skill_upgrade: AudioStreamPlayer
 var _sfx_unlock: AudioStreamPlayer
+var _sfx_skill_click: AudioStreamPlayer
 
 func _ready() -> void:
   process_mode = Node.PROCESS_MODE_ALWAYS
@@ -228,6 +229,13 @@ func _ready() -> void:
   _sfx_unlock.stream = preload("res://resources/sounds/effect/unlock_world.wav")
   _sfx_unlock.volume_db = -3.0
   add_child(_sfx_unlock)
+  _sfx_skill_click = AudioStreamPlayer.new()
+  _sfx_skill_click.stream = preload("res://resources/sounds/effect/skill_click.wav")
+  _sfx_skill_click.volume_db = -5.0
+  add_child(_sfx_skill_click)
+
+func play_skill_click() -> void:
+  _sfx_skill_click.play()
 
 func play_button_click() -> void:
   _sfx_click.play()

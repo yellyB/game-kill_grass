@@ -136,12 +136,6 @@
 - 열쇠 획득 시 시안색 알림
 - 1.5초 표시 후 0.5초간 페이드아웃
 
-### 프롤로그 시스템
-- 최초 실행 시 자동 재생되는 스토리 슬라이드쇼
-- 5컷 이미지+텍스트 슬라이드, 탭으로 진행, 건너뛰기 가능
-- `prologue_seen` 플래그로 1회만 표시 (SaveManager 연동)
-- 슬라이드 3에서 화면 흔들림 효과
-
 ### 디버그 기능
 메인 메뉴 하단에 디버그 버튼 (debug build only):
 - 초기화: 모든 데이터 리셋
@@ -180,7 +174,6 @@ scripts/
   effects/crystal_shimmer_effect.gd - 수정 사슴 반짝임 이펙트
   effects/rock_debris_effect.gd    - 잔디 골렘 바위 파편 이펙트
   effects/fire_wisp_effect.gd      - 드래곤 화염 이펙트
-  prologue.gd        - 프롤로그 슬라이드쇼
   info_panel.gd      - 정보 패널 UI
   pause_menu.gd      - 일시정지 메뉴
   virtual_joystick.gd - 가상 조이스틱 (미사용, 터치 드래그로 대체)
