@@ -65,7 +65,6 @@ func _on_other_panel_closed() -> void:
 func _on_upgrade_pressed() -> void:
   GameManager.play_confirm_click()
   if WeaponManager.purchase_next_weapon():
-    GameManager.play_weapon_upgrade_sound()
     SaveManager.save_game()
     update_display()
     # Play upgrade effect
