@@ -103,6 +103,7 @@ const GROUP_LINE_COLORS_UNMET = [
 var _grid_node_centers: Dictionary = {}
 # How many skills share the same row as this skill: skill_type -> int
 var _grid_row_counts: Dictionary = {}
+var _bottom_hbox: HBoxContainer = null
 
 func _ready() -> void:
   panel.visible = false
@@ -165,6 +166,7 @@ func open_panel() -> void:
     return
   is_open = true
   panel.visible = true
+  _position_bottom_section()
   update_money_display()
 
   build_skill_tree()
@@ -906,14 +908,24 @@ func clear_selection() -> void:
   _deselect_btn()
   selected_type = ""
   selected_level = -1
-  description_label.text = "강화할 항목을 선택하세요"
   _clear_description_extras()
+  description_label.text = "강화할 항목을 선택하세요"
+  description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  description_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+  description_label.anchors_preset = Control.PRESET_FULL_RECT
+  description_label.anchor_right = 1.0
+  description_label.anchor_bottom = 1.0
+  description_label.offset_left = 20
+  description_label.offset_top = 15
+  description_label.offset_right = -20
+  description_label.offset_bottom = -15
+  description_label.add_theme_font_size_override("font_size", 36)
   confirm_btn.disabled = true
   confirm_btn.text = "업그레이드 하기"
 
 func update_description() -> void:
   if selected_type.is_empty():
-    description_label.text = "강화할 항목을 선택하세요"
+    clear_selection()
     return
   _update_skill_description()
 
@@ -1107,21 +1119,24 @@ func _update_skill_description() -> void:
     var empty = sub_max - sub_level
     title_text = "%s Lv.%d  %s%s (%d/%d)" % [chain_info.name, current_level + 1, "■".repeat(filled), "□".repeat(empty), sub_level, sub_max]
 
-  # Make description_label top-aligned for proper flow
+  # Build content from y=0, then center vertically
+  var base_y: float = 0.0
+
+  # Title
+  description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   description_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
   description_label.anchors_preset = Control.PRESET_TOP_WIDE
   description_label.anchor_right = 1.0
   description_label.anchor_bottom = 0.0
   description_label.offset_left = 20
-  description_label.offset_top = 15
+  description_label.offset_top = base_y
   description_label.offset_right = -20
-  description_label.offset_bottom = 65
+  description_label.offset_bottom = base_y + 50
   description_label.add_theme_font_size_override("font_size", 36)
   description_label.text = title_text
+  base_y += 70
 
-  var base_y = description_label.offset_bottom + 20
-
-  # Divider between title and description
+  # Divider
   if _desc_divider:
     _desc_divider.queue_free()
     _desc_divider = null
@@ -1131,9 +1146,9 @@ func _update_skill_description() -> void:
   divider.anchor_right = 1.0
   divider.anchor_top = 0.0
   divider.anchor_bottom = 0.0
-  divider.offset_left = 86
+  divider.offset_left = 50
   divider.offset_top = base_y
-  divider.offset_right = -86
+  divider.offset_right = -50
   divider.offset_bottom = base_y + 2
   description_panel.add_child(divider)
   _desc_divider = divider
@@ -1174,6 +1189,28 @@ func _update_skill_description() -> void:
       _desc_cost_node = null
   else:
     _update_description_cost(cost, base_y)
+    base_y += 44
+
+  # Vertically center all content within description panel
+  var panel_h = description_panel.size.y
+  if panel_h <= 0:
+    panel_h = 340.0
+  var shift = (panel_h - base_y) / 2.0
+  if shift > 0:
+    description_label.offset_top += shift
+    description_label.offset_bottom += shift
+    if _desc_divider:
+      _desc_divider.offset_top += shift
+      _desc_divider.offset_bottom += shift
+    if _desc_text_node:
+      _desc_text_node.offset_top += shift
+      _desc_text_node.offset_bottom += shift
+    if _desc_stat_node:
+      _desc_stat_node.offset_top += shift
+      _desc_stat_node.offset_bottom += shift
+    if _desc_cost_node:
+      _desc_cost_node.offset_top += shift
+      _desc_cost_node.offset_bottom += shift
 
 func _update_stat_display(data: Dictionary, base_y: float) -> void:
   if _desc_stat_node:
@@ -1309,10 +1346,9 @@ func update_confirm_button() -> void:
 
   if GameManager.money < cost:
     confirm_btn.disabled = true
-    confirm_btn.text = "돈 부족"
   else:
     confirm_btn.disabled = false
-    confirm_btn.text = "업그레이드 하기"
+  confirm_btn.text = "업그레이드 하기"
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
@@ -1359,26 +1395,48 @@ func _position_close_btn() -> void:
   pass  # Positioned in tscn within PaddedArea
 
 func _position_bottom_section() -> void:
-  var padded_height = padded_area.size.y
-  var btn_height = 120.0
+  var section_height = 300.0
   var gap = 20.0
-  var desc_height = 280.0
-  # ConfirmBtn at bottom of PaddedArea
-  confirm_btn.anchor_left = 0.0
-  confirm_btn.anchor_right = 1.0
-  confirm_btn.anchor_top = 0.0
-  confirm_btn.anchor_bottom = 0.0
-  confirm_btn.offset_bottom = padded_height
-  confirm_btn.offset_top = padded_height - btn_height
-  # DescriptionPanel above ConfirmBtn
-  description_panel.anchor_left = 0.0
-  description_panel.anchor_right = 1.0
-  description_panel.anchor_top = 0.0
-  description_panel.anchor_bottom = 0.0
-  description_panel.offset_bottom = confirm_btn.offset_top - gap
-  description_panel.offset_top = description_panel.offset_bottom - desc_height
-  # SkillTreeScroll ends before DescriptionPanel
-  skill_tree_scroll.offset_bottom = description_panel.offset_top - gap
+
+  # Create bottom HBox container (once)
+  if not _bottom_hbox:
+    _bottom_hbox = HBoxContainer.new()
+    _bottom_hbox.add_theme_constant_override("separation", int(gap))
+    # Reparent description_panel and confirm_btn into HBox
+    description_panel.get_parent().remove_child(description_panel)
+    confirm_btn.get_parent().remove_child(confirm_btn)
+    _bottom_hbox.add_child(description_panel)
+    _bottom_hbox.add_child(confirm_btn)
+    padded_area.add_child(_bottom_hbox)
+    # Description 80%, Button 20%
+    description_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    description_panel.size_flags_stretch_ratio = 4.0
+    confirm_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    confirm_btn.size_flags_stretch_ratio = 1.0
+    # Reset anchors/offsets for HBox children
+    for child in [description_panel, confirm_btn]:
+      child.anchor_left = 0.0
+      child.anchor_right = 0.0
+      child.anchor_top = 0.0
+      child.anchor_bottom = 0.0
+      child.offset_left = 0
+      child.offset_right = 0
+      child.offset_top = 0
+      child.offset_bottom = 0
+
+  # Position HBox at bottom of PaddedArea
+  _bottom_hbox.anchor_left = 0.0
+  _bottom_hbox.anchor_right = 1.0
+  _bottom_hbox.anchor_top = 1.0
+  _bottom_hbox.anchor_bottom = 1.0
+  _bottom_hbox.offset_left = 0
+  _bottom_hbox.offset_right = 0
+  _bottom_hbox.offset_top = -section_height - 20
+  _bottom_hbox.offset_bottom = -20
+
+  # SkillTreeScroll ends before bottom section
+  skill_tree_scroll.anchor_bottom = 1.0
+  skill_tree_scroll.offset_bottom = -section_height - gap
 
 func _calc_grass_per_chunk(density_level: int) -> int:
   var grass_spawner = get_tree().get_first_node_in_group("grass_spawner")
