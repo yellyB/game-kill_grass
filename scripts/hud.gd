@@ -4,11 +4,13 @@ extends CanvasLayer
 @onready var money_display = $PaddedArea/MoneyDisplay
 @onready var money_label: Label = $PaddedArea/MoneyDisplay/MoneyLabel
 @onready var item_notif_container: VBoxContainer = $PaddedArea/ItemNotifContainer
+@onready var fury_hbox: HBoxContainer = $PaddedArea/FuryHBox
 @onready var fury_progress: ProgressBar = $PaddedArea/FuryHBox/FuryProgressBar
 @onready var fury_label: Label = $PaddedArea/FuryHBox/FuryLabel
 
 var displayed_money: int = 0
 var target_money: int = 0
+var fury_hidden: bool = false
 var buff_labels: Dictionary = {}  # type -> Label
 var perm_buff_icons: Array = []  # ordered list of icons
 
@@ -45,6 +47,7 @@ func _ready() -> void:
   # 몬스터분노 bar styling
   _setup_fury_bar()
   GameManager.fury_changed.connect(_on_fury_changed)
+  GameManager.fury_boss_requested.connect(_on_fury_boss_spawned)
 
   # Connect player_hit signal (deferred to ensure player exists)
   call_deferred("_connect_player_hit")
@@ -282,8 +285,41 @@ func _setup_fury_bar() -> void:
   fury_label.text = "0"
 
 func _on_fury_changed(value: float) -> void:
+  if fury_hidden:
+    return
   fury_progress.value = value
   fury_label.text = str(int(value))
+
+func _on_fury_boss_spawned() -> void:
+  fury_hidden = true
+
+  # Vibrate on mobile
+  if OS.has_feature("mobile"):
+    Input.vibrate_handheld(200)
+
+  # Shake and fade out the fury bar
+  var original_pos = fury_hbox.position
+
+  # Shake: fast accelerating oscillation over 2.5 seconds (works during pause)
+  var shake_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+  var steps = 24
+  for i in range(steps):
+    var t = float(i) / steps
+    var intensity = lerpf(6.0, 20.0, t)
+    var speed = lerpf(0.12, 0.06, t)
+    var offset_x = intensity * (1.0 if i % 2 == 0 else -1.0)
+    shake_tween.tween_property(fury_hbox, "position:x", original_pos.x + offset_x, speed)
+  shake_tween.tween_property(fury_hbox, "position:x", original_pos.x, 0.05)
+
+  # Scale up big while fading out (works during pause)
+  var fade_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+  fade_tween.set_parallel(true)
+  fade_tween.tween_property(fury_hbox, "modulate:a", 0.0, 2.5)
+  fade_tween.tween_property(fury_hbox, "scale", Vector2(1.8, 1.8), 2.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+  fade_tween.chain().tween_callback(func():
+    fury_hbox.visible = false
+    GameManager.fury_gauge_dismissed.emit()
+  )
 
 # ── Monster Arrow Indicators (내비게이션) ──
 

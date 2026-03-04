@@ -46,6 +46,7 @@ var collision_rotation: float = 0.0
 var key_world_index: int = -1  # >= 0 이면 사망 시 해당 월드 열쇠 드롭
 var boss_reward: int = 0  # > 0 이면 사망 시 해당 금액 코인 드롭 (클리어 후 보상)
 var boss_potion: String = ""  # 비어있지 않으면 사망 시 해당 아이템 드롭
+var is_fury_boss: bool = false  # 분노 보스 여부 (사망 시 세션 종료)
 var is_boss_entering: bool = false  # 보스 등장 애니메이션 중
 var sfx_hit: AudioStreamPlayer
 
@@ -65,6 +66,7 @@ func setup(config: Dictionary) -> void:
   key_world_index = config.get("key_world_index", -1)
   boss_reward = config.get("boss_reward", 0)
   boss_potion = config.get("boss_potion", "")
+  is_fury_boss = config.get("is_fury_boss", false)
 
 func _ready() -> void:
   add_to_group("monsters")
@@ -270,6 +272,9 @@ func die() -> void:
     _drop_potion()
   elif boss_reward > 0:
     _drop_boss_reward()
+  elif is_fury_boss:
+    # 분노 보스: 드롭 없이 세션 종료
+    GameManager.boss_key_collected.emit(-1)
   else:
     _drop_item()
     # 30% chance to drop a powerup
@@ -333,7 +338,8 @@ func _roll_drop() -> Variant:
   var total_weight: int = 0
   for drop in drop_table:
     total_weight += drop.weight
-
+  if total_weight <= 0:
+    return null
   var roll = randi() % total_weight
   var cumulative: int = 0
   for drop in drop_table:

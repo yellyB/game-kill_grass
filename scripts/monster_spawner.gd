@@ -158,6 +158,7 @@ func _on_fury_boss_requested() -> void:
   if not FURY_BOSS_TYPES.has(world):
     return
   var config = FURY_BOSS_TYPES[world].duplicate()
+  config["is_fury_boss"] = true
   var is_last = world + 1 >= GameManager.WORLD_UNLOCK_COSTS.size()
   if _is_world_cleared(world):
     # 이미 클리어한 월드: 코인 보상
@@ -188,8 +189,8 @@ func _on_fury_boss_requested() -> void:
 func _play_boss_entrance(monster: Node2D) -> void:
   get_tree().paused = true
   monster.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-  # 1초 멈춤
-  await get_tree().create_timer(1.0).timeout
+  # 게이지 애니메이션 완료 대기
+  await GameManager.fury_gauge_dismissed
   # 보스 등장 애니메이션 (0.6초)
   monster.visible = true
   monster.play_boss_entrance()
