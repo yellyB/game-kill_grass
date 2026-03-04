@@ -55,9 +55,9 @@ grow_horizontal = 0
 [node name="CloseBtn" type="Button" parent="Control/Panel/PaddedArea"]
 layout_mode = 1
 offset_left = 0.0
-offset_top = 0.0
-offset_right = 160.0
-offset_bottom = 75.0
+offset_top = 10.0
+offset_right = 137.0
+offset_bottom = 70.0
 
 [node name="TitleLabel" type="Label" parent="Control/Panel/PaddedArea"]
 layout_mode = 1
