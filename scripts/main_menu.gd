@@ -271,12 +271,12 @@ func _open_world_select() -> void:
   panel_style.content_margin_left = 30
   panel_style.content_margin_right = 30
   panel_style.content_margin_top = 44
-  panel_style.content_margin_bottom = 26
+  panel_style.content_margin_bottom = 0
   panel.add_theme_stylebox_override("panel", panel_style)
   center.add_child(panel)
 
   var vbox = VBoxContainer.new()
-  vbox.add_theme_constant_override("separation", 22)
+  vbox.add_theme_constant_override("separation", 7)
   panel.add_child(vbox)
 
   # Header
@@ -289,11 +289,15 @@ func _open_world_select() -> void:
   header.add_theme_constant_override("outline_size", 3)
   vbox.add_child(header)
 
-  # Separator
+  # Separator (with 12px top/bottom margin via MarginContainer)
+  var sep_margin = MarginContainer.new()
+  sep_margin.add_theme_constant_override("margin_top", 16)
+  sep_margin.add_theme_constant_override("margin_bottom", 16)
+  vbox.add_child(sep_margin)
   var sep = ColorRect.new()
   sep.color = Color(0.24, 0.24, 0.32)
   sep.custom_minimum_size = Vector2(0, 2)
-  vbox.add_child(sep)
+  sep_margin.add_child(sep)
 
   # World cards container (for rebuilding cards on selection change)
   _ws_cards_container = VBoxContainer.new()
@@ -304,7 +308,7 @@ func _open_world_select() -> void:
 
   # Spacer between cards and buttons
   var spacer = Control.new()
-  spacer.custom_minimum_size = Vector2(0, 12)
+  spacer.custom_minimum_size = Vector2(0, 40)
   vbox.add_child(spacer)
 
   # Action button (게임 입장 / 해금)
@@ -347,7 +351,7 @@ func _create_world_card(index: int) -> PanelContainer:
   var selected = index == _ws_selected
 
   var card = PanelContainer.new()
-  card.custom_minimum_size = Vector2(0, 133)
+  card.custom_minimum_size = Vector2(0, 143)
 
   var style = StyleBoxFlat.new()
   if selected:
@@ -376,10 +380,10 @@ func _create_world_card(index: int) -> PanelContainer:
   style.corner_radius_top_right = 14
   style.corner_radius_bottom_left = 14
   style.corner_radius_bottom_right = 14
-  style.content_margin_left = 24
-  style.content_margin_right = 24
-  style.content_margin_top = 16
-  style.content_margin_bottom = 16
+  style.content_margin_left = 26
+  style.content_margin_right = 26
+  style.content_margin_top = 18
+  style.content_margin_bottom = 18
   card.add_theme_stylebox_override("panel", style)
 
   var has_key = GameManager.has_key(index)
@@ -393,7 +397,7 @@ func _create_world_card(index: int) -> PanelContainer:
     card.add_child(lock_container)
     var lock_icon = TextureRect.new()
     lock_icon.texture = preload("res://resources/images/icon/lock.png")
-    lock_icon.custom_minimum_size = Vector2(100, 100)
+    lock_icon.custom_minimum_size = Vector2(108, 108)
     lock_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
     lock_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     lock_icon.modulate = Color(0.4, 0.4, 0.5)
@@ -406,7 +410,7 @@ func _create_world_card(index: int) -> PanelContainer:
 
     # Status icon
     var icon_label = Label.new()
-    icon_label.add_theme_font_size_override("font_size", 40)
+    icon_label.add_theme_font_size_override("font_size", 43)
     icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       icon_label.text = "O"
@@ -419,13 +423,14 @@ func _create_world_card(index: int) -> PanelContainer:
     # Info column
     var info_vbox = VBoxContainer.new()
     info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    info_vbox.add_theme_constant_override("separation", 4)
+    info_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    info_vbox.add_theme_constant_override("separation", 8)
     info_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
     hbox.add_child(info_vbox)
 
     var name_label = Label.new()
     name_label.text = world.name
-    name_label.add_theme_font_size_override("font_size", 35)
+    name_label.add_theme_font_size_override("font_size", 38)
     name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8))
@@ -437,7 +442,7 @@ func _create_world_card(index: int) -> PanelContainer:
 
     var monster_label = Label.new()
     monster_label.text = world.monsters
-    monster_label.add_theme_font_size_override("font_size", 22)
+    monster_label.add_theme_font_size_override("font_size", 26)
     monster_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     if unlocked:
       monster_label.add_theme_color_override("font_color", Color(0.62, 0.7, 0.66))
@@ -449,58 +454,75 @@ func _create_world_card(index: int) -> PanelContainer:
 
     # 초월 UI (클리어된 월드만)
     if unlocked and GameManager.is_world_cleared(index):
-      var str_vbox = VBoxContainer.new()
-      str_vbox.add_theme_constant_override("separation", 4)
-      str_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-      str_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-      hbox.add_child(str_vbox)
+      var str_hbox = HBoxContainer.new()
+      str_hbox.add_theme_constant_override("separation", 10)
+      str_hbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+      str_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      hbox.add_child(str_hbox)
+
+      # 텍스트 두줄: 초월 레벨 + 효과
+      var str_info = VBoxContainer.new()
+      str_info.add_theme_constant_override("separation", 1)
+      str_info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+      str_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      str_hbox.add_child(str_info)
+
+      var str_label = Label.new()
+      str_label.text = "초월 Lv.%d" % strength
+      str_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      str_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+      str_label.add_theme_font_size_override("font_size", 28)
+      str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+      str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+      str_label.add_theme_constant_override("outline_size", 2)
+      str_info.add_child(str_label)
 
       if strength > 0:
-        var str_label = Label.new()
-        str_label.text = "초월 Lv.%d" % strength
-        str_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        str_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-        str_label.add_theme_font_size_override("font_size", 20)
-        str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
-        str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-        str_label.add_theme_constant_override("outline_size", 2)
-        str_vbox.add_child(str_label)
+        var str_spacer = Control.new()
+        str_spacer.custom_minimum_size = Vector2(0, 8)
+        str_info.add_child(str_spacer)
+        var hp_bonus = int(strength * 30)
+        var rw_bonus = int(strength * 50)
+        var hp_label = Label.new()
+        hp_label.text = "체력+%d%%" % hp_bonus
+        hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        hp_label.add_theme_font_size_override("font_size", 23)
+        hp_label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.4))
+        str_info.add_child(hp_label)
+        var rw_label = Label.new()
+        rw_label.text = "보상+%d%%" % rw_bonus
+        rw_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        rw_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        rw_label.add_theme_font_size_override("font_size", 23)
+        rw_label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.4))
+        str_info.add_child(rw_label)
 
       var str_btn = Button.new()
       str_btn.text = "초월"
-      str_btn.add_theme_font_size_override("font_size", 18)
-      str_btn.custom_minimum_size = Vector2(120, 40)
+      str_btn.add_theme_font_size_override("font_size", 36)
+      str_btn.custom_minimum_size = Vector2(150, 108)
       str_btn.pressed.connect(_on_strengthen_pressed.bind(index))
       GameManager.style_button(str_btn, "main")
-      str_vbox.add_child(str_btn)
-
-      if strength > 0:
-        var hp_bonus = int(strength * 30)
-        var rw_bonus = int(strength * 50)
-        var bonus_label = Label.new()
-        bonus_label.text = "체력+%d%% 보상+%d%%" % [hp_bonus, rw_bonus]
-        bonus_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-        bonus_label.add_theme_font_size_override("font_size", 16)
-        bonus_label.add_theme_color_override("font_color", Color(0.8, 0.7, 0.3))
-        str_vbox.add_child(bonus_label)
+      str_hbox.add_child(str_btn)
 
     # Cost / key status (locked with key)
     if not unlocked:
       var status_vbox = VBoxContainer.new()
-      status_vbox.add_theme_constant_override("separation", 2)
+      status_vbox.add_theme_constant_override("separation", 8)
+      status_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
       status_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
       hbox.add_child(status_vbox)
 
       var cost_color = Color(1, 0.9, 0.3) if GameManager.money >= cost else Color(0.5, 0.4, 0.4)
-      var cost_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 30, cost_color)
+      var cost_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 38, cost_color)
       cost_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
       status_vbox.add_child(cost_hbox)
 
       var key_label = Label.new()
       key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-      key_label.add_theme_font_size_override("font_size", 22)
-      key_label.text = "열쇠 O"
+      key_label.add_theme_font_size_override("font_size", 26)
+      key_label.text = "열쇠 보유"
       key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
       key_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
       status_vbox.add_child(key_label)
@@ -567,9 +589,9 @@ func _show_strengthen_dialog(world: int) -> void:
   var panel = Panel.new()
   panel.set_anchors_preset(Control.PRESET_CENTER)
   panel.offset_left = -300
-  panel.offset_top = -220
+  panel.offset_top = -185
   panel.offset_right = 300
-  panel.offset_bottom = 220
+  panel.offset_bottom = 185
   panel.add_theme_stylebox_override("panel", panel_style)
   root.add_child(panel)
 
