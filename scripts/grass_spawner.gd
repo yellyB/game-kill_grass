@@ -46,7 +46,7 @@ const WORLD_GRASS_TINTS: Array = [
 # null이면 원본 GrassData.color 사용
 const WORLD_GRASS_COLORS: Array = [
   # 0: 슬라임 늪
-  [Color(0.22, 0.5, 0.22), Color(0.32, 0.65, 0.32), Color(0.45, 0.85, 0.45), Color(0.3, 0.92, 0.6), Color(0.2, 0.85, 0.8), null],
+  [Color(0.25, 0.55, 0.2), Color(0.5, 0.78, 0.25), Color(0.45, 0.85, 0.45), Color(0.3, 0.92, 0.6), Color(0.2, 0.85, 0.8), null],
   # 1: 들판
   [Color(0.8, 0.65, 0.42), Color(0.88, 0.74, 0.5), Color(0.95, 0.82, 0.58), Color(1.0, 0.88, 0.64), Color(1.0, 0.92, 0.72), null],
   # 2: 기사의 성벽

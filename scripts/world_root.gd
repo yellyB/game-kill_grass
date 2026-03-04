@@ -1,6 +1,5 @@
 extends Node2D
 
-@export var move_speed: float = 300.0
 
 var player: CharacterBody2D = null
 var background: ColorRect = null

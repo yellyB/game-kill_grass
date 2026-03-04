@@ -290,6 +290,7 @@ func update_attack_range() -> void:
   attack_radius = base_range * session_mult
   if attack_shape and attack_shape.shape:
     (attack_shape.shape as CircleShape2D).radius = attack_radius
+  _update_weapon_scale()
 
 func create_weapon_visual() -> void:
   if blade:
@@ -307,8 +308,8 @@ func create_weapon_sprite() -> Sprite2D:
     push_warning("Weapon texture not loaded!")
     return sprite
   sprite.texture = texture
-  # Scale to match player size
-  var target_size = 140.0
+  # Scale weapon to match attack range (tip reaches attack_radius from pivot)
+  var target_size = attack_radius
   var max_dimension = max(texture.get_width(), texture.get_height())
   var scale_factor = target_size / max_dimension
   weapon_base_scale = Vector2(scale_factor, scale_factor)
@@ -317,6 +318,16 @@ func create_weapon_sprite() -> Sprite2D:
   sprite.offset = Vector2(0, -texture.get_height() / 2.0)
   return sprite
 
+
+func _update_weapon_scale() -> void:
+  if not blade or not blade.texture:
+    return
+  var target_size = attack_radius
+  var max_dimension = max(blade.texture.get_width(), blade.texture.get_height())
+  var scale_factor = target_size / max_dimension
+  weapon_base_scale = Vector2(scale_factor, scale_factor)
+  if not is_swinging:
+    blade.scale = weapon_base_scale
 
 func _attack_monsters_in_area(_center: Vector2, _radius: float) -> void:
   var base_damage = WeaponManager.get_weapon_damage()

@@ -82,7 +82,7 @@ func purchase_next_weapon() -> bool:
   return true
 
 func get_weapon_damage() -> int:
-  return get_current_weapon().damage
+  return 1 + GameManager.get_skill_total_progress("attack_power")
 
 func get_weapon_max_targets() -> int:
   return get_current_weapon().max_targets

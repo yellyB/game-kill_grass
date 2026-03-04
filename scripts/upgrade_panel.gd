@@ -21,7 +21,7 @@ signal panel_closed
 
 var is_open: bool = false
 
-# Selection: "weapon" or skill type ("grass_density" etc), "" = none
+# Selection: "attack_power" or skill type ("grass_density" etc), "" = none
 var selected_type: String = ""
 var selected_level: int = -1
 var _selected_btn: Button = null  # Currently selected skill node button
@@ -36,6 +36,7 @@ const GROUP_GAP: float = 34.0
 const GROUP_HEADER_H: float = 32.0
 const PLACEHOLDER_ICON = preload("res://resources/images/skill/skill_temp.png")
 const SKILL_ICONS = {
+  "attack_power": preload("res://resources/images/skill/attack_power.png"),
   "attack_speed": preload("res://resources/images/skill/attack_speed.png"),
   "crit_chance": preload("res://resources/images/skill/crit_chance.png"),
   "crit_damage": preload("res://resources/images/skill/crit_damage.png"),
@@ -50,6 +51,7 @@ const SKILL_ICONS = {
   "fury_rate": preload("res://resources/images/skill/fury_rate.png"),
   "golden_chance": preload("res://resources/images/skill/golden_chance.png"),
   "golden_reward": preload("res://resources/images/skill/golden_reward.png"),
+  "session_time": preload("res://resources/images/skill/session_time.png"),
 }
 const LOCK_ICON = preload("res://resources/images/icon/lock.png")
 
@@ -291,47 +293,25 @@ func _ensure_next_weapon_nodes() -> void:
 
 func _on_weapon_buy_pressed() -> void:
   GameManager.play_confirm_click()
-  if WeaponManager.purchase_next_weapon():
-    GameManager.play_weapon_upgrade_sound()
+  if GameManager.purchase_upgrade("attack_power"):
+    GameManager.play_skill_upgrade_sound()
     SaveManager.save_game()
-    _animate_weapon_upgrade()
+    build_skill_tree()
+    update_weapon_display()
     update_money_display()
 
 func _animate_weapon_upgrade() -> void:
-  # Current weapon already updated in WeaponManager
-  var current = WeaponManager.get_current_weapon()
-  var next = WeaponManager.get_next_weapon()
-
-  # Update current weapon card immediately
-  weapon_image.texture = WeaponManager.get_weapon_texture()
-  current_weapon_label.text = "%s\n대미지 %d" % [current.name, current.damage]
-
+  update_weapon_display()
   # Slide current card: slight scale pop
   var tween = create_tween()
   weapon_image.scale = Vector2(1.3, 1.3)
   tween.tween_property(weapon_image, "scale", Vector2(1.0, 1.0), 0.2)
 
-  # Update and animate next weapon card sliding in from right
-  if not next.is_empty():
-    var next_level = WeaponManager.current_weapon_level + 1
-    if next_level < WeaponManager.weapon_textures.size():
-      next_weapon_image.texture = WeaponManager.weapon_textures[next_level]
-    next_weapon_label.text = "%s\n대미지 %d" % [next.name, next.damage]
-    # Slide in from right
-    next_weapon_panel.modulate = Color(1, 1, 1, 0)
-    var slide_tween = create_tween()
-    slide_tween.tween_property(next_weapon_panel, "modulate:a", 1.0, 0.3).set_delay(0.15)
-  else:
-    next_weapon_arrow.visible = false
-    next_weapon_panel.visible = false
-
-  _update_weapon_buy_button()
-
 func update_weapon_display() -> void:
   _ensure_next_weapon_nodes()
   var current = WeaponManager.get_current_weapon()
   weapon_image.texture = WeaponManager.get_weapon_texture()
-  current_weapon_label.text = "%s\n대미지 %d" % [current.name, current.damage]
+  current_weapon_label.text = "%s\n공격력 %d" % [current.name, WeaponManager.get_weapon_damage()]
 
   var next = WeaponManager.get_next_weapon()
   if next.is_empty():
@@ -345,41 +325,45 @@ func update_weapon_display() -> void:
     var next_level = WeaponManager.current_weapon_level + 1
     if next_level < WeaponManager.weapon_textures.size():
       next_weapon_image.texture = WeaponManager.weapon_textures[next_level]
-    next_weapon_label.text = "%s\n대미지 %d" % [next.name, next.damage]
+    next_weapon_label.text = "%s" % next.name
   _update_weapon_buy_button()
 
 func _update_weapon_buy_button() -> void:
-  var next = WeaponManager.get_next_weapon()
-  if next.is_empty():
+  var wep_level = GameManager.get_upgrade_level("attack_power")
+  var wep_max = GameManager.get_skill_max_level("attack_power")
+  var is_maxed = wep_max >= 0 and wep_level >= wep_max
+  if is_maxed:
     weapon_right_vbox.visible = false
     _update_next_weapon_card_style(false)
     return
-  var skill_req = WeaponManager.get_next_weapon_skill_requirement()
-  var total_skill = GameManager.get_total_skill_level()
-  var has_skill = WeaponManager.has_enough_skill_points()
-  var has_money = GameManager.money >= next.price
+
+  var cost = GameManager.get_upgrade_cost(wep_level, "attack_power")
+  var next_level = wep_level + 1
+  var prereq = GameManager.check_skill_prereqs("attack_power", next_level)
+  var has_money = GameManager.money >= cost
 
   # Update condition indicators
-  _update_weapon_conditions(has_skill, total_skill, skill_req, has_money, next.price)
+  _update_weapon_conditions(prereq.met, has_money, cost)
 
-  weapon_buy_btn.text = "%s 구매" % next.name
-  if has_skill and has_money:
+  weapon_buy_btn.text = "강화 (공격력 +1)"
+  if prereq.met and has_money:
     weapon_buy_btn.disabled = false
     _update_next_weapon_card_style(true)
   else:
     weapon_buy_btn.disabled = true
     _update_next_weapon_card_style(false)
 
-func _update_weapon_conditions(has_skill: bool, total_skill: int, skill_req: int, has_money: bool, price: int) -> void:
+func _update_weapon_conditions(prereq_met: bool, has_money: bool, price: int) -> void:
   for child in weapon_condition_vbox.get_children():
     child.queue_free()
 
-  var skill_label = Label.new()
-  skill_label.text = "스킬 %d/%d" % [total_skill, skill_req]
-  skill_label.add_theme_font_size_override("font_size", 34)
-  skill_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.55) if has_skill else Color(0.9, 0.3, 0.3))
-  skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  weapon_condition_vbox.add_child(skill_label)
+  if not prereq_met:
+    var prereq_label = Label.new()
+    prereq_label.text = "조건 미충족"
+    prereq_label.add_theme_font_size_override("font_size", 34)
+    prereq_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+    prereq_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    weapon_condition_vbox.add_child(prereq_label)
 
   var money_color = Color(0.3, 0.8, 0.55) if has_money else Color(0.9, 0.3, 0.3)
   var money_cond_hbox = GameManager.create_coin_label(GameManager.format_number(price), 34, money_color, 0, true)
@@ -722,7 +706,9 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
 
   var label_color = Color(0.5, 0.5, 0.55) if not is_active else Color.WHITE
 
-  # Skill name label (top)
+  # Skill name label (top) — 잠긴 상태에서는 숨김
+  if is_locked:
+    return btn
   var name_label = Label.new()
   name_label.text = chain.short_name
   name_label.add_theme_font_size_override("font_size", 16)
@@ -769,7 +755,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   else:
     # Level label (left side)
     var level_label = Label.new()
-    level_label.text = "Lv.%d" % current_level
+    level_label.text = "Lv.%d" % (current_level + 1)
     level_label.add_theme_font_size_override("font_size", 16)
     level_label.add_theme_color_override("font_color", label_color)
     level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
@@ -878,6 +864,29 @@ func _restore_tick(type: String, saved_level: int, saved_sub: int) -> void:
   GameManager.upgrade_levels[type] = saved_level
   GameManager.upgrade_sub_levels[type] = saved_sub
 
+func _quality_stat_str(level: int, sub: int) -> String:
+  var base_type = mini(level / 2, 4)
+  var is_odd = (level % 2 == 1)
+  var name_cur = GameManager.GRASS_TYPE_NAMES[base_type]
+  if level >= 8:
+    return GameManager.GRASS_TYPE_NAMES[4]
+  if is_odd:
+    # 홀수 레벨: cur → cur 50% + next 50%
+    var name_next = GameManager.GRASS_TYPE_NAMES[mini(base_type + 1, 4)]
+    var pct = int(float(sub) / 7.0 * 50)
+    if pct > 0:
+      return "%s %d%%" % [name_next, pct]
+    return "%s" % name_cur
+  else:
+    # 짝수 레벨: cur 50% + next 50% → next 100%
+    if level == 0 and sub == 0:
+      return "%s" % name_cur
+    var name_next = GameManager.GRASS_TYPE_NAMES[mini(base_type + 1, 4)]
+    var pct = 50 + int(float(sub) / 7.0 * 50)
+    if pct >= 100:
+      return "%s" % name_next
+    return "%s %d%%" % [name_next, pct]
+
 func _get_skill_stat_text(type: String) -> String:
   var saved_level = GameManager.upgrade_levels.get(type, 0)
   var saved_sub = GameManager.upgrade_sub_levels.get(type, 0)
@@ -923,28 +932,13 @@ func _get_skill_stat_text(type: String) -> String:
       nxt_str = "%d" % nxt_v
     "grass_quality":
       label = "등장 풀"
-      var cur_type = mini(saved_level, 4)
-      var cur_sub = saved_sub
-      var cur_name = GameManager.GRASS_TYPE_NAMES[cur_type]
-      if cur_type < 4 and cur_sub > 0:
-        var nxt_name = GameManager.GRASS_TYPE_NAMES[cur_type + 1]
-        var pct = int(float(cur_sub) / 7.0 * 100)
-        cur_str = "%s %d%%" % [nxt_name, pct]
-      else:
-        cur_str = "%s" % cur_name
+      cur_str = _quality_stat_str(saved_level, saved_sub)
       _restore_tick(type, saved_level, saved_sub)
       if not is_maxed:
         _simulate_next_tick(type)
       var n_level = GameManager.upgrade_levels.get(type, 0)
       var n_sub = GameManager.upgrade_sub_levels.get(type, 0)
-      var n_type = mini(n_level, 4)
-      var n_name = GameManager.GRASS_TYPE_NAMES[n_type]
-      if n_type < 4 and n_sub > 0:
-        var nn_name = GameManager.GRASS_TYPE_NAMES[n_type + 1]
-        var n_pct = int(float(n_sub) / 7.0 * 100)
-        nxt_str = "%s %d%%" % [nn_name, n_pct]
-      else:
-        nxt_str = "%s" % n_name
+      nxt_str = _quality_stat_str(n_level, n_sub)
     "chest_chance":
       label = "상자 확률"
       cur_str = "%.1f%%" % (ticks * 0.2)
@@ -980,6 +974,14 @@ func _get_skill_stat_text(type: String) -> String:
       label = "이동 속도"
       cur_str = "%.0f" % (300.0 + ticks * 10.0)
       nxt_str = "%.0f" % (300.0 + next_ticks * 10.0)
+    "attack_power":
+      label = "공격력"
+      cur_str = "%d" % (1 + ticks)
+      nxt_str = "%d" % (1 + next_ticks)
+    "session_time":
+      label = "세션 시간"
+      cur_str = "%d초" % (45 + ticks * 3)
+      nxt_str = "%d초" % (45 + next_ticks * 3)
 
   _restore_tick(type, saved_level, saved_sub)
 
@@ -1006,18 +1008,34 @@ func _update_skill_description() -> void:
     prereq_text = "\n[필요 조건]"
     for m in prereq_result.missing:
       if m.type == "_total":
-        prereq_text += "\n  전체 스킬 Lv.%d (현재: %d)" % [m.level, m.current]
+        prereq_text += "\n  전체 스킬 Lv.%d (현재: %d)" % [m.level + 1, m.current + 1]
       elif m.has("or_names"):
-        prereq_text += "\n  %s 중 하나 Lv.%d" % [" 또는 ".join(m.or_names), m.level]
+        prereq_text += "\n  %s 중 하나 Lv.%d" % [" 또는 ".join(m.or_names), m.level + 1]
       else:
         var req_name = GameManager.get_skill_def(m.type).get("name", m.type)
-        prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level, m.current]
+        prereq_text += "\n  %s Lv.%d (현재: Lv.%d)" % [req_name, m.level + 1, m.current + 1]
 
   var sub_level = GameManager.get_upgrade_sub_level(selected_type)
-  var title_text = "%s Lv.%d → Lv.%d" % [chain_info.name, current_level, selected_level]
-  if sub_level > 0:
-    title_text += " (%d/%d)" % [sub_level, GameManager.get_skill_sub_max(selected_type)]
-  description_label.text = "%s\n\n%s\n%s%s" % [title_text, chain_info.description, stat_text, prereq_text]
+  var sub_max = GameManager.get_skill_sub_max(selected_type)
+  var max_level = GameManager.get_skill_max_level(selected_type)
+  var ticks = GameManager.get_skill_total_progress(selected_type)
+  var total_ticks = sub_max * max_level if max_level > 0 else sub_max
+  var is_maxed = ticks >= total_ticks
+
+  var title_text = ""
+  if is_maxed:
+    title_text = "%s Lv.%d (MAX)" % [chain_info.name, current_level + 1]
+  else:
+    title_text = "%s Lv.%d → Lv.%d" % [chain_info.name, current_level + 1, selected_level + 1]
+
+  # Tick progress bar
+  var tick_text = ""
+  if not is_maxed:
+    var filled = sub_level
+    var empty = sub_max - sub_level
+    tick_text = "\n진행: %s%s (%d/%d)" % ["■".repeat(filled), "□".repeat(empty), sub_level, sub_max]
+
+  description_label.text = "%s\n\n%s\n%s%s%s" % [title_text, chain_info.description, stat_text, tick_text, prereq_text]
 
   # Add cost with coin icon below description
   _update_description_cost(cost)
@@ -1068,10 +1086,7 @@ func update_confirm_button() -> void:
   # Check if this is the actual next level and prereqs are met
   if selected_level != next_level:
     confirm_btn.disabled = true
-    if selected_level <= current_level:
-      confirm_btn.text = "이미 습득함"
-    else:
-      confirm_btn.text = "이전 레벨 필요"
+    confirm_btn.text = "업그레이드 하기"
     return
 
   var prereq_result = GameManager.check_skill_prereqs(selected_type, next_level)
@@ -1085,11 +1100,7 @@ func update_confirm_button() -> void:
     confirm_btn.text = "돈 부족"
   else:
     confirm_btn.disabled = false
-    var c_sub = GameManager.get_upgrade_sub_level(selected_type)
-    if c_sub > 0:
-      confirm_btn.text = "업그레이드 (%d/%d)" % [c_sub, GameManager.get_skill_sub_max(selected_type)]
-    else:
-      confirm_btn.text = "업그레이드 하기"
+    confirm_btn.text = "업그레이드 하기"
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
@@ -1100,6 +1111,15 @@ func _on_confirm_pressed() -> void:
   if GameManager.purchase_upgrade(selected_type):
     GameManager.play_skill_upgrade_sound()
     SaveManager.save_game()
+
+    # 레벨 완료 시 (sub_level이 0으로 리셋) 선택 해제
+    var cur_sub = GameManager.get_upgrade_sub_level(selected_type)
+    if cur_sub == 0:
+      build_skill_tree()
+      clear_selection()
+      update_weapon_display()
+      update_money_display()
+      return
 
     build_skill_tree()
     _reselect_current()
