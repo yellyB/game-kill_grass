@@ -29,6 +29,7 @@ var _selected_btn: Button = null  # Currently selected skill node button
 var _desc_cost_node: HBoxContainer = null
 var _desc_stat_node: HBoxContainer = null
 var _desc_text_node: Label = null
+var _desc_divider: ColorRect = null
 
 # Grid layout constants
 const NODE_MARGIN: float = 6.0
@@ -124,6 +125,24 @@ func _ready() -> void:
 
   # Reposition skill tree scroll to start below section label
   skill_tree_scroll.offset_top = 295.0
+
+  # Style description panel to stand out from background
+  var desc_style = StyleBoxFlat.new()
+  desc_style.bg_color = Color(0.16, 0.16, 0.22)
+  desc_style.border_width_top = 2
+  desc_style.border_width_bottom = 2
+  desc_style.border_width_left = 2
+  desc_style.border_width_right = 2
+  desc_style.border_color = Color(0.24, 0.24, 0.32)
+  desc_style.corner_radius_top_left = 12
+  desc_style.corner_radius_top_right = 12
+  desc_style.corner_radius_bottom_left = 12
+  desc_style.corner_radius_bottom_right = 12
+  desc_style.content_margin_left = 60
+  desc_style.content_margin_right = 60
+  desc_style.content_margin_top = 60
+  desc_style.content_margin_bottom = 60
+  description_panel.add_theme_stylebox_override("panel", desc_style)
 
   # Button styles
   close_btn.icon = preload("res://resources/images/icon/go_back.png")
@@ -1087,7 +1106,25 @@ func _update_skill_description() -> void:
   description_label.add_theme_font_size_override("font_size", 36)
   description_label.text = title_text
 
-  var base_y = description_label.offset_bottom + 24
+  var base_y = description_label.offset_bottom + 20
+
+  # Divider between title and description
+  if _desc_divider:
+    _desc_divider.queue_free()
+    _desc_divider = null
+  var divider = ColorRect.new()
+  divider.color = Color(0.24, 0.24, 0.32)
+  divider.anchor_left = 0.0
+  divider.anchor_right = 1.0
+  divider.anchor_top = 0.0
+  divider.anchor_bottom = 0.0
+  divider.offset_left = 86
+  divider.offset_top = base_y
+  divider.offset_right = -86
+  divider.offset_bottom = base_y + 2
+  description_panel.add_child(divider)
+  _desc_divider = divider
+  base_y += 22
 
   # Description text (first line only)
   if _desc_text_node:
@@ -1099,7 +1136,7 @@ func _update_skill_description() -> void:
     var desc_lbl = Label.new()
     desc_lbl.text = first_line
     desc_lbl.add_theme_font_size_override("font_size", 28)
-    desc_lbl.add_theme_color_override("font_color", Color(0.65, 0.65, 0.7))
+    desc_lbl.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
     desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     desc_lbl.anchor_left = 0.0
     desc_lbl.anchor_right = 1.0
@@ -1146,7 +1183,7 @@ func _update_stat_display(data: Dictionary, base_y: float) -> void:
   hbox.offset_bottom = base_y + 44
 
   var font_size = 28
-  var dim_color = Color(1.0, 1.0, 1.0)
+  var dim_color = Color(0.7, 0.75, 0.8)
   var highlight_color = Color(1.0, 0.4, 0.35)
   var arrow_color = Color(0.5, 0.5, 0.55)
 
@@ -1231,6 +1268,9 @@ func _clear_description_extras() -> void:
   if _desc_text_node:
     _desc_text_node.queue_free()
     _desc_text_node = null
+  if _desc_divider:
+    _desc_divider.queue_free()
+    _desc_divider = null
 
 func update_confirm_button() -> void:
   if selected_type.is_empty():
