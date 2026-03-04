@@ -239,13 +239,24 @@ func _open_world_select() -> void:
   bg.set_anchors_preset(Control.PRESET_FULL_RECT)
   world_overlay.add_child(bg)
 
-  # Center panel
+  # Center panel — fill 30% more of remaining space on each side
+  var viewport_size = get_viewport().get_visible_rect().size
+  var base_w = 700.0
+  var base_h = 0.0  # auto height
+  var margin_x = (viewport_size.x - base_w) / 2.0
+  var extra_x = margin_x * 0.3
+  var panel_w = base_w + extra_x * 2.0
+  # Vertical: estimate base panel height ~70% of viewport, expand 30% of remaining
+  var base_h_ratio = 0.7
+  var margin_y = viewport_size.y * (1.0 - base_h_ratio) / 2.0
+  var extra_y = margin_y * 0.3
+
   var center = CenterContainer.new()
   center.set_anchors_preset(Control.PRESET_FULL_RECT)
   world_overlay.add_child(center)
 
   var panel = PanelContainer.new()
-  panel.custom_minimum_size = Vector2(700, 0)
+  panel.custom_minimum_size = Vector2(panel_w, viewport_size.y - (margin_y - extra_y) * 2.0)
   var panel_style = StyleBoxFlat.new()
   panel_style.bg_color = Color(0.09, 0.12, 0.12)
   panel_style.corner_radius_top_left = 20
@@ -260,7 +271,7 @@ func _open_world_select() -> void:
   panel_style.content_margin_left = 30
   panel_style.content_margin_right = 30
   panel_style.content_margin_top = 44
-  panel_style.content_margin_bottom = 44
+  panel_style.content_margin_bottom = 26
   panel.add_theme_stylebox_override("panel", panel_style)
   center.add_child(panel)
 
@@ -279,8 +290,9 @@ func _open_world_select() -> void:
   vbox.add_child(header)
 
   # Separator
-  var sep = HSeparator.new()
-  sep.add_theme_constant_override("separation", 8)
+  var sep = ColorRect.new()
+  sep.color = Color(0.24, 0.24, 0.32)
+  sep.custom_minimum_size = Vector2(0, 2)
   vbox.add_child(sep)
 
   # World cards container (for rebuilding cards on selection change)
@@ -292,7 +304,7 @@ func _open_world_select() -> void:
 
   # Spacer between cards and buttons
   var spacer = Control.new()
-  spacer.custom_minimum_size = Vector2(0, 20)
+  spacer.custom_minimum_size = Vector2(0, 12)
   vbox.add_child(spacer)
 
   # Action button (게임 입장 / 해금)
@@ -301,8 +313,8 @@ func _open_world_select() -> void:
   vbox.add_child(action_center)
 
   _ws_action_btn = Button.new()
-  _ws_action_btn.custom_minimum_size = Vector2(350, 75)
-  _ws_action_btn.add_theme_font_size_override("font_size", 35)
+  _ws_action_btn.custom_minimum_size = Vector2(420, 90)
+  _ws_action_btn.add_theme_font_size_override("font_size", 38)
   _ws_action_btn.pressed.connect(_on_action_btn_pressed)
   GameManager.style_button(_ws_action_btn)
   action_center.add_child(_ws_action_btn)
@@ -315,8 +327,8 @@ func _open_world_select() -> void:
 
   var close_btn = Button.new()
   close_btn.text = "닫기"
-  close_btn.custom_minimum_size = Vector2(240, 62)
-  close_btn.add_theme_font_size_override("font_size", 30)
+  close_btn.custom_minimum_size = Vector2(200, 52)
+  close_btn.add_theme_font_size_override("font_size", 26)
   close_btn.pressed.connect(_close_world_select)
   GameManager.style_button(close_btn, "muted")
   close_center.add_child(close_btn)
