@@ -190,10 +190,11 @@ func play_boss_entrance() -> void:
 
   await tween.finished
 
-  # 착지: 카메라 흔들림
+  # 착지: 카메라 흔들림 + 진동
   var camera = get_tree().get_first_node_in_group("camera")
   if camera and camera.has_method("shake"):
     camera.shake(0.8)
+  Input.vibrate_handheld(200)
 
   # 히트박스 활성화 (행동 시작은 spawner가 is_boss_entering을 해제)
   hit_area.set_deferred("monitoring", true)
