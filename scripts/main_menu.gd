@@ -93,9 +93,9 @@ func _ready() -> void:
   # Main menu BGM
   _start_menu_bgm()
 
-  # Show prologue on first launch
-  if not GameManager.prologue_seen:
-    _show_prologue()
+  # Show prologue on first launch (temporarily disabled)
+  #if not GameManager.prologue_seen:
+  #  _show_prologue()
 
 
 var _menu_bgm: AudioStreamPlayer
@@ -124,6 +124,17 @@ func _start_game() -> void:
   if _menu_bgm:
     _menu_bgm.stop()
   get_tree().change_scene_to_file("res://scenes/core/main.tscn")
+
+func _notification(what: int) -> void:
+  if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+    if quit_confirm_dialog.visible:
+      quit_confirm_dialog.hide_dialog()
+    elif upgrade_panel.is_open:
+      upgrade_panel._on_close_pressed()
+    elif item_panel.is_open:
+      item_panel._on_close_pressed()
+    elif world_overlay != null:
+      _close_world_select()
 
 func _on_upgrade_pressed() -> void:
   GameManager.play_button_click()

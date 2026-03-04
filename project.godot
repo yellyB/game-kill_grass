@@ -14,6 +14,7 @@ config/name="Kill Grass"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
 
 [autoload]
 
@@ -26,8 +27,8 @@ WeaponManager="*res://autoload/weapon_manager.gd"
 
 window/size/viewport_width=1080
 window/size/viewport_height=1920
-window/size/window_width_override=900
-window/size/window_height_override=1500
+window/size/window_width_override=1200
+window/size/window_height_override=2000
 window/stretch/mode="viewport"
 window/stretch/aspect="keep_width"
 window/handheld/orientation=1
