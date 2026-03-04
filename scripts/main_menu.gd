@@ -422,20 +422,7 @@ func _create_world_card(index: int) -> PanelContainer:
       monster_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.5))
     info_vbox.add_child(monster_label)
 
-    var base_hp = GameManager.WORLD_GRASS_HP_MULT[index] if index < GameManager.WORLD_GRASS_HP_MULT.size() else 1.0
-    var base_rw = GameManager.WORLD_GRASS_REWARD_MULT[index] if index < GameManager.WORLD_GRASS_REWARD_MULT.size() else 1.0
     var strength = GameManager.get_world_strength_level(index)
-    var hp_m = base_hp * (1.0 + strength * 0.3)
-    var rw_m = base_rw * (1.0 + strength * 0.5)
-    var mult_label = Label.new()
-    mult_label.text = "체력 x%.1f  보상 x%.1f" % [hp_m, rw_m]
-    mult_label.add_theme_font_size_override("font_size", 18)
-    mult_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    if unlocked:
-      mult_label.add_theme_color_override("font_color", Color(0.55, 0.6, 0.55))
-    else:
-      mult_label.add_theme_color_override("font_color", Color(0.35, 0.35, 0.42))
-    info_vbox.add_child(mult_label)
 
     # 초월 UI (클리어된 월드만)
     if unlocked and GameManager.is_world_cleared(index):
@@ -464,6 +451,17 @@ func _create_world_card(index: int) -> PanelContainer:
       str_btn.pressed.connect(_on_strengthen_pressed.bind(index))
       GameManager.style_button(str_btn, "main")
       str_vbox.add_child(str_btn)
+
+      if strength > 0:
+        var hp_bonus = int(strength * 30)
+        var rw_bonus = int(strength * 50)
+        var bonus_label = Label.new()
+        bonus_label.text = "체력+%d%% 보상+%d%%" % [hp_bonus, rw_bonus]
+        bonus_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        bonus_label.add_theme_font_size_override("font_size", 16)
+        bonus_label.add_theme_color_override("font_color", Color(0.8, 0.7, 0.3))
+        str_vbox.add_child(bonus_label)
 
     # Cost / key status (locked with key)
     if not unlocked:
