@@ -82,7 +82,7 @@ const SKILL_DEFS: Array = [
    "description": "풀을 베는 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +4)\n단계 5 | 최대 Lv.10"},
   {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 3, "max_level": 5,
    "description": "한 번에 베는 풀의 수가 증가합니다.\n횟수: 1 → 46 (레벨별 +1/+2/+3/+4/+5)\n단계 3 | 최대 Lv.5"},
-  {"type": "magnet_range", "name": "자석 범위", "short_name": "자석", "sub_max": 5, "max_level": 8,
+  {"type": "magnet_range", "name": "수집 범위", "short_name": "수집", "sub_max": 5, "max_level": 8,
    "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 40 → 200 (틱당 +4)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 5, "max_level": 8,
    "description": "맵에 풀이 더 빽빽하게 자랍니다.\n청크당 풀: 1 → 181 (Lv별 틱당 +1/+2/.../+8)\n단계 5 | 최대 Lv.8"},
@@ -526,7 +526,7 @@ func get_attack_count() -> int:
     count += (level + 1) * sub
   return count
 
-# 자석 범위: 40 → 200, 틱당 +4 (총 40틱)
+# 수집 범위: 40 → 200, 틱당 +4 (총 40틱)
 func get_base_magnet_range() -> float:
   var ticks = get_skill_total_progress("magnet_range")
   return 40.0 + ticks * 4.0
