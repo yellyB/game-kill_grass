@@ -31,6 +31,8 @@ var session_time_remaining: float = SESSION_TIME + GameManager.get_session_time_
 var session_ended: bool = false
 var session_ready: bool = false
 var bgm_player: AudioStreamPlayer
+var _tick_sfx: AudioStreamPlayer = null
+var _last_tick_second: int = -1
 
 func _ready() -> void:
   camera.add_to_group("camera")
@@ -90,10 +92,17 @@ func _process(delta: float) -> void:
     session_time_remaining = 0
     end_session()
 
-  # 종료 3초 전부터 화면 흔들림
-  if session_time_remaining <= 3.0 and session_time_remaining > 0:
-    var intensity = (3.0 - session_time_remaining) / 3.0 * 0.4
+  # 종료 5초 전부터 화면 흔들림
+  if session_time_remaining <= 5.0 and session_time_remaining > 0:
+    var intensity = (5.0 - session_time_remaining) / 5.0 * 0.4
     camera.shake(intensity)
+
+  # 종료 10초 전부터 1초마다 틱톡 효과음
+  if session_time_remaining <= 10.0 and session_time_remaining > 0:
+    var sec = int(ceil(session_time_remaining))
+    if sec != _last_tick_second:
+      _last_tick_second = sec
+      _play_tick()
 
   update_timer_display()
 
@@ -114,6 +123,14 @@ func update_timer_display() -> void:
     timer_progress.add_theme_stylebox_override("fill", fill_style)
   else:
     timer_label.add_theme_color_override("font_color", Color(1, 1, 1))
+
+func _play_tick() -> void:
+  if not _tick_sfx:
+    _tick_sfx = AudioStreamPlayer.new()
+    _tick_sfx.stream = preload("res://resources/sounds/effect/clock_tick_tock.wav")
+    _tick_sfx.bus = "Master"
+    add_child(_tick_sfx)
+  _tick_sfx.play()
 
 func _start_bgm() -> void:
   var world = GameManager.selected_world
