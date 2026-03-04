@@ -1011,12 +1011,15 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       nxt = "%d" % nv
       delta = "+%d" % (nv - cv)
     "grass_density":
-      var cv = maxi(1, roundi(200.0 * pow(float(ticks) / 100.0, 3.0))) if ticks > 0 else 1
-      var nv = maxi(1, roundi(200.0 * pow(float(next_ticks) / 100.0, 3.0)))
+      # State is already at next_ticks (simulated at top of function)
+      var nv = GameManager.get_grass_density_value()
+      _restore_tick(type, saved_level, saved_sub)
+      var cv = GameManager.get_grass_density_value()
+      # Re-simulate so final _restore_tick at end works correctly
+      _simulate_next_tick(type)
       cur = "%d" % cv
       nxt = "%d" % nv
-      var d = nv - cv
-      delta = "+%d" % d if d >= 0 else "%d" % d
+      delta = "+%d" % (nv - cv)
     "grass_quality":
       cur = _quality_stat_str(saved_level, saved_sub)
       _restore_tick(type, saved_level, saved_sub)
