@@ -84,8 +84,8 @@ const SKILL_DEFS: Array = [
    "description": "한 번에 베는 풀의 수가 증가합니다.\n횟수: 1 → 46 (레벨별 +1/+2/+3/+4/+5)\n단계 3 | 최대 Lv.5"},
   {"type": "magnet_range", "name": "자석 범위", "short_name": "자석", "sub_max": 5, "max_level": 8,
    "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 40 → 200 (틱당 +4)\n단계 5 | 최대 Lv.8"},
-  {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 10, "max_level": 10,
-   "description": "맵에 풀이 더 빽빽하게 자랍니다.\n청크당 풀: 1 → 200 (지수 곡선)\n단계 10 | 최대 Lv.10"},
+  {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 5, "max_level": 8,
+   "description": "맵에 풀이 더 빽빽하게 자랍니다.\n청크당 풀: 1 → 181 (Lv별 틱당 +1/+2/.../+8)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 8,
    "description": "더 높은 등급의 풀이 등장합니다.\n홀수 레벨: 다음 등급 50%까지\n짝수 레벨: 다음 등급 100%까지\n단계 8 | 최대 Lv.8"},
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
@@ -531,12 +531,20 @@ func get_base_magnet_range() -> float:
   var ticks = get_skill_total_progress("magnet_range")
   return 40.0 + ticks * 4.0
 
-# 풀 밀도: 1 → 200, pow 곡선 (총 100틱)
+# 풀 밀도: 1 → 181, 레벨별 틱당 +Lv (총 40틱, 5틱×8레벨)
 func get_grass_density_value() -> int:
   var ticks = get_skill_total_progress("grass_density")
   if ticks <= 0:
     return 1
-  return maxi(1, roundi(200.0 * pow(float(ticks) / 100.0, 3.0)))
+  var value = 0
+  var remaining = ticks
+  for lv in range(1, 9):
+    var t = mini(remaining, 5)
+    value += t * lv
+    remaining -= t
+    if remaining <= 0:
+      break
+  return 1 + value
 
 # 상자 출현률: 0% → 5%, 틱당 +0.2% (총 25틱)
 func get_chest_spawn_chance() -> float:
