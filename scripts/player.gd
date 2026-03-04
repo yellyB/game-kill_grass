@@ -235,6 +235,10 @@ func try_attack() -> void:
   if result.hit:
     sfx_grass_player.play()
 
+  # Critical hit visual feedback
+  if result.crit:
+    _spawn_crit_effect(input_direction)
+
   # Swing animation
   var target_pos = attack_center + input_direction * 30
   swing_weapon(target_pos)
@@ -505,6 +509,48 @@ func _remove_hit_overlay() -> void:
   if is_instance_valid(_hit_overlay_canvas):
     _hit_overlay_canvas.queue_free()
     _hit_overlay_canvas = null
+
+# ── Critical Hit Effect ──────────────────────────────────────────
+func _spawn_crit_effect(dir: Vector2) -> void:
+  var fx_offset = dir * (attack_radius * 0.5)
+
+  # Gold expanding rings (2 rings, staggered)
+  for i in 2:
+    var ring = Line2D.new()
+    ring.position = fx_offset
+    ring.width = 3.0
+    ring.default_color = Color(1.0, 0.9, 0.2, 0.9)
+    var ring_radius = 20.0
+    for j in range(17):
+      var a = TAU / 16.0 * j
+      ring.add_point(Vector2(cos(a), sin(a)) * ring_radius)
+    add_child(ring)
+    var tw = create_tween()
+    var delay = i * 0.05
+    tw.tween_property(ring, "scale", Vector2(3.0, 3.0), 0.2).set_delay(delay)
+    tw.parallel().tween_property(ring, "modulate:a", 0.0, 0.2).set_delay(delay)
+    tw.tween_callback(ring.queue_free)
+
+  # "CRIT!" text label
+  var label = Label.new()
+  label.text = "CRIT!"
+  label.add_theme_font_size_override("font_size", 28)
+  label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
+  label.add_theme_color_override("font_outline_color", Color(0.6, 0.3, 0.0))
+  label.add_theme_constant_override("outline_size", 4)
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  label.position = Vector2(-40, -90)
+  label.scale = Vector2(0.5, 0.5)
+  label.pivot_offset = Vector2(40, 14)
+  add_child(label)
+  var tw_label = create_tween()
+  tw_label.set_parallel(true)
+  tw_label.tween_property(label, "scale", Vector2(1.2, 1.2), 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+  tw_label.tween_property(label, "position:y", -130.0, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+  tw_label.tween_property(label, "modulate:a", 0.0, 0.2).set_delay(0.3)
+  tw_label.chain().tween_callback(label.queue_free)
+
+
 
 # ── Weapon Effects ──────────────────────────────────────────────
 
