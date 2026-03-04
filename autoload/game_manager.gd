@@ -80,8 +80,8 @@ const SKILL_DEFS: Array = [
    "description": "풀을 베는 속도가 빨라집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.01초)\n단계 5 | 최대 Lv.12"},
   {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 10,
    "description": "풀을 베는 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +4)\n단계 5 | 최대 Lv.10"},
-  {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 5, "max_level": 8,
-   "description": "한 번에 베는 풀의 수가 증가합니다.\n횟수: 1 → ~50 (지수적 증가)\n단계 5 | 최대 Lv.8"},
+  {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 3, "max_level": 5,
+   "description": "한 번에 베는 풀의 수가 증가합니다.\n횟수: 1 → 46 (레벨별 +1/+2/+3/+4/+5)\n단계 3 | 최대 Lv.5"},
   {"type": "magnet_range", "name": "자석 범위", "short_name": "자석", "sub_max": 5, "max_level": 8,
    "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 40 → 200 (틱당 +4)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 10, "max_level": 10,
@@ -102,10 +102,10 @@ const SKILL_DEFS: Array = [
    "description": "몬스터분노 게이지가 더 빨리 찹니다.\n배율: 100% → 340% (틱당 +15%) (미정)\n단계 4 | 최대 Lv.4"},
   {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "sub_max": 2, "max_level": 5,
    "description": "황금풀이 등장할 확률이 증가합니다.\n확률: 0% → 1.0% (틱당 +0.1%)\n단계 2 | 최대 Lv.5"},
-  {"type": "golden_reward", "name": "황금풀 보상", "short_name": "황보", "sub_max": 5, "max_level": 10,
-   "description": "황금풀에서 떨어지는 코인이 증가합니다.\n배율: 100% → 600% (틱당 +10%) (미정)\n단계 5 | 최대 Lv.10"},
-  {"type": "move_speed", "name": "이동 속도", "short_name": "이속", "sub_max": 6, "max_level": 10,
-   "description": "플레이어의 이동 속도가 빨라집니다.\n속도: 300 → 600 (틱당 +5) (미정)\n단계 6 | 최대 Lv.10"},
+  {"type": "golden_reward", "name": "황금풀 보상", "short_name": "황보", "sub_max": 5, "max_level": 5,
+   "description": "황금풀에서 떨어지는 코인이 증가합니다.\n보상: 100원 → ~1,696원 (단계별 10~14% 복리)\n단계 5 | 최대 Lv.5"},
+  {"type": "move_speed", "name": "이동 속도", "short_name": "이속", "sub_max": 6, "max_level": 5,
+   "description": "플레이어의 이동 속도가 빨라집니다.\n속도: 300 → 600 (틱당 +10)\n단계 6 | 최대 Lv.5"},
 ]
 
 const SKILL_GROUPS: Array = [
@@ -373,54 +373,78 @@ func _process(delta: float) -> void:
     timed_buff_ended.emit(buff_type)
 
 func _init_grass_data() -> void:
-  # 0: 기본풀 - 체력 낮음, 보상 적음 (첫 무기로 4번 베기)
-  var normal_grass = GrassData.new()
-  normal_grass.grass_name = "기본풀"
-  normal_grass.max_health = 4
-  normal_grass.regen_time = 22.0
-  normal_grass.min_drop_value = 1
-  normal_grass.max_drop_value = 1
-  normal_grass.drop_chance = GRASS_DROP_CHANCE
-  normal_grass.color = Color(0.3, 0.7, 0.3)
-  normal_grass.cut_color = Color(0.5, 0.4, 0.2)
+  # 0: 새싹 - 체력 낮음, 보상 적음
+  var g0 = GrassData.new()
+  g0.grass_name = "새싹"
+  g0.max_health = 4
+  g0.regen_time = 22.0
+  g0.min_drop_value = 1
+  g0.max_drop_value = 1
+  g0.drop_chance = GRASS_DROP_CHANCE
+  g0.color = Color(0.3, 0.7, 0.3)
+  g0.cut_color = Color(0.5, 0.4, 0.2)
 
-  # 1: 강한풀 - 체력 중간, 보상 좋음
-  var tough_grass = GrassData.new()
-  tough_grass.grass_name = "강한풀"
-  tough_grass.max_health = 12
-  tough_grass.regen_time = 23.0
-  tough_grass.min_drop_value = 5
-  tough_grass.max_drop_value = 5
-  tough_grass.drop_chance = GRASS_DROP_CHANCE
-  tough_grass.color = Color(0.15, 0.5, 0.35)
-  tough_grass.cut_color = Color(0.3, 0.35, 0.25)
+  # 1: 잔디 - 체력 중간, 보상 보통
+  var g1 = GrassData.new()
+  g1.grass_name = "잔디"
+  g1.max_health = 12
+  g1.regen_time = 23.0
+  g1.min_drop_value = 5
+  g1.max_drop_value = 5
+  g1.drop_chance = GRASS_DROP_CHANCE
+  g1.color = Color(0.15, 0.5, 0.35)
+  g1.cut_color = Color(0.3, 0.35, 0.25)
 
-  # 2: 완전 센풀 - 체력 높음, 보상 매우 좋음
-  var strong_grass = GrassData.new()
-  strong_grass.grass_name = "완전 센풀"
-  strong_grass.max_health = 24
-  strong_grass.regen_time = 24.0
-  strong_grass.min_drop_value = 30
-  strong_grass.max_drop_value = 30
-  strong_grass.drop_chance = GRASS_DROP_CHANCE
-  strong_grass.color = Color(0.1, 0.35, 0.5)
-  strong_grass.cut_color = Color(0.2, 0.3, 0.35)
+  # 2: 여린풀 - 체력 높음, 보상 좋음
+  var g2 = GrassData.new()
+  g2.grass_name = "여린풀"
+  g2.max_health = 24
+  g2.regen_time = 24.0
+  g2.min_drop_value = 30
+  g2.max_drop_value = 30
+  g2.drop_chance = GRASS_DROP_CHANCE
+  g2.color = Color(0.1, 0.35, 0.5)
+  g2.cut_color = Color(0.2, 0.3, 0.35)
 
-  # 3: 황금풀 - 예외적 존재, 모든 레벨에서 동일 확률로 등장
-  var golden_grass = GrassData.new()
-  golden_grass.grass_name = "황금풀"
-  golden_grass.max_health = 160
-  golden_grass.regen_time = 25.0
-  golden_grass.min_drop_value = 300
-  golden_grass.max_drop_value = 300
-  golden_grass.guaranteed_drop = true
-  golden_grass.color = Color(1.0, 0.85, 0.1)
-  golden_grass.cut_color = Color(0.7, 0.6, 0.1)
+  # 3: 강한풀 - 체력 매우 높음, 보상 매우 좋음
+  var g3 = GrassData.new()
+  g3.grass_name = "강한풀"
+  g3.max_health = 48
+  g3.regen_time = 25.0
+  g3.min_drop_value = 80
+  g3.max_drop_value = 80
+  g3.drop_chance = GRASS_DROP_CHANCE
+  g3.color = Color(0.1, 0.25, 0.55)
+  g3.cut_color = Color(0.15, 0.25, 0.4)
 
-  grass_data_list.append(normal_grass)
-  grass_data_list.append(tough_grass)
-  grass_data_list.append(strong_grass)
-  grass_data_list.append(golden_grass)
+  # 4: 초강풀 - 최고 등급, 보상 최고
+  var g4 = GrassData.new()
+  g4.grass_name = "초강풀"
+  g4.max_health = 96
+  g4.regen_time = 26.0
+  g4.min_drop_value = 200
+  g4.max_drop_value = 200
+  g4.drop_chance = GRASS_DROP_CHANCE
+  g4.color = Color(0.15, 0.2, 0.55)
+  g4.cut_color = Color(0.12, 0.2, 0.4)
+
+  # 5: 황금풀 - 예외적 존재, 황금풀 확률 스킬로만 등장
+  var g5 = GrassData.new()
+  g5.grass_name = "황금풀"
+  g5.max_health = 160
+  g5.regen_time = 25.0
+  g5.min_drop_value = 100
+  g5.max_drop_value = 100
+  g5.guaranteed_drop = true
+  g5.color = Color(1.0, 0.85, 0.1)
+  g5.cut_color = Color(0.7, 0.6, 0.1)
+
+  grass_data_list.append(g0)
+  grass_data_list.append(g1)
+  grass_data_list.append(g2)
+  grass_data_list.append(g3)
+  grass_data_list.append(g4)
+  grass_data_list.append(g5)
 
 # 등급 유효 레벨 매핑 (L1-2 소폭, L3-10 정상 증가)
 const QUALITY_EFFECTIVE: Array = [0.0, 0.2, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
@@ -431,33 +455,31 @@ func get_random_grass_data() -> GrassData:
 
   var roll = randf()
   if roll < get_golden_grass_chance():
-    return grass_data_list[3]  # 황금풀
+    return grass_data_list[5]  # 황금풀
 
-  # 가중치 기반 3종 풀 분배
-  # 기본풀: effective 0에서 100%, 7+ 등장 안 함
-  # 완전 센풀: effective 2 이하 등장 안 함, 8에서 100%
-  # 강한풀: 나머지
-  var normal_w: float
-  if quality_level >= 7.0:
-    normal_w = 0.0
-  else:
-    normal_w = pow((7.0 - quality_level) / 7.0, 1.8)
+  # 가중치 기반 5종 풀 분배 (bell curve)
+  # 각 등급 피크: 새싹(0), 잔디(0.75), 여린풀(1.5), 강한풀(2.25), 초강풀(3.0)
+  var centers = [0.0, 0.75, 1.5, 2.25, 3.0]
+  var width = 1.2
+  var weights: Array = []
+  var total_w = 0.0
+  for c in centers:
+    var d = (quality_level - c) / width
+    var w = maxf(0.0, 1.0 - d * d)
+    weights.append(w)
+    total_w += w
 
-  var strong_w: float
-  if quality_level <= 2.0:
-    strong_w = 0.0
-  else:
-    strong_w = pow((quality_level - 2.0) / 6.0, 1.8)
+  if total_w <= 0:
+    return grass_data_list[0]
 
-  var tough_w = max(0.0, 1.0 - normal_w - strong_w)
+  var r = randf() * total_w
+  var cumulative = 0.0
+  for i in weights.size():
+    cumulative += weights[i]
+    if r <= cumulative:
+      return grass_data_list[i]
 
-  var remaining_roll = randf()
-  if remaining_roll < normal_w:
-    return grass_data_list[0]  # 기본풀
-  elif remaining_roll < normal_w + tough_w:
-    return grass_data_list[1]  # 강한풀
-  else:
-    return grass_data_list[2]  # 완전 센풀
+  return grass_data_list[0]
 
 func add_fury(amount: float) -> void:
   fury = minf(fury + amount * get_fury_rate_mult(), FURY_MAX)
@@ -492,12 +514,17 @@ func get_attack_range() -> float:
   var ticks = get_skill_total_progress("attack_range")
   return 60.0 + ticks * 4.0
 
-# 공격 횟수: 1 → ~50, 지수적 증가 (총 40틱)
+# 공격 횟수: 1 → 46, 레벨별 틱당 +1/+2/+3/+4/+5 (총 15틱)
 func get_attack_count() -> int:
-  var ticks = get_skill_total_progress("attack_count")
-  if ticks <= 0:
-    return 1
-  return maxi(1, roundi(1.0 + 49.0 * pow(float(ticks) / 40.0, 2.0)))
+  var level = upgrade_levels.get("attack_count", 0)
+  var sub = upgrade_sub_levels.get("attack_count", 0)
+  var sub_max = 3
+  var count = 1
+  for lv in range(level):
+    count += (lv + 1) * sub_max
+  if level < 5:
+    count += (level + 1) * sub
+  return count
 
 # 자석 범위: 40 → 200, 틱당 +4 (총 40틱)
 func get_base_magnet_range() -> float:
@@ -547,15 +574,22 @@ func get_golden_grass_chance() -> float:
     return 0.0
   return ticks * 0.001
 
-# 황금풀 보상 배율 (미정 — 임시: 틱당 +0.1, 총 50틱)
+# 황금풀 보상 배율: 단계별 10%/11%/12%/13%/14% 복리 증가 (총 25틱, 최대 ~1,696원)
 func get_golden_reward_mult() -> float:
-  var ticks = get_skill_total_progress("golden_reward")
-  return 1.0 + ticks * 0.1
+  var level = upgrade_levels.get("golden_reward", 0)
+  var sub = upgrade_sub_levels.get("golden_reward", 0)
+  var sub_max = 5
+  var mult = 1.0
+  for lv in range(level):
+    mult *= pow(1.0 + 0.10 + lv * 0.01, sub_max)
+  if level < 5:
+    mult *= pow(1.0 + 0.10 + level * 0.01, sub)
+  return mult
 
-# 이동 속도: 300 → (미정 — 임시: 틱당 +5, 총 60틱)
+# 이동 속도: 300 → 600, 틱당 +10 (총 30틱)
 func get_base_move_speed() -> float:
   var ticks = get_skill_total_progress("move_speed")
-  return 300.0 + ticks * 5.0
+  return 300.0 + ticks * 10.0
 
 func get_grass_density_level() -> int:
   return upgrade_levels.get("grass_density", 0)

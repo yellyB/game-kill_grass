@@ -42,23 +42,23 @@ const WORLD_GRASS_TINTS: Array = [
   {"base": Color(0.75, 0.48, 0.4), "tip": Color(0.6, 0.38, 0.3)},    # 6: 용의 봉우리 - 채도 낮은 빨강
 ]
 
-# 월드별 풀 타입(0기본,1강한,2센,3황금) 인스턴스 색상
+# 월드별 풀 타입(0새싹,1잔디,2여린풀,3강한풀,4초강풀,5황금) 인스턴스 색상
 # null이면 원본 GrassData.color 사용
 const WORLD_GRASS_COLORS: Array = [
-  # 0: 슬라임 늪 - 기본/강한풀 밝게, 센풀 약간 어둡게
-  [Color(0.22, 0.5, 0.22), Color(0.32, 0.65, 0.32), Color(0.45, 0.85, 0.45), null],
-  # 1: 들판 - 배경 대비 밝게, 센 풀일수록 더 밝은 갈색
-  [Color(0.8, 0.65, 0.42), Color(0.88, 0.74, 0.5), Color(0.95, 0.82, 0.58), null],
-  # 2: 기사의 성벽 - 회청색 톤, 센 풀일수록 밝은 강철빛
-  [Color(0.45, 0.5, 0.6), Color(0.55, 0.62, 0.72), Color(0.68, 0.74, 0.85), null],
-  # 3: 마법의 숲 - 배경 대비 확 밝게, 센 풀일수록 더 밝은 파란빛
-  [Color(0.5, 0.6, 0.8), Color(0.6, 0.72, 0.9), Color(0.72, 0.82, 1.0), null],
-  # 4: 수정 호수 - 시안 톤, 센 풀일수록 밝은 수정빛
-  [Color(0.35, 0.65, 0.7), Color(0.45, 0.75, 0.82), Color(0.58, 0.88, 0.92), null],
-  # 5: 고대 유적 - 올리브 톤, 센 풀일수록 밝은 황토빛
-  [Color(0.5, 0.48, 0.3), Color(0.62, 0.58, 0.38), Color(0.75, 0.7, 0.45), null],
-  # 6: 용의 봉우리 - 채도 낮춤, 명도 차이 확연
-  [Color(0.58, 0.38, 0.32), Color(0.75, 0.45, 0.35), Color(0.92, 0.55, 0.42), null],
+  # 0: 슬라임 늪
+  [Color(0.22, 0.5, 0.22), Color(0.32, 0.65, 0.32), Color(0.45, 0.85, 0.45), Color(0.3, 0.92, 0.6), Color(0.2, 0.85, 0.8), null],
+  # 1: 들판
+  [Color(0.8, 0.65, 0.42), Color(0.88, 0.74, 0.5), Color(0.95, 0.82, 0.58), Color(1.0, 0.88, 0.64), Color(1.0, 0.92, 0.72), null],
+  # 2: 기사의 성벽
+  [Color(0.45, 0.5, 0.6), Color(0.55, 0.62, 0.72), Color(0.68, 0.74, 0.85), Color(0.78, 0.84, 0.95), Color(0.85, 0.9, 1.0), null],
+  # 3: 마법의 숲
+  [Color(0.5, 0.6, 0.8), Color(0.6, 0.72, 0.9), Color(0.72, 0.82, 1.0), Color(0.82, 0.9, 1.0), Color(0.9, 0.95, 1.0), null],
+  # 4: 수정 호수
+  [Color(0.35, 0.65, 0.7), Color(0.45, 0.75, 0.82), Color(0.58, 0.88, 0.92), Color(0.68, 0.94, 0.98), Color(0.78, 0.98, 1.0), null],
+  # 5: 고대 유적
+  [Color(0.5, 0.48, 0.3), Color(0.62, 0.58, 0.38), Color(0.75, 0.7, 0.45), Color(0.85, 0.8, 0.52), Color(0.92, 0.88, 0.6), null],
+  # 6: 용의 봉우리
+  [Color(0.58, 0.38, 0.32), Color(0.75, 0.45, 0.35), Color(0.92, 0.55, 0.42), Color(1.0, 0.65, 0.48), Color(1.0, 0.75, 0.55), null],
 ]
 
 const GRID_SIDE: int = 15  # 15x15 = 225 slots per chunk
@@ -246,7 +246,7 @@ func load_chunk(chunk_coord: Vector2i) -> void:
       if not grass_data.has(grid_pos):
         var gd = GameManager.get_random_grass_data()
         var base_regen = gd.regen_time if gd else 5.0
-        var is_golden = gd == GameManager.grass_data_list[3] if gd else false
+        var is_golden = gd == GameManager.grass_data_list[5] if gd else false
         var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
         var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
         var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
@@ -339,7 +339,7 @@ func process_regen(delta: float) -> void:
     if data.regen_timer >= data.regen_time:
       var gd = GameManager.get_random_grass_data()
       var base_regen = gd.regen_time if gd else 5.0
-      var is_golden = gd == GameManager.grass_data_list[3] if gd else false
+      var is_golden = gd == GameManager.grass_data_list[5] if gd else false
       var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
       var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
       var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
@@ -356,8 +356,8 @@ func process_regen(delta: float) -> void:
 
 
 func _get_grass_color(grass_type: int) -> Color:
-  # 황금풀(3): 월드 무관 샛노란색 + alpha 마커(셰이더 반짝이용)
-  if grass_type == 3:
+  # 황금풀(5): 월드 무관 샛노란색 + alpha 마커(셰이더 반짝이용)
+  if grass_type == 5:
     return Color(1.0, 0.95, 0.1, 0.5)
   var world = GameManager.selected_world
   if world < WORLD_GRASS_COLORS.size() and WORLD_GRASS_COLORS[world] != null:
@@ -385,12 +385,12 @@ func update_multimesh() -> void:
     visible_grass.append(world_pos)
 
     if data.has("hit_timer") and data.hit_timer > 0:
-      var flash_alpha = 0.5 if data.type == 3 else 1.0
+      var flash_alpha = 0.5 if data.type == 5 else 1.0
       colors_list.append(Color(1.0, 1.0, 1.0, flash_alpha))
     else:
       colors_list.append(_get_grass_color(data.type))
 
-    if data.type == 3:
+    if data.type == 5:
       golden_positions.append(world_pos)
 
   multimesh.instance_count = visible_grass.size()
@@ -501,8 +501,8 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
       var gd = GameManager.grass_data_list[grass_data[grid_pos].type]
       if gd.guaranteed_drop or randf() < GameManager.get_grass_drop_chance():
         var coin_value = grass_data[grid_pos].value
-        # 황금풀(type 3)에 보상 배율 적용
-        if grass_data[grid_pos].type == 3:
+        # 황금풀(type 5)에 보상 배율 적용
+        if grass_data[grid_pos].type == 5:
           coin_value = roundi(coin_value * GameManager.get_golden_reward_mult())
         spawn_coin(pos, coin_value)
 
@@ -522,14 +522,14 @@ func _on_golden_bloom() -> void:
     return
   var center = player.global_position - global_position
   var bloom_radius = GameManager.base_magnet_range
-  var golden_data = GameManager.grass_data_list[3]
+  var golden_data = GameManager.grass_data_list[5]
   for grid_pos in grass_data:
     var data = grass_data[grid_pos]
-    if data.cut or data.type == 3:
+    if data.cut or data.type == 5:
       continue
     var world_pos = Vector2(grid_pos.x, grid_pos.y)
     if center.distance_to(world_pos) <= bloom_radius:
-      data.type = 3
+      data.type = 5
       data.health = golden_data.max_health
       data.max_health = golden_data.max_health
       data.value = randi_range(golden_data.min_drop_value, golden_data.max_drop_value)
@@ -544,7 +544,7 @@ func _on_field_clear() -> void:
     data.regen_timer = 0.0
     _mark_grass_cut(grid_pos)
     var pos = Vector2(grid_pos.x, grid_pos.y)
-    if data.type == 3 or randf() < GameManager.get_grass_drop_chance():
+    if data.type == 5 or randf() < GameManager.get_grass_drop_chance():
       spawn_coin(pos, data.value)
 
 func _on_blackhole() -> void:
