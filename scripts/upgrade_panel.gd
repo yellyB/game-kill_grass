@@ -154,23 +154,16 @@ func _ready() -> void:
   GameManager.style_button(close_btn, "muted")
   _position_close_btn()
   GameManager.style_button(confirm_btn)
+
+  # Skill count label (bottom-right of skill tree area)
+  _skill_count_label = Label.new()
+  _skill_count_label.add_theme_font_size_override("font_size", 28)
+  _skill_count_label.add_theme_color_override("font_color", Color(0.55, 0.55, 0.6))
+  _skill_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  padded_area.add_child(_skill_count_label)
+
   _position_bottom_section()
   _apply_side_padding()
-
-  # Skill count label below money display
-  _skill_count_label = Label.new()
-  _skill_count_label.add_theme_font_size_override("font_size", 20)
-  _skill_count_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-  _skill_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  _skill_count_label.layout_mode = 1
-  _skill_count_label.anchor_left = 1.0
-  _skill_count_label.anchor_right = 1.0
-  _skill_count_label.offset_left = -260.0
-  _skill_count_label.offset_top = 52.0
-  _skill_count_label.offset_right = 0.0
-  _skill_count_label.offset_bottom = 75.0
-  _skill_count_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-  padded_area.add_child(_skill_count_label)
 
   update_money_display()
 
@@ -1454,6 +1447,19 @@ func _position_bottom_section() -> void:
   skill_tree_scroll.anchor_bottom = 1.0
   skill_tree_scroll.offset_bottom = -section_height - gap
   skill_tree_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+
+  # Position skill count label at bottom-right of skill tree area
+  if _skill_count_label:
+    _skill_count_label.anchor_left = 1.0
+    _skill_count_label.anchor_right = 1.0
+    _skill_count_label.anchor_top = 1.0
+    _skill_count_label.anchor_bottom = 1.0
+    _skill_count_label.offset_left = -200.0
+    _skill_count_label.offset_right = 0.0
+    _skill_count_label.offset_top = -section_height - gap - 34.0
+    _skill_count_label.offset_bottom = -section_height - gap
+    _skill_count_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+    _skill_count_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 
 func _calc_grass_per_chunk(density_level: int) -> int:
   var grass_spawner = get_tree().get_first_node_in_group("grass_spawner")
