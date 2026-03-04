@@ -71,31 +71,31 @@ signal key_acquired(world_index: int)
 # Skill definitions — single source of truth for all skills
 const SKILL_DEFS: Array = [
   {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 12,
-   "description": "풀을 베는 속도가 빨라집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.01초)\n단계 5 | 최대 Lv.12"},
+   "description": "다음 공격까지의 대기 시간이 짧아집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.01초)\n단계 5 | 최대 Lv.12"},
   {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 10,
-   "description": "풀을 베는 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +4)\n단계 5 | 최대 Lv.10"},
-  {"type": "attack_count", "name": "공격 횟수", "short_name": "횟수", "sub_max": 3, "max_level": 5,
-   "description": "한 번에 베는 풀의 수가 증가합니다.\n횟수: 1 → 46 (레벨별 +1/+2/+3/+4/+5)\n단계 3 | 최대 Lv.5"},
+   "description": "공격 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +4)\n단계 5 | 최대 Lv.10"},
+  {"type": "attack_count", "name": "공격 개수", "short_name": "개수", "sub_max": 3, "max_level": 5,
+   "description": "한 번에 베는 풀의 개수가 증가합니다.\n횟수: 1 → 46 (레벨별 +1/+2/+3/+4/+5)\n단계 3 | 최대 Lv.5"},
   {"type": "magnet_range", "name": "수집 범위", "short_name": "수집", "sub_max": 5, "max_level": 8,
    "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 40 → 200 (틱당 +4)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 5, "max_level": 8,
-   "description": "맵에 풀이 더 빽빽하게 자랍니다.\n청크당 풀: 1 → 181 (Lv별 틱당 +1/+2/.../+8)\n단계 5 | 최대 Lv.8"},
+   "description": "맵 구획당 자라는 풀의 수가 증가합니다.\n구획당 풀: 1개 → 181개 (Lv별 틱당 +1/+2/.../+8)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 8,
-   "description": "더 높은 등급의 풀이 등장합니다.\n홀수 레벨: 다음 등급 50%까지\n짝수 레벨: 다음 등급 100%까지\n단계 8 | 최대 Lv.8"},
+   "description": "높은 등급 풀이 등장할 확률이 높아집니다.\n홀수 레벨: 다음 등급 50%까지\n짝수 레벨: 다음 등급 100%까지\n단계 8 | 최대 Lv.8"},
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
-   "description": "상자가 등장할 확률이 증가합니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
+   "description": "맵 구획당 상자 등장 확률이 높아집니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 8,
-   "description": "풀을 벨 때 치명타가 발생할 확률이 증가합니다.\n확률: 0% → 80% (틱당 +2%)\n단계 5 | 최대 Lv.8"},
-  {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 10, "max_level": 9,
-   "description": "치명타 발생 시 추가 피해가 증가합니다.\n배율: 120% → 300% (틱당 +2%)\n단계 10 | 최대 Lv.9"},
+   "description": "치명타 발생 확률이 높아집니다.\n확률: 0% → 80% (틱당 +2%)\n단계 5 | 최대 Lv.8"},
+  {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 5, "max_level": 6,
+   "description": "치명타 피해량이 증가합니다.\n배율: 120% → 300% (틱당 +6%)\n단계 5 | 최대 Lv.6"},
   {"type": "attack_power", "name": "공격력", "short_name": "공격력", "sub_max": 5, "max_level": 9,
-   "description": "풀을 베는 공격력이 증가합니다.\nLv.1~3: +1/틱, Lv.4~5: +2/틱\nLv.6~7: +3/틱, Lv.8~9: +4/틱\n단계 5 | 최대 Lv.9"},
+   "description": "공격력이 증가합니다.\nLv.1~3: +1/틱, Lv.4~5: +2/틱\nLv.6~7: +3/틱, Lv.8~9: +4/틱\n단계 5 | 최대 Lv.9"},
   {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
    "description": "몬스터에게 주는 피해가 증가합니다.\n배율: 100% → 450% (틱당 +10%) (미정)\n단계 5 | 최대 Lv.7"},
   {"type": "fury_rate", "name": "분노 속도", "short_name": "분노", "sub_max": 4, "max_level": 4,
-   "description": "몬스터분노 게이지가 더 빨리 찹니다.\n배율: 100% → 340% (틱당 +15%) (미정)\n단계 4 | 최대 Lv.4"},
+   "description": "몬스터 분노 게이지가 더 빨리 찹니다.\n배율: 100% → 340% (틱당 +15%) (미정)\n단계 4 | 최대 Lv.4"},
   {"type": "golden_chance", "name": "황금풀 확률", "short_name": "황금", "sub_max": 2, "max_level": 5,
-   "description": "황금풀이 등장할 확률이 증가합니다.\n확률: 0% → 1.0% (틱당 +0.1%)\n단계 2 | 최대 Lv.5"},
+   "description": "풀이 황금풀로 자라날 확률이 높아집니다.\n확률: 0% → 1.0% (틱당 +0.1%)\n단계 2 | 최대 Lv.5"},
   {"type": "golden_reward", "name": "황금풀 보상", "short_name": "황보", "sub_max": 5, "max_level": 5,
    "description": "황금풀에서 떨어지는 코인이 증가합니다.\n보상: 100원 → ~1,696원 (단계별 10~14% 복리)\n단계 5 | 최대 Lv.5"},
   {"type": "move_speed", "name": "이동 속도", "short_name": "이속", "sub_max": 6, "max_level": 5,
@@ -169,7 +169,7 @@ signal fury_boss_requested()
 signal fury_gauge_dismissed()
 signal boss_key_collected(world_index: int)
 
-# 몬스터분노 시스템
+# 몬스터 분노 시스템
 var fury: float = 0.0
 var session_key_acquired: int = -1  # 세션 중 보스 드롭 열쇠 (-1 = 없음)
 # 월드별 분노 필요 수치
@@ -546,10 +546,10 @@ func get_crit_chance() -> float:
   var ticks = get_skill_total_progress("crit_chance")
   return minf(ticks * 0.02, 0.8)
 
-# 치명타 데미지: 1.2x → 3.0x, 틱당 +0.02 (총 90틱)
+# 치명타 데미지: 1.2x → 3.0x, 틱당 +0.06 (총 30틱)
 func get_crit_damage_mult() -> float:
   var ticks = get_skill_total_progress("crit_damage")
-  return 1.2 + ticks * 0.02
+  return 1.2 + ticks * 0.06
 
 # 몬스터 피해 배율 (미정 — 임시: 틱당 +0.1, 총 35틱)
 func get_monster_damage_mult() -> float:
@@ -896,7 +896,7 @@ const GOLDEN_CHANCE_TICK_COSTS: Array = [
   [900, 120],   # Lv.4: 900,1020
   [2000, 250],  # Lv.5: 2000,2250
 ]
-# Row 4 (crit_damage 10t×9L, golden_reward 5t×5L)
+# Row 4 (crit_damage 5t×6L, golden_reward 5t×5L)
 const ROW4_TICK_COSTS: Array = [
   [50, 5],      # Lv.1: 50,55,60,...
   [100, 8],     # Lv.2
