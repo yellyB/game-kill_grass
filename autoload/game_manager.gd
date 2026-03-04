@@ -436,7 +436,7 @@ func _init_grass_data() -> void:
   # 5: 황금풀 - 예외적 존재, 황금풀 확률 스킬로만 등장
   var g5 = GrassData.new()
   g5.grass_name = "황금풀"
-  g5.max_health = 160
+  g5.max_health = 80
   g5.regen_time = 25.0
   g5.min_drop_value = 100
   g5.max_drop_value = 100
@@ -771,12 +771,18 @@ const SKILL_REQUIRED_TOTAL = {
   "attack_count:2": 3,
   # 무기: row2 (Lv.2+)
   "crit_damage:2": 3,
+  # 무기: row2 (Lv.1+)
+  "monster_damage:1": 20,
   # 무기: row2 (Lv.2+)
   "monster_damage:2": 3,
   # 수확: row3 (Lv.2+)
   "golden_reward:2": 3,
   # 탐험: root (Lv.2+)
   "move_speed:2": 2,
+  # 탐험: row1 (Lv.1+)
+  "chest_chance:1": 12,
+  # 탐험: row2 (Lv.1+)
+  "fury_rate:1": 30,
   # 탐험: row2 (Lv.2+)
   "fury_rate:2": 3,
 }
@@ -853,20 +859,20 @@ func get_grass_regen_time(base_time: float) -> float:
 # Root (attack_power 5t×9L, move_speed 6t×5L)
 const ROOT_TICK_COSTS: Array = [
   [1, 1],       # Lv.1: 1,2,3,4,5
-  [25, 4],      # Lv.2: 25,29,33,37,41
-  [100, 10],    # Lv.3: 100,110,120,...
-  [200, 15],    # Lv.4
-  [350, 25],    # Lv.5
-  [600, 40],    # Lv.6
-  [1000, 65],   # Lv.7
-  [1600, 100],  # Lv.8
-  [2600, 160],  # Lv.9
+  [12, 3],      # Lv.2: 12,15,18,21,24
+  [300, 20],    # Lv.3: 300,320,340,360,380
+  [80, 8],      # Lv.4: 80,88,96,104,112
+  [150, 12],    # Lv.5: 150,162,174,186,198
+  [280, 18],    # Lv.6: 280,298,316,...
+  [500, 28],    # Lv.7
+  [850, 42],    # Lv.8
+  [1400, 65],   # Lv.9
 ]
 # Density (10t×10L) — 틱 많아서 단가 낮게
 const DENSITY_TICK_COSTS: Array = [
   [0, 0],       # Lv.1: special (sub/2+1)
-  [18, 2],      # Lv.2: 18,20,22,...
-  [100, 10],    # Lv.3
+  [15, 2],      # Lv.2: 15,17,19,21,23
+  [300, 20],    # Lv.3: 300,320,340,...
   [180, 12],    # Lv.4
   [300, 18],    # Lv.5
   [500, 28],    # Lv.6
@@ -905,7 +911,7 @@ const ROW3_TICK_COSTS: Array = [
 ]
 # Row 3 — golden_chance (2t×5L, 고가)
 const GOLDEN_CHANCE_TICK_COSTS: Array = [
-  [50, 20],     # Lv.1: 50,70
+  [20, 2],      # Lv.1: 20,22
   [150, 30],    # Lv.2: 150,180
   [400, 60],    # Lv.3: 400,460
   [900, 120],   # Lv.4: 900,1020
@@ -936,13 +942,49 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   if current_level == 0 and upgrade_type == "grass_density":
     return sub / 2 + 1
 
-  # Special: grass_quality — Lv.1 틱 기반, Lv.2+ 고정 단가
+  # Special: grass_quality — Lv.1~2 틱 기반, Lv.3+ 고정 단가
   if upgrade_type == "grass_quality":
     if current_level == 0:
       return 15 + sub
+    if current_level == 1:
+      return 20 + sub
+    if current_level == 2:
+      return 80 + sub * 5
     if current_level < QUALITY_COSTS.size():
       return QUALITY_COSTS[current_level]
     return QUALITY_COSTS[-1]
+
+  # Special: move_speed Lv.2
+  if upgrade_type == "move_speed" and current_level == 1:
+    return 10 + sub
+
+  # Special: attack_range Lv.1~3
+  if upgrade_type == "attack_range":
+    if current_level == 0:
+      return 10 + sub
+    if current_level == 1:
+      return 25 + sub * 2
+    if current_level == 2:
+      return 60 + sub * 3
+
+  # Special: attack_speed Lv.3
+  if upgrade_type == "attack_speed" and current_level == 2:
+    return 120 + sub * 10
+
+  # Special: crit_chance Lv.1
+  if upgrade_type == "crit_chance" and current_level == 0:
+    return 20 + sub * 2
+
+  # Special: attack_count Lv.2
+  if upgrade_type == "attack_count" and current_level == 1:
+    return 200 + sub * 20
+
+  # Special: session_time Lv.1~2
+  if upgrade_type == "session_time":
+    if current_level == 0:
+      return 20 + sub * 5
+    if current_level == 1:
+      return 200 + sub * 30
 
   # 스킬별 틱 비용 테이블 선택
   var tier_costs: Array
