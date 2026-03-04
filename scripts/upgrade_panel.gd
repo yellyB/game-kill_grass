@@ -32,6 +32,7 @@ var _desc_text_node: Label = null
 var _desc_divider: ColorRect = null
 var _desc_title_rt: RichTextLabel = null
 var _btn_cost_node: Control = null
+var _skill_count_label: Label = null
 
 # Grid layout constants
 const NODE_MARGIN: float = 6.0
@@ -155,6 +156,21 @@ func _ready() -> void:
   GameManager.style_button(confirm_btn)
   _position_bottom_section()
   _apply_side_padding()
+
+  # Skill count label below money display
+  _skill_count_label = Label.new()
+  _skill_count_label.add_theme_font_size_override("font_size", 20)
+  _skill_count_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+  _skill_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  _skill_count_label.layout_mode = 1
+  _skill_count_label.anchor_left = 1.0
+  _skill_count_label.anchor_right = 1.0
+  _skill_count_label.offset_left = -260.0
+  _skill_count_label.offset_top = 52.0
+  _skill_count_label.offset_right = 0.0
+  _skill_count_label.offset_bottom = 75.0
+  _skill_count_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+  padded_area.add_child(_skill_count_label)
 
   update_money_display()
 
@@ -1378,6 +1394,14 @@ func _on_upgrade_purchased(_type: String, _level: int) -> void:
 
 func update_money_display() -> void:
   money_display.update_display()
+  if _skill_count_label:
+    var current = GameManager.get_total_skill_level()
+    var total = 0
+    for def in GameManager.SKILL_DEFS:
+      if def.type == "attack_power":
+        continue
+      total += def.max_level
+    _skill_count_label.text = "(%d/%d)" % [current, total]
 
 
 func _apply_side_padding() -> void:
