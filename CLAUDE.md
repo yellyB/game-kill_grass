@@ -1,7 +1,7 @@
 # Kill Grass - Godot 4.3 Idle Game
 
 ## 프로젝트 개요
-풀을 베어서 돈을 모으는 방치형 모바일 게임. 플레이어가 이동하면 자동으로 범위 내 풀을 베고, 떨어진 코인을 수집하여 골드를 획득한다. 4개 월드를 해금하며 진행하고, 몬스터 드롭 재료로 이세계 트럭을 조립하는 것이 최종 목표.
+풀을 베어서 돈을 모으는 방치형 모바일 게임. 플레이어가 이동하면 자동으로 범위 내 풀을 베고, 떨어진 코인을 수집하여 골드를 획득한다. 7개 월드를 해금하며 진행.
 
 ## 핵심 시스템
 
@@ -88,22 +88,11 @@
 
 ### 몬스터 시스템
 - 7종 몬스터가 월드별로 스폰 (`monster_spawner.gd`)
-- 몬스터별 고유 스프라이트 (5프레임 애니메이션), 체력, 이동속도, 드롭 테이블
+- 몬스터별 고유 스프라이트 (5프레임 애니메이션), 체력, 이동속도
 - 배회 AI: 이동/대기를 랜덤 반복
 - 피격 시 빨간 플래시 + 슬래시 효과음, 사망 시 확대->흔들림->페이드 + 사망 효과음
-- 사망 시 드롭 테이블에 따라 아이템 드롭 (포물선 비행)
+- 사망 시 파워업 드롭 가능 (30% 확률)
 - 상세: `docs/monster.md`
-
-### 아이템 & 제작 시스템
-- **재료 아이템** (16종): 몬스터 드롭으로 획득, `GameManager.inventory`에 저장
-- **부품** (6종): 재료를 조합하여 제작하는 중간 아이템
-- **최종 아이템**: 이세계 트럭 (부품 6종 + 졸음 약 조립)
-- 졸음 약은 아이템 목록에 표시되지 않음 (숨겨진 재료)
-- 부품 6개 완성 시 최종 조립 해금, 졸음 약 없으면 힌트 표시
-- 카드 색상: 주황(재료 부족) / 초록(제작 가능) / 초록+비활성(완료)
-- 미발견 재료는 "?" 표시, 발견 후 이미지/이름 공개
-- 제작 성공 시 효과음 재생 + 즉시 저장
-- `truck_assembled` 플래그로 트럭 조립 완료 상태 저장
 
 ### 사운드 시스템
 **효과음** (`resources/sounds/effect/`):
@@ -119,7 +108,6 @@
 | confirm_button_click.wav | 확인/구매 버튼 | GameManager (공용) |
 | upgrade_success.wav | 업그레이드/무기 강화 성공 | GameManager (공용) |
 | unlock_world.wav | 월드 해금 | GameManager (공용) |
-| item_craft_short_hammer.wav | 아이템 제작 | GameManager (공용) |
 | end_session_fanfare.wav | 세션 종료 결과 화면 | main.gd |
 
 **배경음** (`resources/sounds/`):
@@ -131,22 +119,21 @@
 - 공용 SFX는 `GameManager`에 AudioStreamPlayer로 관리
 - queue_free되는 노드의 효과음은 root에 부착하여 재생 보장
 
-### HUD 아이템 알림
-- 아이템 획득 시 화면 우측 상단(돈 아래)에 아이템명 표시
-- 열쇠 획득 시 시안색 알림
+### HUD 알림
+- 열쇠 획득 시 화면 우측 상단(돈 아래)에 시안색 알림
 - 1.5초 표시 후 0.5초간 페이드아웃
 
 ### 디버그 기능
 메인 메뉴 하단에 디버그 버튼 (debug build only):
 - 초기화: 모든 데이터 리셋
 - +$100000: 돈 추가
-- 아이템+10: 모든 재료 10개씩 추가
+- 월드 전체해금: 모든 월드 해금
 
 ## 파일 구조
 
 ```
 autoload/
-  game_manager.gd    - 돈, 업그레이드, 인벤토리, 열쇠, SFX 관리
+  game_manager.gd    - 돈, 업그레이드, 열쇠, SFX 관리
   weapon_manager.gd  - 무기 데이터 및 구매
   save_manager.gd    - 저장/불러오기
   session_manager.gd - 세션 관리 (시작/종료/메뉴 복귀)
@@ -159,14 +146,13 @@ scripts/
   coin.gd            - 코인 수집, 자석 효과
   floating_text.gd   - 금액 표시 UI
   world_root.gd      - 월드 이동, 배경 처리, 월드별 배경색
-  hud.gd             - HUD 표시 + 아이템/열쇠 획득 알림
+  hud.gd             - HUD 표시 + 열쇠 획득 알림
   upgrade_panel.gd   - 업그레이드 패널 UI
   weapon_shop.gd     - 무기 상점 UI
-  item_panel.gd      - 아이템/제작 패널 UI (재료->부품->최종 조립)
-  monster.gd         - 몬스터 동작, AI, 사망/드롭
+  monster.gd         - 몬스터 동작, AI, 사망
   monster_spawner.gd - 몬스터/상자 스폰 (월드별 몬스터 매핑)
-  dropped_item.gd    - 드롭 아이템 (포물선 비행, 자석 수집, 열쇠/약 지원)
-  chest.gd           - 상자 (파괴 시 열쇠/아이템 드롭)
+  dropped_item.gd    - 드롭 아이템 (포물선 비행, 열쇠/약 수집)
+  chest.gd           - 상자 (파괴 시 열쇠 드롭)
   effects/lightning_effect.gd      - 슬라임 번개 이펙트
   effects/dust_cloud_effect.gd     - 멧돼지 먼지구름 이펙트
   effects/spark_effect.gd          - 잔디 기사 금속 스파크 이펙트
@@ -200,7 +186,6 @@ scenes/
   ui/hud.tscn               - HUD
   ui/upgrade_panel.tscn     - 업그레이드 패널
   ui/weapon_shop.tscn       - 무기 상점
-  ui/item_panel.tscn        - 아이템/제작 패널
   ui/info_panel.tscn        - 정보 패널
   ui/pause_menu.tscn        - 일시정지 메뉴
   ui/virtual_joystick.tscn  - 가상 조이스틱 (미사용)
@@ -213,7 +198,6 @@ resources/
   sounds/                          - 배경음 + 효과음
   images/weapon/                   - 무기 이미지 (1~10단계)
   images/monster/                  - 몬스터 스프라이트 (7종, 각 5프레임)
-  images/items/                    - 드롭 아이템 이미지 (16종)
 
 docs/
   기획서.md            - 전체 게임 기획서
@@ -240,7 +224,7 @@ var local_attack_center = attack_center - grass_spawner.global_position
 
 ## 세이브 데이터
 - 위치: `~/Library/Application Support/Godot/app_userdata/Kill Grass/savegame.json`
-- 저장 항목: money, upgrades, inventory, discovered_items, weapon_level, unlocked_worlds, owned_keys, truck_assembled, selected_world
+- 저장 항목: money, upgrades, selected_world, unlocked_worlds, owned_keys, has_potion, world_strength_levels
 
 ## 알려진 이슈 및 해결책
 
@@ -249,5 +233,4 @@ var local_attack_center = attack_center - grass_spawner.global_position
 3. **무기 스케일 누적** -> 애니메이션에서 고정 스케일 값 사용
 4. **풀 렌더링 성능** -> MultiMesh + GPU 셰이더로 해결 (씬 인스턴스 제거)
 5. **Tween "Target object freed" 경고** -> `queue_free()` 대신 `remove_child()` + `queue_free()` 사용
-6. **제작 중 UI 다중 갱신** -> `_crafting` 플래그로 `inventory_changed` 시그널 억제
-7. **queue_free 후 사운드 재생** -> AudioStreamPlayer를 root에 부착, finished 시 queue_free
+6. **queue_free 후 사운드 재생** -> AudioStreamPlayer를 root에 부착, finished 시 queue_free

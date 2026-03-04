@@ -59,15 +59,12 @@ func reset_all_data() -> void:
 		GameManager.upgrade_levels[type] = 0
 	for type in GameManager.upgrade_sub_levels:
 		GameManager.upgrade_sub_levels[type] = 0
-	GameManager.inventory = {}
-	GameManager.discovered_items = []
 	GameManager.selected_world = 0
 	GameManager.unlocked_worlds = [0]
 	GameManager.owned_keys = []
-	GameManager.truck_assembled = false
+	GameManager.has_potion = false
 	GameManager.world_strength_levels = {}
 	GameManager.money_changed.emit(0)
-	GameManager.inventory_changed.emit()
 	# Reset WeaponManager
 	WeaponManager.current_weapon_level = 0
 	WeaponManager.weapon_changed.emit(0)

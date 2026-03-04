@@ -8,16 +8,11 @@ const SCREEN_PADDING_V: float = 60.0
 var money: int = 0
 var session_money: int = 0
 
-# Inventory - {item_id: count}
-var inventory: Dictionary = {}
-# Items discovered at least once (for UI display)
-var discovered_items: Array = []
-
 # World selection
 var selected_world: int = 0
 var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
-var truck_assembled: bool = false  # 이세계 트럭 조립 완료 여부
+var has_potion: bool = false  # 졸음 약 획득 여부
 const WORLD_UNLOCK_COSTS: Array = [0, 100, 5000, 10000, 25000, 50000, 80000]
 
 # 월드별 풀 체력/보상 기본 배율 (매 월드 x1.3 균일 증가, 황금풀 제외)
@@ -30,7 +25,7 @@ func is_world_cleared(world: int) -> bool:
   var next = world + 1
   var is_last = next >= WORLD_UNLOCK_COSTS.size()
   if is_last:
-    return get_item_count("졸음 약") >= 1
+    return has_potion
   return next in unlocked_worlds or has_key(next)
 
 func get_world_strength_level(world: int) -> int:
@@ -161,8 +156,6 @@ var grass_data_list: Array[GrassData] = []
 signal money_changed(new_amount: int)
 signal session_money_changed(new_amount: int)
 signal upgrade_purchased(upgrade_type: String, level: int)
-signal item_added(item_id: String, count: int)
-signal inventory_changed()
 signal powerup_acquired(type: String, level: int)
 signal timed_buff_started(type: String, duration: float)
 signal timed_buff_ended(type: String)
@@ -188,7 +181,6 @@ func get_fury_max() -> float:
 
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
-var _sfx_craft: AudioStreamPlayer
 var _sfx_skill_upgrade: AudioStreamPlayer
 var _sfx_unlock: AudioStreamPlayer
 var _sfx_skill_click: AudioStreamPlayer
@@ -212,10 +204,6 @@ func _ready() -> void:
   _sfx_confirm.stream = preload("res://resources/sounds/effect/confirm_button_click.wav")
   _sfx_confirm.volume_db = -3.0
   add_child(_sfx_confirm)
-  _sfx_craft = AudioStreamPlayer.new()
-  _sfx_craft.stream = preload("res://resources/sounds/effect/item_craft_short_hammer.wav")
-  _sfx_craft.volume_db = -3.0
-  add_child(_sfx_craft)
   _sfx_skill_upgrade = AudioStreamPlayer.new()
   _sfx_skill_upgrade.stream = preload("res://resources/sounds/effect/skill_upgrade_success.wav")
   _sfx_skill_upgrade.volume_db = -3.0
@@ -237,9 +225,6 @@ func play_button_click() -> void:
 
 func play_confirm_click() -> void:
   _sfx_confirm.play()
-
-func play_craft_sound() -> void:
-  _sfx_craft.play()
 
 func play_skill_upgrade_sound() -> void:
   _sfx_skill_upgrade.play()
@@ -608,12 +593,10 @@ func get_magnet_range() -> float:
   var mult = 1.0 + session_buff_magnet_range * 0.5
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
-  mult += get_part_count("강화 유리 모듈", 6) * 0.15  # 유리 모듈: 개당 +15%, 최대 +90%
   return base * mult
 
 func get_session_attack_speed_mult() -> float:
   var mult = 1.0 + session_buff_attack_speed * 0.25
-  mult += get_part_count("운전기사", 1) * 0.2  # 운전기사: +20%
   if timed_buffs.has("overdrive"):
     mult *= 2.0  # +100%
   if timed_buffs.has("harvest_madness"):
@@ -624,14 +607,12 @@ func get_session_attack_speed_mult() -> float:
 
 func get_session_attack_range_mult() -> float:
   var mult = 1.0 + session_buff_attack_range * 0.25
-  mult += get_part_count("폭발하는 엔진 코어", 10) * 0.1  # 엔진코어: 개당 +10%, 최대 +100%
   if timed_buffs.has("harvest_madness"):
     mult *= 1.5
   return mult
 
 func get_session_move_speed_mult() -> float:
   var mult = 1.0 + session_buff_move_speed * 0.5
-  mult += get_part_count("개념상 바퀴", 4) * 0.08  # 바퀴: 개당 +8%, 최대 +32%
   if timed_buffs.has("overdrive"):
     mult *= 0.5  # -50%
   if timed_buffs.has("harvest_madness"):
@@ -709,10 +690,9 @@ func _apply_double_or_dust() -> void:
     powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
 const BASE_KNOCKBACK: float = 120.0
-const KNOCKBACK_PER_LEVEL: float = 120.0
 
 func get_monster_knockback_strength() -> float:
-  return BASE_KNOCKBACK + get_part_count("충격 무시 범퍼", 2) * KNOCKBACK_PER_LEVEL
+  return BASE_KNOCKBACK
 
 func get_grass_drop_chance() -> float:
   # 레벨당 6% 증가 (Lv.5 = 50%)
@@ -1037,37 +1017,9 @@ func purchase_upgrade(upgrade_type: String) -> bool:
   upgrade_purchased.emit(upgrade_type, next_level)
   return true
 
-func add_item(item_id: String, count: int = 1) -> void:
-  if item_id not in discovered_items:
-    discovered_items.append(item_id)
-  if inventory.has(item_id):
-    inventory[item_id] += count
-  else:
-    inventory[item_id] = count
-  item_added.emit(item_id, inventory[item_id])
-  inventory_changed.emit()
-
-func remove_item(item_id: String, count: int = 1) -> bool:
-  var current = inventory.get(item_id, 0)
-  if current < count:
-    return false
-  inventory[item_id] = current - count
-  inventory_changed.emit()
-  return true
-
-func get_item_count(item_id: String) -> int:
-  return inventory.get(item_id, 0)
-
-# ── 부품 버프 ──
-func get_part_count(part_id: String, max_count: int) -> int:
-  return mini(get_item_count(part_id), max_count)
-
 func get_part_penalty_mult() -> float:
   # 스킬트리 기반: Lv1 -25%, Lv2 -50%, Lv3 -75%
   return 1.0 - upgrade_levels.get("penalty_reduce", 0) * 0.25
-
-func is_item_discovered(item_id: String) -> bool:
-  return item_id in discovered_items
 
 func add_key(world_index: int) -> void:
   if world_index not in owned_keys:
@@ -1101,12 +1053,10 @@ func get_save_data() -> Dictionary:
     "money": money,
     "upgrade_levels": upgrade_levels.duplicate(),
     "upgrade_sub_levels": upgrade_sub_levels.duplicate(),
-    "inventory": inventory,
-    "discovered_items": discovered_items,
     "selected_world": selected_world,
     "unlocked_worlds": unlocked_worlds,
     "owned_keys": owned_keys,
-    "truck_assembled": truck_assembled,
+    "has_potion": has_potion,
     "world_strength_levels": world_strength_levels.duplicate(),
   }
 
@@ -1124,8 +1074,6 @@ func load_save_data(data: Dictionary) -> void:
   var saved_sub = data.get("upgrade_sub_levels", {})
   for type in saved_sub:
     upgrade_sub_levels[type] = int(saved_sub[type])
-  inventory = data.get("inventory", {})
-  discovered_items = data.get("discovered_items", [])
   selected_world = data.get("selected_world", 0)
   var saved_worlds = data.get("unlocked_worlds", [0])
   unlocked_worlds = []
@@ -1133,7 +1081,7 @@ func load_save_data(data: Dictionary) -> void:
     unlocked_worlds.append(int(w))
   if 0 not in unlocked_worlds:
     unlocked_worlds.append(0)
-  truck_assembled = data.get("truck_assembled", false)
+  has_potion = data.get("has_potion", false)
   var saved_keys = data.get("owned_keys", [])
   owned_keys = []
   for k in saved_keys:
@@ -1144,7 +1092,6 @@ func load_save_data(data: Dictionary) -> void:
   for k in saved_strength:
     world_strength_levels[int(k)] = int(saved_strength[k])
   money_changed.emit(money)
-  inventory_changed.emit()
   # weapon 스킬 레벨에서 WeaponManager 동기화
   WeaponManager.current_weapon_level = upgrade_levels.get("attack_power", 0)
   WeaponManager.weapon_changed.emit(WeaponManager.current_weapon_level)

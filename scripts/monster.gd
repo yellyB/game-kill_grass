@@ -17,11 +17,6 @@ var textures: Array[Texture2D] = []
 var sprite_path: String = "res://resources/images/monster/slime/"
 var effect_scene_path: String = ""
 var effect_node: Node2D = null
-var drop_table: Array = [
-  {"item_id": "질긴 슬라임 조각", "image_path": "res://resources/images/items/질긴 슬라임 조각.png", "weight": 30},
-  {"item_id": "번개 먹은 배터리 껍질", "image_path": "res://resources/images/items/번개 먹은 배터리 껍질.png", "weight": 70},
-]
-
 # Animation
 const FRAME_DURATION: float = 0.18
 var frame_timer: float = 0.0
@@ -55,7 +50,6 @@ func setup(config: Dictionary) -> void:
   max_health = config.max_health
   health = config.max_health
   wander_speed = config.wander_speed
-  drop_table = config.drop_table
   effect_scene_path = config.get("effect_scene", "")
   penalty_min = config.get("penalty_min", 5)
   penalty_max = config.get("penalty_max", 10)
@@ -165,7 +159,6 @@ func _pick_new_wander() -> void:
 var is_dead: bool = false
 var knockback_velocity: Vector2 = Vector2.ZERO
 const KNOCKBACK_FRICTION: float = 5.0
-const ITEM_DROP_CHANCE: float = 0.7
 
 func play_boss_entrance() -> void:
   is_boss_entering = true
@@ -277,7 +270,6 @@ func die() -> void:
     # 분노 보스: 드롭 없이 세션 종료
     GameManager.boss_key_collected.emit(-1)
   else:
-    _drop_item()
     # 30% chance to drop a powerup
     if randf() < 0.3:
       var powerup = PowerupScene.instantiate()
@@ -285,26 +277,6 @@ func die() -> void:
       get_parent().add_child(powerup)
 
   queue_free()
-
-func _drop_item() -> void:
-  if randf() > ITEM_DROP_CHANCE:
-    return
-  var drop = _roll_drop()
-  if not drop:
-    return
-
-  var tex = _load_texture_from_file(drop.image_path)
-  if not tex:
-    return
-
-  var player = get_tree().get_first_node_in_group("player")
-  if not player:
-    return
-
-  var item = DroppedItemScene.instantiate()
-  item.setup(drop.item_id, tex, player)
-  item.position = position  # 같은 부모(WorldRoot) 기준 로컬 좌표
-  get_parent().add_child(item)
 
 func _drop_boss_reward() -> void:
   GameManager.add_money(boss_reward)
@@ -334,20 +306,6 @@ func _drop_key() -> void:
   item.ends_session = true
   item.position = position
   get_parent().add_child(item)
-
-func _roll_drop() -> Variant:
-  var total_weight: int = 0
-  for drop in drop_table:
-    total_weight += drop.weight
-  if total_weight <= 0:
-    return null
-  var roll = randi() % total_weight
-  var cumulative: int = 0
-  for drop in drop_table:
-    cumulative += drop.weight
-    if roll < cumulative:
-      return drop
-  return drop_table[0]
 
 func _draw() -> void:
   pass

@@ -24,7 +24,6 @@ var arrow_container: Node2D = null
 
 func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
-  GameManager.item_added.connect(_on_item_added)
   GameManager.key_acquired.connect(_on_key_acquired)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
   GameManager.timed_buff_started.connect(_on_timed_buff_started)
@@ -140,9 +139,6 @@ const WORLD_NAMES: Array = ["슬라임 늪", "들판", "기사의 성벽", "마�
 func _on_key_acquired(world_index: int) -> void:
   var world_name = WORLD_NAMES[world_index] if world_index < WORLD_NAMES.size() else "월드 %d" % world_index
   _show_notif("+ 열쇠 (%s)" % world_name, Color(0.3, 1.0, 1.0))
-
-func _on_item_added(item_id: String, _total_count: int) -> void:
-  _show_notif("+ %s" % item_id, Color(1, 0.9, 0.4))
 
 func _show_notif(text: String, color: Color = Color.WHITE, font_size: int = 50, display_time: float = 1.5) -> void:
   var label = Label.new()
@@ -347,7 +343,7 @@ func _setup_monster_arrows() -> void:
     arrow_pool.append(arrow)
 
 func _update_monster_arrows() -> void:
-  var has_navi = GameManager.get_item_count("이세계 내비게이션") >= 1
+  var has_navi = false
   if not has_navi:
     for arrow in arrow_pool:
       arrow.visible = false

@@ -1,8 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://cmenu123"]
+[gd_scene load_steps=7 format=3 uid="uid://cmenu123"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="2_upgrade"]
-[ext_resource type="PackedScene" uid="uid://citempanel" path="res://scenes/ui/item_panel.tscn" id="4_item"]
 [ext_resource type="Texture2D" uid="uid://muujnakyfyb1" path="res://resources/images/main.png" id="5_main_bg"]
 [ext_resource type="Texture2D" uid="uid://do3vq3o5qqsor" path="res://resources/images/title.png" id="6_title"]
 [ext_resource type="PackedScene" uid="uid://cku35fegcf51v" path="res://scenes/ui/money_display.tscn" id="7_money"]
@@ -89,12 +88,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "강화"
 
-[node name="ItemBtn" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 120)
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "아이템"
-
 [node name="QuitBtn" type="Button" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
@@ -102,8 +95,6 @@ theme_override_font_sizes/font_size = 24
 text = "QUIT"
 
 [node name="UpgradePanel" parent="." instance=ExtResource("2_upgrade")]
-
-[node name="ItemPanel" parent="." instance=ExtResource("4_item")]
 
 [node name="QuitConfirmDialog" parent="." instance=ExtResource("8_confirm")]
 layout_mode = 1

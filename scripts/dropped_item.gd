@@ -20,11 +20,6 @@ var fly_duration: float = 0.45
 var start_pos: Vector2 = Vector2.ZERO
 var control_point: Vector2 = Vector2.ZERO
 
-func setup(p_item_id: String, p_texture: Texture2D, p_target: Node2D) -> void:
-	item_id = p_item_id
-	item_texture = p_texture
-	target = p_target
-
 func setup_key(p_world_index: int, p_target: Node2D) -> void:
 	is_key = true
 	key_world_index = p_world_index
@@ -172,8 +167,9 @@ func _collect() -> void:
 
 	if is_key:
 		GameManager.add_key(key_world_index)
-	else:
-		GameManager.add_item(item_id)
+	elif use_potion_visual:
+		GameManager.has_potion = true
+		SaveManager.save_game()
 
 	if ends_session:
 		GameManager.session_key_acquired = key_world_index

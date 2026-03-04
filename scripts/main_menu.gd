@@ -2,21 +2,18 @@ extends Control
 
 @onready var play_btn: Button = $VBoxContainer/PlayBtn
 @onready var upgrade_btn: Button = $VBoxContainer/UpgradeBtn
-@onready var item_btn: Button = $VBoxContainer/ItemBtn
 @onready var quit_btn: Button = $VBoxContainer/QuitBtn
 @onready var quit_confirm_dialog: Control = $QuitConfirmDialog
 @onready var title_image: TextureRect = $TitleImage
 @onready var padded_area: Control = $PaddedArea
 @onready var money_display = $PaddedArea/MoneyDisplay
 @onready var upgrade_panel: Control = $UpgradePanel/Control
-@onready var item_panel: Control = $ItemPanel/Control
 
 # World selection overlay (built dynamically)
 var world_overlay: Control = null
 var _ws_selected: int = -1  # Currently highlighted world index in panel
 var _ws_cards_container: VBoxContainer = null
 var _ws_action_btn: Button = null
-var _item_badge: Label = null
 var _debug_container: HBoxContainer = null
 var _debug_tap_count: int = 0
 var _debug_last_tap_time: float = 0.0
@@ -34,19 +31,15 @@ const WORLD_DATA: Array = [
 func _ready() -> void:
   play_btn.pressed.connect(_on_play_pressed)
   upgrade_btn.pressed.connect(_on_upgrade_pressed)
-  item_btn.pressed.connect(_on_item_pressed)
   quit_btn.pressed.connect(_on_quit_pressed)
   quit_confirm_dialog.dialog_confirmed.connect(func(): get_tree().quit())
 
   # Hide the toggle buttons on panels (we use menu buttons instead)
   upgrade_panel.call_deferred("set_toggle_button_visible", false)
-  item_panel.call_deferred("set_toggle_button_visible", false)
 
   # Connect panel signals for mutual exclusion
   upgrade_panel.panel_opened.connect(_on_panel_opened)
   upgrade_panel.panel_closed.connect(_on_panel_closed)
-  item_panel.panel_opened.connect(_on_panel_opened)
-  item_panel.panel_closed.connect(_on_panel_closed)
 
   # Money display is handled by MoneyDisplay scene
 
@@ -72,15 +65,6 @@ func _ready() -> void:
   upgrade_btn.expand_icon = true
   upgrade_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
   GameManager.style_button(upgrade_btn, "sub", Vector2(460, 112))
-
-
-  item_btn.text = "아이템"
-  item_btn.icon = preload("res://resources/images/icon/icon_inventory.png")
-  item_btn.expand_icon = true
-  item_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-  GameManager.style_button(item_btn, "sub", Vector2(460, 112))
-  _setup_item_badge()
-  GameManager.inventory_changed.connect(_update_item_badge)
 
 
   quit_btn.text = "종료"
@@ -127,8 +111,6 @@ func _notification(what: int) -> void:
       quit_confirm_dialog.hide_dialog()
     elif upgrade_panel.is_open:
       upgrade_panel._on_close_pressed()
-    elif item_panel.is_open:
-      item_panel._on_close_pressed()
     elif world_overlay != null:
       _close_world_select()
 
@@ -136,71 +118,19 @@ func _on_upgrade_pressed() -> void:
   GameManager.play_button_click()
   upgrade_panel.open_panel()
 
-func _on_item_pressed() -> void:
-  GameManager.play_button_click()
-  item_panel.open_panel()
-
 func _on_quit_pressed() -> void:
   GameManager.play_button_click()
   quit_confirm_dialog.show_dialog("게임을 종료할까요?")
 
-func _setup_item_badge() -> void:
-  _item_badge = Label.new()
-  _item_badge.text = "!"
-  _item_badge.add_theme_font_size_override("font_size", 28)
-  _item_badge.add_theme_color_override("font_color", Color.WHITE)
-  _item_badge.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  _item_badge.add_theme_constant_override("outline_size", 4)
-  _item_badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-  _item_badge.offset_left = -60
-  _item_badge.offset_right = -20
-  _item_badge.offset_top = 4
-  _item_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-  _item_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-  # Red circle background
-  var bg = StyleBoxFlat.new()
-  bg.bg_color = Color(0.9, 0.15, 0.15)
-  bg.corner_radius_top_left = 16
-  bg.corner_radius_top_right = 16
-  bg.corner_radius_bottom_left = 16
-  bg.corner_radius_bottom_right = 16
-  bg.content_margin_left = 6
-  bg.content_margin_right = 6
-  bg.content_margin_top = 2
-  bg.content_margin_bottom = 2
-  _item_badge.add_theme_stylebox_override("normal", bg)
-  item_btn.add_child(_item_badge)
-  _update_item_badge()
-
-func _update_item_badge() -> void:
-  var has_craftable = false
-  for recipe in item_panel.RECIPES:
-    # Skip if already at max needed for final assembly
-    var needed = item_panel._get_final_recipe_required(recipe.id)
-    if GameManager.get_item_count(recipe.id) >= needed:
-      continue
-    var can_craft = true
-    for ingredient in recipe.ingredients:
-      if GameManager.get_item_count(ingredient.item_id) < ingredient.count:
-        can_craft = false
-        break
-    if can_craft:
-      has_craftable = true
-      break
-  _item_badge.visible = has_craftable
-
 func _on_panel_opened() -> void:
   play_btn.disabled = true
   upgrade_btn.disabled = true
-  item_btn.disabled = true
   quit_btn.disabled = true
 
 func _on_panel_closed() -> void:
   play_btn.disabled = false
   upgrade_btn.disabled = false
-  item_btn.disabled = false
   quit_btn.disabled = false
-  _update_item_badge()
 
 func update_money_display() -> void:
   money_display.update_display()
@@ -744,15 +674,6 @@ func _close_world_select() -> void:
 
 # ── Debug Buttons ──
 
-const DEBUG_ALL_ITEMS: Array = [
-  "질긴 슬라임 조각", "번개 먹은 배터리 껍질", "차축 뼈대",
-  "굴러다니는 바퀴 잔해", "과성장 생체 응축체", "왜곡된 볼트 조각",
-  "압축된 이세계 철편", "생체 연료 포자", "뒤틀린 시간 포자",
-  "바람 머금은 잔디 섬유", "몬스터 핵", "침식된 백골 프레임",
-  "투명 수정 파편", "강화 유리 결정핵", "과열된 엔진 심장",
-  "드래곤 배기가스 결정",
-]
-
 func _on_money_display_input(event: InputEvent) -> void:
   if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
     var now = Time.get_ticks_msec() / 1000.0
@@ -786,13 +707,6 @@ func _build_debug_buttons() -> void:
   GameManager.style_button(money_btn, "sub")
   _debug_container.add_child(money_btn)
 
-  var items_btn = Button.new()
-  items_btn.text = "아이템+10"
-  items_btn.add_theme_font_size_override("font_size", 18)
-  items_btn.pressed.connect(_on_debug_add_items)
-  GameManager.style_button(items_btn)
-  _debug_container.add_child(items_btn)
-
   var unlock_btn = Button.new()
   unlock_btn.text = "월드 전체해금"
   unlock_btn.add_theme_font_size_override("font_size", 18)
@@ -807,11 +721,6 @@ func _on_debug_reset() -> void:
 func _on_debug_add_money() -> void:
   GameManager.money += 100000
   GameManager.money_changed.emit(GameManager.money)
-  SaveManager.save_game()
-
-func _on_debug_add_items() -> void:
-  for item_id in DEBUG_ALL_ITEMS:
-    GameManager.add_item(item_id, 10)
   SaveManager.save_game()
 
 func _on_debug_unlock_all() -> void:
