@@ -46,7 +46,7 @@ func _ready() -> void:
   # 초월 레벨 표시 (보유 코인 아래)
   _setup_strength_label()
 
-  # 몬스터분노 bar styling
+  # 몬스터 분노 bar styling
   _setup_fury_bar()
   GameManager.fury_changed.connect(_on_fury_changed)
   GameManager.fury_boss_requested.connect(_on_fury_boss_spawned)
@@ -263,7 +263,7 @@ func _update_perm_buff(type: String, _level: int) -> void:
     icon.texture = tex
   perm_icons_hbox.add_child(icon)
 
-# ── 몬스터분노 Bar ──
+# ── 몬스터 분노 Bar ──
 
 func _setup_fury_bar() -> void:
   fury_progress.max_value = 100.0
