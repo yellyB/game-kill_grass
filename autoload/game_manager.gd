@@ -455,7 +455,7 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[4]  # 초강풀 100%
 
   var is_first_half = (level % 2 == 0)  # 코드 짝수 = 유저 홀수 = 0→50%
-  var half_transition = float(sub) / 7.0 * 0.5
+  var half_transition = float(sub) / 8.0 * 0.5
 
   if is_first_half:
     # 현재 등급 100% → 현재 50% + 다음 50%
