@@ -943,25 +943,17 @@ func _restore_tick(type: String, saved_level: int, saved_sub: int) -> void:
 
 func _quality_stat_str(level: int, sub: int) -> String:
   var base_type = mini(level / 2, 4)
-  var is_odd = (level % 2 == 1)
-  var name_cur = GameManager.GRASS_TYPE_NAMES[base_type]
+  var is_even = (level % 2 == 0)
   if level >= 8:
-    return GameManager.GRASS_TYPE_NAMES[4]
-  if is_odd:
-    # 홀수 레벨: cur → cur 50% + next 50%
-    var name_next = GameManager.GRASS_TYPE_NAMES[mini(base_type + 1, 4)]
+    return "%s 100%%" % GameManager.GRASS_TYPE_NAMES[4]
+  var name_next = GameManager.GRASS_TYPE_NAMES[mini(base_type + 1, 4)]
+  if is_even:
+    # 첫 반: 0% → 50%
     var pct = int(float(sub) / 7.0 * 50)
-    if pct > 0:
-      return "%s %d%%" % [name_next, pct]
-    return "%s" % name_cur
+    return "%s %d%%" % [name_next, pct]
   else:
-    # 짝수 레벨: cur 50% + next 50% → next 100%
-    if level == 0 and sub == 0:
-      return "%s" % name_cur
-    var name_next = GameManager.GRASS_TYPE_NAMES[mini(base_type + 1, 4)]
-    var pct = 50 + int(float(sub) / 7.0 * 50)
-    if pct >= 100:
-      return "%s" % name_next
+    # 후반: 50% → 100%
+    var pct = mini(50 + int(float(sub) / 7.0 * 50), 100)
     return "%s %d%%" % [name_next, pct]
 
 func _get_skill_stat_data(type: String) -> Dictionary:
