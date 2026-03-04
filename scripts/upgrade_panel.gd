@@ -853,7 +853,7 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
     sub_label.anchors_preset = Control.PRESET_RIGHT_WIDE
     sub_label.anchor_left = 1.0
     sub_label.anchor_bottom = 1.0
-    sub_label.offset_left = -50
+    sub_label.offset_left = -80
     sub_label.offset_right = -6
     sub_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     bar.add_child(sub_label)
