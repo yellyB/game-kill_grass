@@ -27,9 +27,11 @@ var selected_level: int = -1
 var _selected_btn: Button = null  # Currently selected skill node button
 
 var _desc_cost_node: HBoxContainer = null
-var _desc_stat_node: HBoxContainer = null
+var _desc_stat_node: Control = null
 var _desc_text_node: Label = null
 var _desc_divider: ColorRect = null
+var _desc_title_rt: RichTextLabel = null
+var _btn_cost_node: Control = null
 
 # Grid layout constants
 const NODE_MARGIN: float = 6.0
@@ -971,9 +973,11 @@ func _get_skill_stat_data(type: String) -> Dictionary:
   var cur := ""
   var nxt := ""
   var delta := ""
+  var label := ""
 
   match type:
     "attack_speed":
+      label = "공격속도"
       var cv = maxf(0.1, 0.7 - ticks * 0.01)
       var nv = maxf(0.1, 0.7 - next_ticks * 0.01)
       cur = "%.2f초" % cv
@@ -981,12 +985,14 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       var d = nv - cv
       delta = "%.2f" % d if d < 0 else "+%.2f" % d
     "attack_range":
+      label = "공격범위"
       var cv = int(60.0 + ticks * 4.0)
       var nv = int(60.0 + next_ticks * 4.0)
       cur = "%d" % cv
       nxt = "%d" % nv
       delta = "+%d" % (nv - cv)
     "attack_count":
+      label = "공격횟수"
       _restore_tick(type, saved_level, saved_sub)
       var cv = GameManager.get_attack_count()
       cur = "%d개" % cv
@@ -997,12 +1003,14 @@ func _get_skill_stat_data(type: String) -> Dictionary:
         var d = nv - cv
         delta = "+%d" % d if d >= 0 else "%d" % d
     "magnet_range":
+      label = "자석범위"
       var cv = int(40.0 + ticks * 4.0)
       var nv = int(40.0 + next_ticks * 4.0)
       cur = "%d" % cv
       nxt = "%d" % nv
       delta = "+%d" % (nv - cv)
     "grass_density":
+      label = "풀 밀도"
       # State is already at next_ticks (simulated at top of function)
       var nv = GameManager.get_grass_density_value()
       _restore_tick(type, saved_level, saved_sub)
@@ -1013,6 +1021,7 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       nxt = "%d" % nv
       delta = "+%d" % (nv - cv)
     "grass_quality":
+      label = "풀 등급"
       cur = _quality_stat_str(saved_level, saved_sub)
       _restore_tick(type, saved_level, saved_sub)
       if not is_maxed:
@@ -1022,42 +1031,49 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       nxt = _quality_stat_str(nl, ns)
       delta = ""
     "chest_chance":
+      label = "상자확률"
       var cv = ticks * 0.2
       var nv = next_ticks * 0.2
       cur = "%.1f%%" % cv
       nxt = "%.1f%%" % nv
       delta = "+%.1f" % (nv - cv)
     "crit_chance":
+      label = "치명타확률"
       var cv = ticks * 2.0
       var nv = minf(next_ticks * 2.0, 80.0)
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
     "crit_damage":
+      label = "치명타피해"
       var cv = 120.0 + ticks * 2.0
       var nv = 120.0 + next_ticks * 2.0
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
     "monster_damage":
+      label = "몬스터피해"
       var cv = (1.0 + ticks * 0.1) * 100.0
       var nv = (1.0 + next_ticks * 0.1) * 100.0
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
     "fury_rate":
+      label = "분노율"
       var cv = (1.0 + ticks * 0.15) * 100.0
       var nv = (1.0 + next_ticks * 0.15) * 100.0
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
     "golden_chance":
+      label = "황금풀확률"
       var cv = ticks * 0.1
       var nv = next_ticks * 0.1
       cur = "%.1f%%" % cv
       nxt = "%.1f%%" % nv
       delta = "+%.1f" % (nv - cv)
     "golden_reward":
+      label = "황금풀보상"
       _restore_tick(type, saved_level, saved_sub)
       var cv = roundi(100.0 * GameManager.get_golden_reward_mult())
       cur = "%d원" % cv
@@ -1068,18 +1084,21 @@ func _get_skill_stat_data(type: String) -> Dictionary:
         var d = nv - cv
         delta = "+%d" % d if d >= 0 else "%d" % d
     "move_speed":
+      label = "이동속도"
       var cv = 300.0 + ticks * 10.0
       var nv = 300.0 + next_ticks * 10.0
       cur = "%.0f" % cv
       nxt = "%.0f" % nv
       delta = "+%.0f" % (nv - cv)
     "attack_power":
+      label = "공격력"
       var cv = 1 + ticks
       var nv = 1 + next_ticks
       cur = "%d" % cv
       nxt = "%d" % nv
       delta = "+%d" % (nv - cv)
     "session_time":
+      label = "세션시간"
       var cv = 45 + ticks * 3
       var nv = 45 + next_ticks * 3
       cur = "%d초" % cv
@@ -1087,7 +1106,7 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       delta = "+%d" % (nv - cv)
 
   _restore_tick(type, saved_level, saved_sub)
-  return {"cur": cur, "nxt": nxt, "delta": delta, "is_maxed": is_maxed}
+  return {"label": label, "cur": cur, "nxt": nxt, "delta": delta, "is_maxed": is_maxed}
 
 func _update_skill_description() -> void:
   var chain_info = _get_skill_chain(selected_type)
@@ -1106,30 +1125,48 @@ func _update_skill_description() -> void:
   var is_maxed = ticks >= total_ticks
 
   # Title: [이름] Lv.X  ■■□□□ (sub/sub_max)
-  var title_text = ""
+  var title_bbcode = ""
   if is_maxed:
-    title_text = "%s Lv.%d (MAX)" % [chain_info.name, current_level + 1]
+    title_bbcode = "[center][color=#ffdd77]%s[/color] Lv.%d (MAX)[/center]" % [chain_info.name, current_level + 1]
   else:
     var filled = sub_level
     var empty = sub_max - sub_level
-    title_text = "%s Lv.%d  %s%s (%d/%d)" % [chain_info.name, current_level + 1, "■".repeat(filled), "□".repeat(empty), sub_level, sub_max]
+    title_bbcode = "[center][color=#ffdd77]%s[/color] Lv.%d  %s%s (%d/%d)[/center]" % [chain_info.name, current_level + 1, "■".repeat(filled), "□".repeat(empty), sub_level, sub_max]
 
-  # Build content from y=0, then center vertically
-  var base_y: float = 0.0
+  var pad_top: float = 24.0
+  var pad_lr: float = 24.0
+  var base_y: float = pad_top
 
-  # Title
+  # Title (RichTextLabel for colored name)
   description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   description_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
   description_label.anchors_preset = Control.PRESET_TOP_WIDE
   description_label.anchor_right = 1.0
   description_label.anchor_bottom = 0.0
-  description_label.offset_left = 20
+  description_label.offset_left = pad_lr
   description_label.offset_top = base_y
-  description_label.offset_right = -20
+  description_label.offset_right = -pad_lr
   description_label.offset_bottom = base_y + 50
   description_label.add_theme_font_size_override("font_size", 36)
-  description_label.text = title_text
-  base_y += 70
+  description_label.text = ""
+  if not _desc_title_rt:
+    _desc_title_rt = RichTextLabel.new()
+    _desc_title_rt.bbcode_enabled = true
+    _desc_title_rt.fit_content = false
+    _desc_title_rt.scroll_active = false
+    description_panel.add_child(_desc_title_rt)
+  _desc_title_rt.anchor_left = 0.0
+  _desc_title_rt.anchor_right = 1.0
+  _desc_title_rt.anchor_top = 0.0
+  _desc_title_rt.anchor_bottom = 0.0
+  _desc_title_rt.offset_left = pad_lr
+  _desc_title_rt.offset_top = base_y
+  _desc_title_rt.offset_right = -pad_lr
+  _desc_title_rt.offset_bottom = base_y + 50
+  _desc_title_rt.add_theme_font_size_override("normal_font_size", 36)
+  _desc_title_rt.add_theme_color_override("default_color", Color(0.85, 0.85, 0.9))
+  _desc_title_rt.text = title_bbcode
+  base_y += 60
 
   # Divider
   if _desc_divider:
@@ -1147,7 +1184,7 @@ func _update_skill_description() -> void:
   divider.offset_bottom = base_y + 2
   description_panel.add_child(divider)
   _desc_divider = divider
-  base_y += 22
+  base_y += 20
 
   # Description text (first line only)
   if _desc_text_node:
@@ -1165,47 +1202,20 @@ func _update_skill_description() -> void:
     desc_lbl.anchor_right = 1.0
     desc_lbl.anchor_top = 0.0
     desc_lbl.anchor_bottom = 0.0
-    desc_lbl.offset_left = 20
+    desc_lbl.offset_left = pad_lr
     desc_lbl.offset_top = base_y
-    desc_lbl.offset_right = -20
+    desc_lbl.offset_right = -pad_lr
     desc_lbl.offset_bottom = base_y + 30
     description_panel.add_child(desc_lbl)
     _desc_text_node = desc_lbl
-    base_y += 42
+    base_y += 40
 
   # Stat line (colored delta)
   _update_stat_display(stat_data, base_y)
-  base_y += 48
+  base_y += 63
 
-  # Cost line (hide when maxed)
-  if is_maxed:
-    if _desc_cost_node:
-      _desc_cost_node.queue_free()
-      _desc_cost_node = null
-  else:
-    _update_description_cost(cost, base_y)
-    base_y += 44
-
-  # Vertically center all content within description panel
-  var panel_h = description_panel.size.y
-  if panel_h <= 0:
-    panel_h = 340.0
-  var shift = (panel_h - base_y) / 2.0
-  if shift > 0:
-    description_label.offset_top += shift
-    description_label.offset_bottom += shift
-    if _desc_divider:
-      _desc_divider.offset_top += shift
-      _desc_divider.offset_bottom += shift
-    if _desc_text_node:
-      _desc_text_node.offset_top += shift
-      _desc_text_node.offset_bottom += shift
-    if _desc_stat_node:
-      _desc_stat_node.offset_top += shift
-      _desc_stat_node.offset_bottom += shift
-    if _desc_cost_node:
-      _desc_cost_node.offset_top += shift
-      _desc_cost_node.offset_bottom += shift
+  # Cost line
+  _update_description_cost(cost, base_y, is_maxed)
 
 func _update_stat_display(data: Dictionary, base_y: float) -> void:
   if _desc_stat_node:
@@ -1215,93 +1225,36 @@ func _update_stat_display(data: Dictionary, base_y: float) -> void:
   if data.cur.is_empty():
     return
 
-  var hbox = HBoxContainer.new()
-  hbox.add_theme_constant_override("separation", 4)
-  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  hbox.anchor_left = 0.0
-  hbox.anchor_right = 1.0
-  hbox.anchor_top = 0.0
-  hbox.anchor_bottom = 0.0
-  hbox.offset_left = 16
-  hbox.offset_top = base_y
-  hbox.offset_right = -16
-  hbox.offset_bottom = base_y + 44
+  var rt = RichTextLabel.new()
+  rt.bbcode_enabled = true
+  rt.fit_content = true
+  rt.scroll_active = false
+  rt.anchor_left = 0.0
+  rt.anchor_right = 1.0
+  rt.anchor_top = 0.0
+  rt.anchor_bottom = 0.0
+  rt.offset_left = 16
+  rt.offset_top = base_y
+  rt.offset_right = -16
+  rt.offset_bottom = base_y + 44
+  rt.add_theme_font_size_override("normal_font_size", 28)
+  rt.add_theme_color_override("default_color", Color(0.85, 0.85, 0.9))
 
-  var font_size = 28
-  var dim_color = Color(0.7, 0.75, 0.8)
-  var highlight_color = Color(1.0, 0.4, 0.35)
-  var arrow_color = Color(0.5, 0.5, 0.55)
-
-  # "현재:값" (dim)
-  var cur_prefix = Label.new()
-  cur_prefix.text = "현재:"
-  cur_prefix.add_theme_font_size_override("font_size", font_size)
-  cur_prefix.add_theme_color_override("font_color", dim_color)
-  hbox.add_child(cur_prefix)
-
-  var cur_label = Label.new()
-  cur_label.text = data.cur
-  cur_label.add_theme_font_size_override("font_size", font_size)
-  cur_label.add_theme_color_override("font_color", dim_color)
-  hbox.add_child(cur_label)
-
-  if not data.is_maxed and not data.nxt.is_empty():
-    # " → "
-    var arrow1 = Label.new()
-    arrow1.text = " → "
-    arrow1.add_theme_font_size_override("font_size", font_size)
-    arrow1.add_theme_color_override("font_color", arrow_color)
-    hbox.add_child(arrow1)
-
-    # "변경: 값(delta)" (red)
-    var nxt_prefix = Label.new()
-    nxt_prefix.text = "변경: "
-    nxt_prefix.add_theme_font_size_override("font_size", font_size)
-    nxt_prefix.add_theme_color_override("font_color", highlight_color)
-    hbox.add_child(nxt_prefix)
-
-    var nxt_label = Label.new()
-    if not data.delta.is_empty():
-      nxt_label.text = "%s(%s)" % [data.nxt, data.delta]
+  var lbl = data.get("label", "")
+  if data.is_maxed or data.nxt.is_empty():
+    if lbl.is_empty():
+      rt.text = "[center]%s[/center]" % data.cur
     else:
-      nxt_label.text = data.nxt
-    nxt_label.add_theme_font_size_override("font_size", font_size)
-    nxt_label.add_theme_color_override("font_color", highlight_color)
-    nxt_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-    nxt_label.add_theme_constant_override("outline_size", 2)
-    hbox.add_child(nxt_label)
+      rt.text = "[center][color=#ffdd77]%s[/color]   %s[/center]" % [lbl, data.cur]
+  else:
+    if lbl.is_empty():
+      rt.text = "[center]%s → [color=#ff6655]%s[/color][/center]" % [data.cur, data.nxt]
+    else:
+      rt.text = "[center][color=#ffdd77]%s[/color]   %s → [color=#ff6655]%s[/color][/center]" % [lbl, data.cur, data.nxt]
 
-  description_panel.add_child(hbox)
-  _desc_stat_node = hbox
+  description_panel.add_child(rt)
+  _desc_stat_node = rt
 
-func _update_description_cost(cost: int, base_y: float) -> void:
-  if _desc_cost_node:
-    _desc_cost_node.queue_free()
-    _desc_cost_node = null
-
-  var hbox = HBoxContainer.new()
-  hbox.add_theme_constant_override("separation", 6)
-  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-  hbox.anchor_left = 0.0
-  hbox.anchor_right = 1.0
-  hbox.anchor_top = 0.0
-  hbox.anchor_bottom = 0.0
-  hbox.offset_left = 16
-  hbox.offset_top = base_y
-  hbox.offset_right = -16
-  hbox.offset_bottom = base_y + 44
-
-  var cost_prefix = Label.new()
-  cost_prefix.text = "비용: "
-  cost_prefix.add_theme_font_size_override("font_size", 34)
-  cost_prefix.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
-  hbox.add_child(cost_prefix)
-
-  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 34, Color(1, 0.9, 0.3))
-  hbox.add_child(coin_hbox)
-
-  description_panel.add_child(hbox)
-  _desc_cost_node = hbox
 
 func _clear_description_extras() -> void:
   if _desc_cost_node:
@@ -1316,11 +1269,44 @@ func _clear_description_extras() -> void:
   if _desc_divider:
     _desc_divider.queue_free()
     _desc_divider = null
+  if _desc_title_rt:
+    _desc_title_rt.queue_free()
+    _desc_title_rt = null
+
+func _update_description_cost(cost: int, base_y: float, is_maxed: bool) -> void:
+  if _btn_cost_node:
+    _btn_cost_node.queue_free()
+    _btn_cost_node = null
+  if is_maxed:
+    return
+  var affordable = GameManager.money >= cost
+  var color = Color(1, 0.9, 0.3) if affordable else Color(1.0, 0.35, 0.3)
+  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 36, color, 0, true)
+  var price_lbl = Label.new()
+  price_lbl.text = "가격:"
+  price_lbl.add_theme_font_size_override("font_size", 36)
+  price_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+  coin_hbox.add_child(price_lbl)
+  coin_hbox.move_child(price_lbl, 0)
+  coin_hbox.anchor_left = 0.0
+  coin_hbox.anchor_right = 1.0
+  coin_hbox.anchor_top = 0.0
+  coin_hbox.anchor_bottom = 0.0
+  coin_hbox.offset_top = base_y
+  coin_hbox.offset_bottom = base_y + 40
+  description_panel.add_child(coin_hbox)
+  _btn_cost_node = coin_hbox
+
+func _clear_btn_cost() -> void:
+  if _btn_cost_node:
+    _btn_cost_node.queue_free()
+    _btn_cost_node = null
 
 func update_confirm_button() -> void:
   if selected_type.is_empty():
     confirm_btn.disabled = true
     confirm_btn.text = "업그레이드 하기"
+    _clear_btn_cost()
     return
 
   var current_level = _get_current_level(selected_type)
@@ -1331,18 +1317,18 @@ func update_confirm_button() -> void:
   if selected_level != next_level:
     confirm_btn.disabled = true
     confirm_btn.text = "업그레이드 하기"
+    _clear_btn_cost()
     return
 
   var prereq_result = GameManager.check_skill_prereqs(selected_type, next_level)
   if not prereq_result.met:
     confirm_btn.disabled = true
     confirm_btn.text = "조건 미충족"
+    _clear_btn_cost()
     return
 
-  if GameManager.money < cost:
-    confirm_btn.disabled = true
-  else:
-    confirm_btn.disabled = false
+  var affordable = GameManager.money >= cost
+  confirm_btn.disabled = not affordable
   confirm_btn.text = "업그레이드 하기"
 
 func _on_confirm_pressed() -> void:
