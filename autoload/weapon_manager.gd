@@ -82,7 +82,26 @@ func purchase_next_weapon() -> bool:
   return true
 
 func get_weapon_damage() -> int:
-  return 1 + GameManager.get_skill_total_progress("attack_power")
+  var level = GameManager.upgrade_levels.get("attack_power", 0)
+  var sub = GameManager.upgrade_sub_levels.get("attack_power", 0)
+  # 레벨별 틱당 증가분: Lv.1~3 +1, Lv.4~5 +2, Lv.6~7 +3, Lv.8~9 +4
+  var total = 0
+  var sub_max = 5
+  for lv in range(1, level + 1):
+    var per_tick = _attack_power_per_tick(lv)
+    total += per_tick * sub_max
+  # 현재 레벨 진행 중인 틱
+  total += _attack_power_per_tick(level + 1) * sub
+  return 1 + total
+
+static func _attack_power_per_tick(user_level: int) -> int:
+  if user_level <= 3:
+    return 1
+  if user_level <= 5:
+    return 2
+  if user_level <= 7:
+    return 3
+  return 4
 
 func get_weapon_max_targets() -> int:
   return get_current_weapon().max_targets

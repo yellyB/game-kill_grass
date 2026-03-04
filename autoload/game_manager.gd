@@ -13,7 +13,7 @@ var selected_world: int = 0
 var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var has_potion: bool = false  # 졸음 약 획득 여부
-const WORLD_UNLOCK_COSTS: Array = [0, 100, 5000, 10000, 25000, 50000, 80000]
+const WORLD_UNLOCK_COSTS: Array = [0, 100, 3000, 10000, 25000, 50000, 100000]
 
 # 월드별 풀 체력/보상 기본 배율 (매 월드 x1.3 균일 증가, 황금풀 제외)
 const WORLD_GRASS_HP_MULT: Array = [1.0, 1.3, 1.69, 2.2, 2.86, 3.71, 4.83]
@@ -89,7 +89,7 @@ const SKILL_DEFS: Array = [
   {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 10, "max_level": 9,
    "description": "치명타 발생 시 추가 피해가 증가합니다.\n배율: 120% → 300% (틱당 +2%)\n단계 10 | 최대 Lv.9"},
   {"type": "attack_power", "name": "공격력", "short_name": "공격력", "sub_max": 5, "max_level": 9,
-   "description": "풀을 베는 공격력이 증가합니다.\n틱당 공격력 +1\n단계 5 | 최대 Lv.9"},
+   "description": "풀을 베는 공격력이 증가합니다.\nLv.1~3: +1/틱, Lv.4~5: +2/틱\nLv.6~7: +3/틱, Lv.8~9: +4/틱\n단계 5 | 최대 Lv.9"},
   {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
    "description": "몬스터에게 주는 피해가 증가합니다.\n배율: 100% → 450% (틱당 +10%) (미정)\n단계 5 | 최대 Lv.7"},
   {"type": "fury_rate", "name": "분노 속도", "short_name": "분노", "sub_max": 4, "max_level": 4,
@@ -861,7 +861,7 @@ const DENSITY_TICK_COSTS: Array = [
   [3800, 150],  # Lv.10
 ]
 # 등급 비용: 틱당 고정 비용 (인덱스 = 코드 레벨, Lv.1(0)은 별도 처리)
-const QUALITY_COSTS: Array = [15, 35, 60, 100, 150, 250, 400, 650]
+const QUALITY_COSTS: Array = [15, 35, 60, 400, 1000, 2500, 6000, 15000]
 # Row 2 (attack_speed 5t×12L, attack_range 5t×10L, magnet_range 5t×8L, session_time 3t×5L, chest_chance 5t×5L)
 const ROW2_TICK_COSTS: Array = [
   [15, 2],      # Lv.1: 15,17,19,...
@@ -915,6 +915,21 @@ const TIER_ROW2: Array = ["attack_speed", "attack_range", "magnet_range", "sessi
 const TIER_ROW3: Array = ["crit_chance", "monster_damage", "attack_count", "fury_rate"]
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
+  var cost = _get_raw_upgrade_cost(current_level, upgrade_type)
+  # 80% 이상 달성 시 최소 5000/틱 (1.6배씩 스케일)
+  var max_lvl = get_skill_max_level(upgrade_type)
+  if max_lvl > 0:
+    var threshold = int(max_lvl * 0.8)  # 80% 유저 레벨
+    var user_level = current_level + 1
+    if user_level >= threshold:
+      var levels_over = user_level - threshold
+      var base = int(5000 * pow(1.6, levels_over))
+      var sub = upgrade_sub_levels.get(upgrade_type, 0)
+      var sub_inc = int(base * 0.06)
+      cost = maxi(cost, base + sub * sub_inc)
+  return cost
+
+func _get_raw_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var sub = upgrade_sub_levels.get(upgrade_type, 0)
 
   # Special: grass_density Lv.1 (sub/2+1 패턴)
@@ -929,9 +944,17 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
       return 20 + sub
     if current_level == 2:
       return 80 + sub * 5
-    if current_level < QUALITY_COSTS.size():
-      return QUALITY_COSTS[current_level]
-    return QUALITY_COSTS[-1]
+    if current_level == 3:
+      return 400 + sub * 30
+    if current_level == 4:
+      return 1000 + sub * 80
+    if current_level == 5:
+      return 2500 + sub * 200
+    if current_level == 6:
+      return 6000 + sub * 500
+    if current_level == 7:
+      return 15000 + sub * 1200
+    return 15000 + sub * 1200
 
   # Special: move_speed Lv.2
   if upgrade_type == "move_speed" and current_level == 1:
