@@ -447,7 +447,6 @@ func _create_world_card(index: int) -> PanelContainer:
       str_btn.text = "초월"
       str_btn.add_theme_font_size_override("font_size", 18)
       str_btn.custom_minimum_size = Vector2(120, 40)
-      str_btn.z_index = 1
       str_btn.pressed.connect(_on_strengthen_pressed.bind(index))
       GameManager.style_button(str_btn, "main")
       str_vbox.add_child(str_btn)
