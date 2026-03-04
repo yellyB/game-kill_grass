@@ -382,15 +382,16 @@ func _create_world_card(index: int) -> PanelContainer:
       str_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
       str_hbox.add_child(str_info)
 
-      var str_label = Label.new()
-      str_label.text = "초월 Lv.%d" % strength
-      str_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-      str_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-      str_label.add_theme_font_size_override("font_size", 28)
-      str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
-      str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-      str_label.add_theme_constant_override("outline_size", 2)
-      str_info.add_child(str_label)
+      if strength > 0:
+        var str_label = Label.new()
+        str_label.text = "초월 Lv.%d" % strength
+        str_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        str_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        str_label.add_theme_font_size_override("font_size", 28)
+        str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+        str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+        str_label.add_theme_constant_override("outline_size", 2)
+        str_info.add_child(str_label)
 
       if strength > 0:
         var str_spacer = Control.new()
