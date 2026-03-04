@@ -470,34 +470,51 @@ func build_skill_tree() -> void:
 
   var group_count = GameManager.SKILL_GROUPS.size()
   var group_width = (container_width - GROUP_GAP * (group_count - 1)) / float(group_count)
-  var max_group_height: float = 0.0
+  var accumulated_y: float = 0.0
+
+  # Compute base_x once: center based on widest tree (max col_count)
+  var first_columns: int = GameManager.SKILL_GROUPS[0]["columns"]
+  var node_size_pre = (group_width - NODE_MARGIN * (first_columns + 1)) / float(first_columns) - NODE_INNER_PAD
+  var row_gap_pre = NODE_MARGIN + NODE_INNER_PAD * 2
+  var max_col_count: int = 0
+  for g in GameManager.SKILL_GROUPS:
+    var rc = ceili((g["skills"].size() - 1) / float(g["columns"]))
+    max_col_count = maxi(max_col_count, rc)
+  var max_total_cols = 1 + max_col_count
+  var max_tree_width = max_total_cols * node_size_pre + (max_total_cols - 1) * row_gap_pre
+  var tree_area_width = container_width - GROUP_HEADER_H
+  var base_x_shared = GROUP_HEADER_H + (tree_area_width - max_tree_width) / 2.0
 
   for group_idx in range(group_count):
     var group = GameManager.SKILL_GROUPS[group_idx]
     var group_name: String = group["name"]
     var skills: Array = group["skills"]
     var columns: int = group["columns"]
-    var group_x = group_idx * (group_width + GROUP_GAP)
+    var group_y = accumulated_y
 
-    # Group header
+    # Node size: same formula as before
+    var node_size = (group_width - NODE_MARGIN * (columns + 1)) / float(columns) - NODE_INNER_PAD
+    var row_gap = NODE_MARGIN + NODE_INNER_PAD * 2
+
+    # Group header — left side, vertically centered in node area
     var header = Label.new()
     header.text = group_name
     header.add_theme_font_size_override("font_size", 32)
     header.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
-    header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    header.position = Vector2(group_x, 0)
-    header.size = Vector2(group_width, GROUP_HEADER_H)
+    header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    header.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    header.position = Vector2(base_x_shared - GROUP_HEADER_H - 40, group_y)
+    header.size = Vector2(GROUP_HEADER_H, group_width)
     skill_tree_container.add_child(header)
 
-    # Node size: fit 2 columns with padding, then shrink a bit
-    var node_size = (group_width - NODE_MARGIN * (columns + 1)) / float(columns) - NODE_INNER_PAD
-    # Row gap = same as horizontal gap between nodes
-    var row_gap = NODE_MARGIN + NODE_INNER_PAD * 2
+    var remaining = skills.slice(1)
+    var col_count = ceili(remaining.size() / float(columns))
+    var base_x = base_x_shared
 
-    # Row 0: first skill centered, row 1+: remaining skills in 2-column grid
+    # Root node: leftmost, vertically centered in group
     var root_type = skills[0]
-    var root_x = group_x + (group_width - node_size) / 2.0
-    var root_y = GROUP_HEADER_H
+    var root_x = base_x
+    var root_y = group_y + (group_width - node_size) / 2.0
 
     var root_state = _get_node_state(root_type)
     var root_node = _create_skill_node(root_type, root_state, node_size, group_idx)
@@ -508,17 +525,15 @@ func build_skill_tree() -> void:
     _grid_node_centers[root_type] = Vector2(root_x + node_size / 2.0, root_y + node_size / 2.0)
     _grid_row_counts[root_type] = 1
 
-    # Remaining skills in 2-column rows
-    var remaining = skills.slice(1)
-    var row_count = ceili(remaining.size() / float(columns))
-    for row in range(row_count):
-      var skills_in_row: int = mini(columns, remaining.size() - row * columns)
-      for col in range(skills_in_row):
-        var idx = row * columns + col
+    # Remaining skills: 2-row columns growing rightward
+    for c in range(col_count):
+      var skills_in_col: int = mini(columns, remaining.size() - c * columns)
+      for r in range(skills_in_col):
+        var idx = c * columns + r
         var skill_type = remaining[idx]
-        var x: float
-        if skills_in_row == 1:
-          # Check if single prereq → align under it
+        var y: float
+        if skills_in_col == 1:
+          # Single skill in column: align y with parent
           var prereq_key = "%s:1" % skill_type
           var single_parent := ""
           if GameManager.SKILL_PREREQS.has(prereq_key):
@@ -526,12 +541,12 @@ func build_skill_tree() -> void:
             if reqs.size() == 1 and "_or_" not in reqs[0].type:
               single_parent = reqs[0].type
           if not single_parent.is_empty() and _grid_node_centers.has(single_parent):
-            x = _grid_node_centers[single_parent].x - node_size / 2.0
+            y = _grid_node_centers[single_parent].y - node_size / 2.0
           else:
-            x = group_x + (group_width - node_size) / 2.0
+            y = group_y + (group_width - node_size) / 2.0
         else:
-          x = group_x + NODE_MARGIN + col * (node_size + NODE_MARGIN + NODE_INNER_PAD * 2)
-        var y = GROUP_HEADER_H + (row + 1) * (node_size + row_gap)
+          y = group_y + NODE_MARGIN + r * (node_size + NODE_MARGIN + NODE_INNER_PAD * 2)
+        var x = base_x + (c + 1) * (node_size + row_gap)
 
         var state = _get_node_state(skill_type)
         var node = _create_skill_node(skill_type, state, node_size, group_idx)
@@ -540,9 +555,9 @@ func build_skill_tree() -> void:
         node.z_index = 2
         skill_tree_container.add_child(node)
         _grid_node_centers[skill_type] = Vector2(x + node_size / 2.0, y + node_size / 2.0)
-        _grid_row_counts[skill_type] = skills_in_row
+        _grid_row_counts[skill_type] = skills_in_col
 
-    # Connection lines based on SKILL_PREREQS (orthogonal L-shape)
+    # Connection lines (horizontal growth: skills grow rightward)
     for skill_type in skills:
       var key = "%s:1" % skill_type
       if not GameManager.SKILL_PREREQS.has(key):
@@ -563,53 +578,51 @@ func build_skill_tree() -> void:
         var is_met = _get_current_level(parent_type) >= 1 or GameManager.get_upgrade_sub_level(parent_type) > 0
         var line_color = GROUP_LINE_COLORS_MET[group_idx] if is_met else GROUP_LINE_COLORS_UNMET[group_idx]
 
-        var dx = to_center.x - from_center.x
+        var dy = to_center.y - from_center.y
         var line = Line2D.new()
         line.z_index = 1
         line.width = 4.5
         line.antialiased = true
         line.default_color = line_color
 
-        if abs(dx) < 2.0:
-          # Straight vertical line
-          var start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
-          var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
-          if end_pt.y > start_pt.y:
+        if abs(dy) < 2.0:
+          # Straight horizontal line
+          var start_pt = Vector2(from_center.x + node_size / 2.0, from_center.y)
+          var end_pt = Vector2(to_center.x - node_size / 2.0, to_center.y)
+          if end_pt.x > start_pt.x:
             line.add_point(start_pt)
             line.add_point(end_pt)
             skill_tree_container.add_child(line)
         elif _grid_row_counts.get(parent_type, 1) == 1:
-          # Fan out: parent is single → exit from parent SIDE → horizontal → down to child TOP
+          # Fan out: parent single → exit TOP/BOTTOM → vertical → right to child LEFT
           var start_pt: Vector2
-          if dx > 0:
-            start_pt = Vector2(from_center.x + node_size / 2.0, from_center.y)
+          if dy > 0:
+            start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
           else:
-            start_pt = Vector2(from_center.x - node_size / 2.0, from_center.y)
-          var corner_pt = Vector2(to_center.x, start_pt.y)
-          var end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
+            start_pt = Vector2(from_center.x, from_center.y - node_size / 2.0)
+          var corner_pt = Vector2(start_pt.x, to_center.y)
+          var end_pt = Vector2(to_center.x - node_size / 2.0, to_center.y)
           line.add_point(start_pt)
           line.add_point(corner_pt)
           line.add_point(end_pt)
           skill_tree_container.add_child(line)
         else:
-          # Converge: child is single → exit from parent BOTTOM → down → into child SIDE
-          var start_pt = Vector2(from_center.x, from_center.y + node_size / 2.0)
-          var corner_pt = Vector2(from_center.x, to_center.y)
+          # Converge: child single → exit parent RIGHT → horizontal → into child TOP/BOTTOM
+          var start_pt = Vector2(from_center.x + node_size / 2.0, from_center.y)
+          var corner_pt = Vector2(to_center.x, from_center.y)
           var end_pt: Vector2
-          if dx > 0:
-            end_pt = Vector2(to_center.x - node_size / 2.0, to_center.y)
+          if dy > 0:
+            end_pt = Vector2(to_center.x, to_center.y - node_size / 2.0)
           else:
-            end_pt = Vector2(to_center.x + node_size / 2.0, to_center.y)
+            end_pt = Vector2(to_center.x, to_center.y + node_size / 2.0)
           line.add_point(start_pt)
           line.add_point(corner_pt)
           line.add_point(end_pt)
           skill_tree_container.add_child(line)
 
-    var total_rows = 1 + row_count
-    var group_height = GROUP_HEADER_H + total_rows * (node_size + row_gap) - row_gap
-    max_group_height = max(max_group_height, group_height)
+    accumulated_y += group_width + GROUP_GAP
 
-  skill_tree_container.custom_minimum_size = Vector2(0, max_group_height + 20)
+  skill_tree_container.custom_minimum_size = Vector2(0, accumulated_y + 20)
 
 func _create_skill_node(skill_type: String, state: String, node_size: float, group_idx: int) -> Button:
   var btn = Button.new()
