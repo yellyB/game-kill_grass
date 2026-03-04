@@ -629,9 +629,9 @@ func _show_strengthen_dialog(world: int) -> void:
   vbox.add_child(cost_row)
 
   # Separator
-  var sep = HSeparator.new()
-  sep.add_theme_constant_override("separation", 4)
-  sep.add_theme_color_override("font_color", Color(0.3, 0.3, 0.35))
+  var sep = ColorRect.new()
+  sep.color = Color(0.24, 0.24, 0.32)
+  sep.custom_minimum_size = Vector2(0, 2)
   vbox.add_child(sep)
 
   # Effects
