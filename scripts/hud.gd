@@ -43,6 +43,9 @@ func _ready() -> void:
   target_money = GameManager.session_money
   update_money_display()
 
+  # 초월 레벨 표시 (보유 코인 아래)
+  _setup_strength_label()
+
   # 몬스터분노 bar styling
   _setup_fury_bar()
   GameManager.fury_changed.connect(_on_fury_changed)
@@ -315,15 +318,49 @@ func _on_fury_boss_spawned() -> void:
   icon.modulate = Color(1, 0.3, 0.2, 0.9)
   add_child(icon)
 
+  var center_pos = icon.position
+  # Phase 1: 중앙에서 흔들림 (0.8초)
+  var shake_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+  for i in 12:
+    var offset = Vector2(randf_range(-8, 8), randf_range(-8, 8))
+    shake_tween.tween_property(icon, "position", center_pos + offset, 0.035)
+    shake_tween.tween_property(icon, "position", center_pos, 0.035)
+  await shake_tween.finished
+
+  # Phase 2: 확대 + 흐려짐 (1.2초)
   var icon_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
   icon_tween.set_parallel(true)
   var target_scale = viewport_size.x / 80.0
-  icon_tween.tween_property(icon, "scale", Vector2(target_scale, target_scale), 1.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-  icon_tween.tween_property(icon, "modulate:a", 0.0, 1.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+  icon_tween.tween_property(icon, "scale", Vector2(target_scale, target_scale), 1.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+  icon_tween.tween_property(icon, "modulate:a", 0.0, 1.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
   icon_tween.chain().tween_callback(func():
     icon.queue_free()
     GameManager.fury_gauge_dismissed.emit()
   )
+
+# ── 초월 레벨 표시 ──
+
+func _setup_strength_label() -> void:
+  var world = GameManager.selected_world
+  var strength = GameManager.get_world_strength_level(world)
+  if strength <= 0:
+    return
+  var label = Label.new()
+  label.text = "초월 Lv.%d" % strength
+  label.add_theme_font_size_override("font_size", 28)
+  label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
+  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  label.add_theme_constant_override("outline_size", 3)
+  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  label.anchors_preset = Control.PRESET_TOP_RIGHT
+  label.anchor_left = 1.0
+  label.anchor_right = 1.0
+  label.offset_left = -260.0
+  label.offset_top = 70.0
+  label.offset_right = 0.0
+  label.offset_bottom = 100.0
+  label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+  padded_area.add_child(label)
 
 # ── Monster Arrow Indicators (내비게이션) ──
 
