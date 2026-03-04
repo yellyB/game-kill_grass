@@ -267,7 +267,7 @@ func _update_perm_buff(type: String, _level: int) -> void:
 # ── 몬스터분노 Bar ──
 
 func _setup_fury_bar() -> void:
-  fury_progress.max_value = GameManager.FURY_MAX
+  fury_progress.max_value = 100.0
   fury_progress.value = 0.0
 
   # Fill style (red)
@@ -282,13 +282,14 @@ func _setup_fury_bar() -> void:
   bg_style.set_corner_radius_all(6)
   fury_progress.add_theme_stylebox_override("background", bg_style)
 
-  fury_label.text = "0"
+  fury_label.text = "0%"
 
 func _on_fury_changed(value: float) -> void:
   if fury_hidden:
     return
-  fury_progress.value = value
-  fury_label.text = str(int(value))
+  var pct = value / GameManager.get_fury_max() * 100.0
+  fury_progress.value = pct
+  fury_label.text = "%d%% (%d/%d)" % [int(pct), int(value), int(GameManager.get_fury_max())]
 
 func _on_fury_boss_spawned() -> void:
   fury_hidden = true
@@ -297,27 +298,34 @@ func _on_fury_boss_spawned() -> void:
   if OS.has_feature("mobile"):
     Input.vibrate_handheld(200)
 
-  # Shake and fade out the fury bar
-  var original_pos = fury_hbox.position
-
-  # Shake: fast accelerating oscillation over 2.5 seconds (works during pause)
-  var shake_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-  var steps = 24
-  for i in range(steps):
-    var t = float(i) / steps
-    var intensity = lerpf(6.0, 20.0, t)
-    var speed = lerpf(0.12, 0.06, t)
-    var offset_x = intensity * (1.0 if i % 2 == 0 else -1.0)
-    shake_tween.tween_property(fury_hbox, "position:x", original_pos.x + offset_x, speed)
-  shake_tween.tween_property(fury_hbox, "position:x", original_pos.x, 0.05)
-
-  # Scale up big while fading out (works during pause)
+  # Fade out fury bar (no shake)
   var fade_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-  fade_tween.set_parallel(true)
-  fade_tween.tween_property(fury_hbox, "modulate:a", 0.0, 2.5)
-  fade_tween.tween_property(fury_hbox, "scale", Vector2(1.8, 1.8), 2.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-  fade_tween.chain().tween_callback(func():
+  fade_tween.tween_property(fury_hbox, "modulate:a", 0.0, 0.8)
+  fade_tween.tween_callback(func():
     fury_hbox.visible = false
+  )
+
+  # Icon flash: fury icon appears at screen center, scales up huge + fades out
+  var viewport_size = get_viewport().get_visible_rect().size
+  var icon_texture = preload("res://resources/images/icon/monster.png")
+  var icon = TextureRect.new()
+  icon.texture = icon_texture
+  icon.expand_mode = 3  # EXPAND_FIT_WIDTH_PROPORTIONAL
+  icon.stretch_mode = 5  # STRETCH_KEEP_ASPECT_CENTERED
+  icon.custom_minimum_size = Vector2(80, 80)
+  icon.size = Vector2(80, 80)
+  icon.pivot_offset = Vector2(40, 40)
+  icon.position = viewport_size / 2.0 - Vector2(40, 40)
+  icon.modulate = Color(1, 0.3, 0.2, 0.9)
+  add_child(icon)
+
+  var icon_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+  icon_tween.set_parallel(true)
+  var target_scale = viewport_size.x / 80.0
+  icon_tween.tween_property(icon, "scale", Vector2(target_scale, target_scale), 1.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+  icon_tween.tween_property(icon, "modulate:a", 0.0, 1.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+  icon_tween.chain().tween_callback(func():
+    icon.queue_free()
     GameManager.fury_gauge_dismissed.emit()
   )
 

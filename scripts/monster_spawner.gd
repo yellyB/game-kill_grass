@@ -7,7 +7,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   0: {
     "type": "slime",
     "sprite_path": "res://resources/images/monster/slime/",
-    "max_health": 40,
+    "max_health": 60,
     "wander_speed": 50,
     "sprite_scale": 0.96,
     "drop_table": [],
