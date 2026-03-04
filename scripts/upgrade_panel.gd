@@ -963,7 +963,7 @@ func clear_selection() -> void:
   description_label.offset_bottom = -15
   description_label.add_theme_font_size_override("font_size", 36)
   confirm_btn.disabled = true
-  confirm_btn.text = "업그레이드 하기"
+  confirm_btn.text = "강화하기"
 
 func update_description() -> void:
   if selected_type.is_empty():
@@ -1351,7 +1351,7 @@ func _clear_btn_cost() -> void:
 func update_confirm_button() -> void:
   if selected_type.is_empty():
     confirm_btn.disabled = true
-    confirm_btn.text = "업그레이드 하기"
+    confirm_btn.text = "강화하기"
     _clear_btn_cost()
     return
 
@@ -1362,7 +1362,7 @@ func update_confirm_button() -> void:
   # Check if this is the actual next level and prereqs are met
   if selected_level != next_level:
     confirm_btn.disabled = true
-    confirm_btn.text = "업그레이드 하기"
+    confirm_btn.text = "강화하기"
     _clear_btn_cost()
     return
 
@@ -1375,7 +1375,7 @@ func update_confirm_button() -> void:
 
   var affordable = GameManager.money >= cost
   confirm_btn.disabled = not affordable
-  confirm_btn.text = "업그레이드 하기"
+  confirm_btn.text = "강화하기"
 
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
