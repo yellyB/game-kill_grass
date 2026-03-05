@@ -755,11 +755,13 @@ const SKILL_REQUIRED_TOTAL = {
   # 무기: row2 (Lv.2+)
   "crit_damage:2": 3,
   # 무기: row2 (Lv.1+)
-  "monster_damage:1": 20,
+  "monster_damage:1": 30,
   # 무기: row2 (Lv.2+)
   "monster_damage:2": 3,
   # 수확: row3 (Lv.2+)
   "golden_reward:2": 3,
+  # 수확: row3 (Lv.1+)
+  "golden_chance:1": 8,
   # 탐험: root (Lv.2+)
   "move_speed:2": 2,
   # 탐험: row1 (Lv.1+)
@@ -856,83 +858,144 @@ func get_grass_regen_time(base_time: float) -> float:
 
 # ── 틱 비용 테이블: [시작가, 틱당증가] 배열 (인덱스 = 코드 레벨) ──
 # Root (attack_power 5t×9L, move_speed 6t×5L)
-const ROOT_TICK_COSTS: Array = [
-  [1, 1],       # Lv.1: 1,2,3,4,5
-  [12, 3],      # Lv.2: 12,15,18,21,24
-  [300, 20],    # Lv.3: 300,320,340,360,380
-  [80, 8],      # Lv.4: 80,88,96,104,112
-  [150, 12],    # Lv.5: 150,162,174,186,198
-  [280, 18],    # Lv.6: 280,298,316,...
-  [500, 28],    # Lv.7
-  [850, 42],    # Lv.8
-  [1400, 65],   # Lv.9
+const ATTACK_POWER_TICK_COSTS: Array = [
+  [1, 1],           # Lv.1: 1,2,3,4,5 = 15
+  [15, 3],          # Lv.2: 15,18,21,24,27 = 105
+  [300, 20],        # Lv.3: 300,320,340,360,380 = 1,700
+  [1000, 100],      # Lv.4: 1000,1100,1200,1300,1400 = 6,000
+  [5000, 500],      # Lv.5: 5000,5500,6000,6500,7000 = 30,000
+  [30000, 3000],    # Lv.6: 30000,33000,36000,39000,42000 = 180,000
+  [100000, 10000],  # Lv.7: 100000,110000,120000,130000,140000 = 600,000
+  [300000, 30000],  # Lv.8: 300000,330000,360000,390000,420000 = 1,800,000
+  [800000, 80000],  # Lv.9: 800000,880000,960000,1040000,1120000 = 4,800,000
 ]
 # Density (10t×10L) — 틱 많아서 단가 낮게
 const DENSITY_TICK_COSTS: Array = [
   [0, 0],       # Lv.1: special (sub/2+1)
   [15, 2],      # Lv.2: 15,17,19,21,23
-  [300, 20],    # Lv.3: 300,320,340,...
-  [180, 12],    # Lv.4
-  [300, 18],    # Lv.5
-  [500, 28],    # Lv.6
-  [850, 42],    # Lv.7
-  [1400, 65],   # Lv.8
-  [2300, 100],  # Lv.9
-  [3800, 150],  # Lv.10
+  [80, 10],     # Lv.3: 80,90,100,110,120 = 500
+  [1000, 200],    # Lv.4: 1000,1200,1400,1600,1800 = 7,000
+  [8000, 800],    # Lv.5: 8000,8800,9600,10400,11200 = 48,000
+  [40000, 4000],  # Lv.6: 40000,44000,48000,52000,56000 = 240,000
+  [120000, 10000], # Lv.7: 120000,130000,140000,150000,160000 = 700,000
+  [350000, 30000], # Lv.8: 350000,380000,410000,440000,470000 = 2,050,000
 ]
 # 등급 비용: 틱당 고정 비용 (인덱스 = 코드 레벨, Lv.1(0)은 별도 처리)
 const QUALITY_COSTS: Array = [15, 35, 60, 400, 1000, 2500, 6000, 15000]
 # Row 2 (attack_speed 5t×12L, attack_range 5t×10L, magnet_range 5t×8L, session_time 3t×5L, chest_chance 5t×5L)
-const ROW2_TICK_COSTS: Array = [
-  [15, 2],      # Lv.1: 15,17,19,...
-  [40, 5],      # Lv.2
-  [80, 8],      # Lv.3
-  [150, 12],    # Lv.4
-  [280, 20],    # Lv.5
-  [500, 35],    # Lv.6
-  [850, 55],    # Lv.7
-  [1400, 85],   # Lv.8
-  [2200, 130],  # Lv.9
-  [3500, 200],  # Lv.10
-  [5500, 300],  # Lv.11
-  [8500, 450],  # Lv.12
+const ATTACK_RANGE_TICK_COSTS: Array = [
+  [10, 1],          # Lv.1: 10,11,12,13,14 = 60
+  [25, 2],          # Lv.2: 25,27,29,31,33 = 145
+  [60, 3],          # Lv.3: 60,63,66,69,72 = 330
+  [1000, 100],      # Lv.4: 6,000
+  [3000, 300],      # Lv.5: 18,000
+  [8000, 800],      # Lv.6: 48,000
+  [20000, 2000],    # Lv.7: 120,000
+  [50000, 5000],    # Lv.8: 300,000
+  [120000, 10000],  # Lv.9: 700,000
+  [280000, 25000],  # Lv.10: 1,650,000
 ]
-# Row 3 (crit_chance 5t×8L, monster_damage 5t×7L, attack_count 3t×5L, fury_rate 4t×4L)
-const ROW3_TICK_COSTS: Array = [
-  [50, 6],      # Lv.1: 50,56,62,...
-  [120, 10],    # Lv.2
-  [220, 18],    # Lv.3
-  [400, 30],    # Lv.4
-  [700, 50],    # Lv.5
-  [1200, 80],   # Lv.6
-  [2000, 120],  # Lv.7
-  [3300, 190],  # Lv.8
+const SESSION_TIME_TICK_COSTS: Array = [
+  [20, 5],          # Lv.1: 20,25,30 = 75
+  [200, 30],        # Lv.2: 200,230,260 = 690
+  [800, 100],       # Lv.3: 800,900,1000 = 2,700
+  [5000, 1500],     # Lv.4: 5000,6500,8000 = 19,500
+  [40000, 23000],   # Lv.5: 40000,63000,86000 = 189,000
+]
+const CHEST_CHANCE_TICK_COSTS: Array = [
+  [15, 2],          # Lv.1: 15,17,19,21,23 = 95
+  [40, 5],          # Lv.2: 40,45,50,55,60 = 250
+  [80, 8],          # Lv.3: 80,88,96,104,112 = 480
+  [1000, 100],      # Lv.4: 6,000
+  [30000, 3000],    # Lv.5: 30000,33000,36000,39000,42000 = 180,000
+]
+const ATTACK_SPEED_TICK_COSTS: Array = [
+  [15, 2],          # Lv.1: 15,17,19,...
+  [40, 5],          # Lv.2
+  [120, 10],        # Lv.3: 120,130,140,150,160 = 700
+  [1500, 150],      # Lv.4: 1500,1650,1800,1950,2100 = 9,000
+  [4500, 450],      # Lv.5: 27,000
+  [12000, 1200],    # Lv.6: 72,000
+  [30000, 3000],    # Lv.7: 180,000
+  [75000, 7500],    # Lv.8: 450,000
+  [180000, 15000],  # Lv.9: 1,050,000
+  [420000, 37500],  # Lv.10: 2,475,000
+  [975000, 82500],  # Lv.11: 5,700,000
+  [2250000, 180000], # Lv.12: 13,050,000
+]
+const CRIT_CHANCE_TICK_COSTS: Array = [
+  [20, 2],      # Lv.1: 20,22,24,26,28 = 120
+  [120, 10],    # Lv.2: 120,130,140,150,160 = 700
+  [220, 18],    # Lv.3: 1,280
+  [400, 30],    # Lv.4: 2,300
+  [40000, 4000],    # Lv.5: 40000,44000,48000,52000,56000 = 240,000
+  [40000, 4000],    # Lv.6: 40000,44000,48000,52000,56000 = 240,000
+  [95000, 9500],    # Lv.7: 95000,104500,114000,123500,133000 = 570,000
+  [150000, 15000],  # Lv.8: 150000,165000,180000,195000,210000 = 900,000
+]
+const MONSTER_DAMAGE_TICK_COSTS: Array = [
+  [50, 6],      # Lv.1: 50,56,62,68,74 = 310
+  [120, 10],    # Lv.2: 700
+  [500, 50],        # Lv.3: 500,550,600,650,700 = 3,000
+  [12000, 1200],    # Lv.4: 12000,13200,14400,15600,16800 = 72,000
+  [45000, 4500],    # Lv.5: 45000,49500,54000,58500,63000 = 270,000
+  [100000, 10000],  # Lv.6: 100000,110000,120000,130000,140000 = 600,000
+  [170000, 17000],  # Lv.7: 170000,187000,204000,221000,238000 = 1,020,000
+]
+const FURY_RATE_TICK_COSTS: Array = [
+  [50, 6],      # Lv.1: 50,56,62,68 = 236
+  [120, 10],    # Lv.2: 120,130,140,150 = 540
+  [500, 50],    # Lv.3: 500,550,600,650 = 2,300
+  [3000, 300],  # Lv.4: 3000,3300,3600,3900 = 13,800
 ]
 # Row 3 — golden_chance (2t×5L, 고가)
 const GOLDEN_CHANCE_TICK_COSTS: Array = [
   [20, 2],      # Lv.1: 20,22
   [150, 30],    # Lv.2: 150,180
-  [400, 60],    # Lv.3: 400,460
+  [500, 60],    # Lv.3: 500,560
   [900, 120],   # Lv.4: 900,1020
   [2000, 250],  # Lv.5: 2000,2250
 ]
-# Row 4 (crit_damage 5t×6L, golden_reward 5t×5L)
-const ROW4_TICK_COSTS: Array = [
-  [50, 5],      # Lv.1: 50,55,60,...
-  [100, 8],     # Lv.2
-  [180, 14],    # Lv.3
-  [320, 22],    # Lv.4
-  [550, 35],    # Lv.5
-  [950, 55],    # Lv.6
-  [1600, 85],   # Lv.7
-  [2700, 130],  # Lv.8
-  [4500, 200],  # Lv.9
+const CRIT_DAMAGE_TICK_COSTS: Array = [
+  [50, 5],      # Lv.1: 50,55,60,65,70 = 300
+  [100, 8],     # Lv.2: 540
+  [180, 14],    # Lv.3: 1,040
+  [400, 40],      # Lv.4: 400,440,480,520,560 = 2,400
+  [2800, 280],    # Lv.5: 2800,3080,3360,3640,3920 = 16,800
+  [10000, 1000],  # Lv.6: 10000,11000,12000,13000,14000 = 60,000
+]
+const GOLDEN_REWARD_TICK_COSTS: Array = [
+  [50, 5],      # Lv.1: 50,55,60,65,70 = 300
+  [100, 8],     # Lv.2: 540
+  [180, 14],    # Lv.3: 1,040
+  [700, 70],      # Lv.4: 700,770,840,910,980 = 4,200
+  [2800, 280],    # Lv.5: 2800,3080,3360,3640,3920 = 16,800
 ]
 # 스킬 티어 분류
-const TIER_ROOT: Array = ["attack_power", "move_speed"]
-const TIER_DENSITY: Array = ["grass_density"]
-const TIER_ROW2: Array = ["attack_speed", "attack_range", "magnet_range", "session_time", "chest_chance"]
-const TIER_ROW3: Array = ["crit_chance", "monster_damage", "attack_count", "fury_rate"]
+const MOVE_SPEED_TICK_COSTS: Array = [
+  [1, 1],       # Lv.1: 1,2,3,4,5,6 = 21
+  [10, 1],      # Lv.2: 10,11,12,13,14,15 = 75
+  [80, 8],      # Lv.3: 80,88,96,104,112,120 = 600
+  [300, 30],    # Lv.4: 300,330,360,390,420,450 = 2,250
+  [3000, 300],  # Lv.5: 3000,3300,3600,3900,4200,4500 = 22,500
+]
+const MAGNET_TICK_COSTS: Array = [
+  [12, 2],      # Lv.1: 12,14,16,18,20 = 80
+  [30, 4],      # Lv.2: 30,34,38,42,46 = 190
+  [80, 8],      # Lv.3: 80,88,96,104,112 = 480
+  [200, 15],    # Lv.4: 200,215,230,245,260 = 1,150
+  [500, 35],    # Lv.5: 500,535,570,605,640 = 2,850
+  [2000, 200],    # Lv.6: 2000,2200,2400,2600,2800 = 12,000
+  [10000, 1000],  # Lv.7: 10000,11000,12000,13000,14000 = 60,000
+  [50000, 5000],  # Lv.8: 50000,55000,60000,65000,70000 = 300,000
+]
+const ATTACK_COUNT_TICK_COSTS: Array = [
+  [50, 6],         # Lv.1: 50,56,62 = 168
+  [250, 20],       # Lv.2: 250,270,290 = 810
+  [1000, 500],     # Lv.3: 1000,1500,2000 = 4,500 (유저지정 1000원 시작)
+  [30000, 3000],   # Lv.4: 30000,33000,36000 = 99,000
+  [100000, 20000], # Lv.5: 100000,120000,140000 = 360,000
+]
 
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var cost = _get_raw_upgrade_cost(current_level, upgrade_type)
@@ -976,52 +1039,28 @@ func _get_raw_upgrade_cost(current_level: int, upgrade_type: String = "") -> int
       return 15000 + sub * 1200
     return 15000 + sub * 1200
 
-  # Special: move_speed Lv.2
-  if upgrade_type == "move_speed" and current_level == 1:
-    return 10 + sub
-
-  # Special: attack_range Lv.1~3
-  if upgrade_type == "attack_range":
-    if current_level == 0:
-      return 10 + sub
-    if current_level == 1:
-      return 25 + sub * 2
-    if current_level == 2:
-      return 60 + sub * 3
-
-  # Special: attack_speed Lv.3
-  if upgrade_type == "attack_speed" and current_level == 2:
-    return 120 + sub * 10
-
-  # Special: crit_chance Lv.1
-  if upgrade_type == "crit_chance" and current_level == 0:
-    return 20 + sub * 2
-
-  # Special: attack_count Lv.2
-  if upgrade_type == "attack_count" and current_level == 1:
-    return 200 + sub * 20
-
-  # Special: session_time Lv.1~2
-  if upgrade_type == "session_time":
-    if current_level == 0:
-      return 20 + sub * 5
-    if current_level == 1:
-      return 200 + sub * 30
 
   # 스킬별 틱 비용 테이블 선택
   var tier_costs: Array
-  if upgrade_type == "golden_chance":
-    tier_costs = GOLDEN_CHANCE_TICK_COSTS
-  elif upgrade_type in TIER_DENSITY:
-    tier_costs = DENSITY_TICK_COSTS
-  elif upgrade_type in TIER_ROOT:
-    tier_costs = ROOT_TICK_COSTS
-  elif upgrade_type in TIER_ROW2:
-    tier_costs = ROW2_TICK_COSTS
-  elif upgrade_type in TIER_ROW3:
-    tier_costs = ROW3_TICK_COSTS
-  else:
-    tier_costs = ROW4_TICK_COSTS
+  var SKILL_TICK_COSTS: Dictionary = {
+    "attack_power": ATTACK_POWER_TICK_COSTS,
+    "attack_speed": ATTACK_SPEED_TICK_COSTS,
+    "attack_range": ATTACK_RANGE_TICK_COSTS,
+    "attack_count": ATTACK_COUNT_TICK_COSTS,
+    "magnet_range": MAGNET_TICK_COSTS,
+    "grass_density": DENSITY_TICK_COSTS,
+    "grass_quality": [],  # handled by special case above
+    "golden_chance": GOLDEN_CHANCE_TICK_COSTS,
+    "golden_reward": GOLDEN_REWARD_TICK_COSTS,
+    "crit_chance": CRIT_CHANCE_TICK_COSTS,
+    "crit_damage": CRIT_DAMAGE_TICK_COSTS,
+    "monster_damage": MONSTER_DAMAGE_TICK_COSTS,
+    "fury_rate": FURY_RATE_TICK_COSTS,
+    "move_speed": MOVE_SPEED_TICK_COSTS,
+    "session_time": SESSION_TIME_TICK_COSTS,
+    "chest_chance": CHEST_CHANCE_TICK_COSTS,
+  }
+  tier_costs = SKILL_TICK_COSTS.get(upgrade_type, ATTACK_POWER_TICK_COSTS)
 
   if current_level < tier_costs.size():
     return tier_costs[current_level][0] + sub * tier_costs[current_level][1]
