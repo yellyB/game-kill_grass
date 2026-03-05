@@ -171,6 +171,7 @@ signal boss_key_collected(world_index: int)
 
 # 몬스터 분노 시스템
 var fury: float = 0.0
+var fury_boss_alive: bool = false
 var session_key_acquired: int = -1  # 세션 중 보스 드롭 열쇠 (-1 = 없음)
 # 월드별 분노 필요 수치
 const FURY_THRESHOLDS: Array = [280.0, 800.0, 2300.0, 6500.0, 18500.0, 53000.0, 150000.0]
@@ -471,6 +472,8 @@ func get_random_grass_data() -> GrassData:
     return grass_data_list[base_type]
 
 func add_fury(amount: float) -> void:
+  if fury_boss_alive:
+    return
   var fury_max = get_fury_max()
   fury = minf(fury + amount * get_fury_rate_mult(), fury_max)
   fury_changed.emit(fury)
