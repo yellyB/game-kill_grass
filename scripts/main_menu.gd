@@ -681,6 +681,7 @@ func _on_action_btn_pressed() -> void:
   var unlocked = _ws_selected in GameManager.unlocked_worlds
   if unlocked:
     GameManager.selected_world = _ws_selected
+    SaveManager.save_game()
     _close_world_select()
     _start_game()
   else:
