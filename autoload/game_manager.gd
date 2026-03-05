@@ -173,7 +173,7 @@ signal boss_key_collected(world_index: int)
 var fury: float = 0.0
 var session_key_acquired: int = -1  # 세션 중 보스 드롭 열쇠 (-1 = 없음)
 # 월드별 분노 필요 수치
-const FURY_THRESHOLDS: Array = [250.0, 600.0, 1500.0, 4000.0]
+const FURY_THRESHOLDS: Array = [280.0, 800.0, 2300.0, 6500.0, 18500.0, 53000.0, 150000.0]
 
 func get_fury_max() -> float:
   var idx = clampi(selected_world, 0, FURY_THRESHOLDS.size() - 1)
