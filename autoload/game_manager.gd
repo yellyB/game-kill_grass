@@ -805,6 +805,22 @@ func check_skill_prereqs(type: String, level: int) -> Dictionary:
           missing.append({"type": req.type, "level": req.level, "current": current})
   return {"met": missing.is_empty(), "missing": missing}
 
+func has_any_purchasable_skill() -> bool:
+  for def in SKILL_DEFS:
+    var type = def.type
+    var current_level = upgrade_levels.get(type, 0)
+    var max_level = def.max_level
+    if max_level >= 0 and current_level >= max_level:
+      continue
+    var next_level = current_level + 1
+    var prereq = check_skill_prereqs(type, next_level)
+    if not prereq.met:
+      continue
+    var cost = get_upgrade_cost(current_level, type)
+    if money >= cost:
+      return true
+  return false
+
 func get_upgrade_level(type: String) -> int:
   return upgrade_levels.get(type, 0)
 

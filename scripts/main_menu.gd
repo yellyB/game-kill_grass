@@ -17,6 +17,7 @@ var _ws_action_btn: Button = null
 var _debug_container: HBoxContainer = null
 var _debug_tap_count: int = 0
 var _debug_last_tap_time: float = 0.0
+var _upgrade_badge: Label = null
 
 const WORLD_DATA: Array = [
   {"name": "슬라임 늪", "monsters": "슬라임"},
@@ -66,6 +67,31 @@ func _ready() -> void:
   upgrade_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
   GameManager.style_button(upgrade_btn, "sub", Vector2(460, 112))
 
+  # 강화 버튼 느낌표 뱃지
+  _upgrade_badge = Label.new()
+  _upgrade_badge.text = "!"
+  _upgrade_badge.add_theme_font_size_override("font_size", 28)
+  _upgrade_badge.add_theme_color_override("font_color", Color.WHITE)
+  _upgrade_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  _upgrade_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+  var badge_bg = StyleBoxFlat.new()
+  badge_bg.bg_color = Color(0.9, 0.2, 0.2)
+  badge_bg.corner_radius_top_left = 18
+  badge_bg.corner_radius_top_right = 18
+  badge_bg.corner_radius_bottom_left = 18
+  badge_bg.corner_radius_bottom_right = 18
+  badge_bg.content_margin_left = 6
+  badge_bg.content_margin_right = 6
+  badge_bg.content_margin_top = 2
+  badge_bg.content_margin_bottom = 2
+  _upgrade_badge.add_theme_stylebox_override("normal", badge_bg)
+  _upgrade_badge.custom_minimum_size = Vector2(36, 36)
+  upgrade_btn.add_child(_upgrade_badge)
+  _upgrade_badge.position = Vector2(upgrade_btn.custom_minimum_size.x - 44, -10)
+  _update_upgrade_badge()
+
+  GameManager.money_changed.connect(_on_money_changed_badge)
+  GameManager.upgrade_purchased.connect(_on_upgrade_purchased_badge)
 
   quit_btn.text = "종료"
   quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -131,9 +157,20 @@ func _on_panel_closed() -> void:
   play_btn.disabled = false
   upgrade_btn.disabled = false
   quit_btn.disabled = false
+  _update_upgrade_badge()
 
 func update_money_display() -> void:
   money_display.update_display()
+
+func _update_upgrade_badge() -> void:
+  if _upgrade_badge:
+    _upgrade_badge.visible = GameManager.has_any_purchasable_skill()
+
+func _on_money_changed_badge(_money: int) -> void:
+  _update_upgrade_badge()
+
+func _on_upgrade_purchased_badge(_type: String, _level: int) -> void:
+  _update_upgrade_badge()
 
 # ── World Selection Panel ──
 
