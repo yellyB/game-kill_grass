@@ -7,6 +7,7 @@ const SCREEN_PADDING_V: float = 60.0
 # Game state
 var money: int = 0
 var session_money: int = 0
+var session_boss_reward: int = 0
 
 # World selection
 var selected_world: int = 0
@@ -1153,4 +1154,5 @@ func reset_session_data() -> void:
   hit_penalty_active = false
   fury = 0.0
   session_key_acquired = -1
+  session_boss_reward = 0
   session_money_changed.emit(0)

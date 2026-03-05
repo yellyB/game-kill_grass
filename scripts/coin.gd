@@ -9,6 +9,7 @@ var can_pickup: bool = false
 var is_being_collected: bool = false
 var is_collected: bool = false
 var velocity: Vector2 = Vector2.ZERO
+var boss_drop: bool = false
 
 @onready var visual: Node2D = $Visual
 
@@ -23,6 +24,9 @@ func _ready() -> void:
 
 	# Spawn animation - pop out
 	spawn_animation()
+
+	if boss_drop:
+		return  # Visual only, self-destructs via animation
 
 	# Enable pickup after delay
 	await get_tree().create_timer(pickup_delay).timeout
@@ -53,6 +57,10 @@ func _process(delta: float) -> void:
 		visual.position.y = sin(Time.get_ticks_msec() * 0.008) * 3.0
 
 func spawn_animation() -> void:
+	if boss_drop:
+		_boss_spawn_animation()
+		return
+
 	# Random pop direction
 	var pop_direction = Vector2(randf_range(-1, 1), randf_range(-1, -0.5)).normalized()
 	var pop_distance = randf_range(30, 60)
@@ -75,6 +83,35 @@ func spawn_animation() -> void:
 	if visual:
 		var tween2 = create_tween()
 		tween2.tween_property(visual, "scale", Vector2(1.0, 1.0), 0.1)
+
+func _boss_spawn_animation() -> void:
+	var spread_x = randf_range(-280, 280)
+	var peak_y = randf_range(-260, -180)
+	var start_pos = position
+
+	if visual:
+		visual.scale = Vector2(0.75, 0.75)
+
+	# X: linear outward spread
+	var tween_x = create_tween()
+	tween_x.tween_property(self, "position:x", start_pos.x + spread_x, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	# Y: parabolic arc (up then down)
+	var tween_y = create_tween()
+	tween_y.tween_property(self, "position:y", start_pos.y + peak_y, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween_y.tween_property(self, "position:y", start_pos.y + 80, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+	# Scale pop
+	if visual:
+		var tween_s = create_tween()
+		tween_s.tween_property(visual, "scale", Vector2(1.8, 1.8), 0.15).set_ease(Tween.EASE_OUT)
+		tween_s.tween_property(visual, "scale", Vector2(1.5, 1.5), 0.1)
+
+	# Fade out in second half
+	var tween_fade = create_tween()
+	tween_fade.tween_interval(0.35)
+	tween_fade.tween_property(self, "modulate:a", 0.0, 0.35)
+	tween_fade.tween_callback(queue_free)
 
 func collect() -> void:
 	# Prevent multiple collections

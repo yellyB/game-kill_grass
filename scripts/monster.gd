@@ -2,6 +2,7 @@ extends Node2D
 
 const DroppedItemScene = preload("res://scenes/world/dropped_item.tscn")
 const PowerupScene = preload("res://scenes/world/powerup.tscn")
+const CoinScene = preload("res://scenes/world/coin.tscn")
 const SFX_SLASH = preload("res://resources/sounds/effect/monster_slash.wav")
 const SFX_DEATH = preload("res://resources/sounds/effect/monster_death.wav")
 
@@ -279,13 +280,19 @@ func die() -> void:
   queue_free()
 
 func _drop_boss_reward() -> void:
+  GameManager.session_boss_reward = boss_reward
   GameManager.add_money(boss_reward)
-  var FloatingTextScene = preload("res://scenes/ui/floating_text.tscn")
-  var ft = FloatingTextScene.instantiate()
-  ft.position = position
-  get_parent().add_child(ft)
-  ft.setup(boss_reward)
-  GameManager.boss_key_collected.emit(-1)
+  # Spawn 7 visual-only coins that spray upward in arcs
+  var coin_count = 7
+  for i in coin_count:
+    var coin = CoinScene.instantiate()
+    coin.position = position
+    coin.boss_drop = true
+    get_parent().add_child(coin)
+  # 1s delay for spray animation, then end session
+  get_tree().create_timer(1.0).timeout.connect(func():
+    GameManager.boss_key_collected.emit(-1)
+  )
 
 func _drop_potion() -> void:
   var player = get_tree().get_first_node_in_group("player")

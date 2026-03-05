@@ -258,6 +258,25 @@ func show_session_end_overlay(earnings: int) -> void:
     key_label.add_theme_constant_override("outline_size", 4)
     results_vbox.add_child(key_label)
 
+  # Boss reward bonus row
+  if GameManager.session_boss_reward > 0:
+    var bonus_container = HBoxContainer.new()
+    bonus_container.alignment = BoxContainer.ALIGNMENT_CENTER
+    bonus_container.add_theme_constant_override("separation", 8)
+
+    var bonus_prefix = Label.new()
+    bonus_prefix.text = "보너스: "
+    bonus_prefix.add_theme_font_size_override("font_size", 51)
+    bonus_prefix.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+    bonus_prefix.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    bonus_prefix.add_theme_constant_override("outline_size", 4)
+    bonus_container.add_child(bonus_prefix)
+
+    var bonus_coin = GameManager.create_coin_label(
+      "+" + GameManager.format_number(GameManager.session_boss_reward), 51, Color(1, 0.9, 0.3), 4)
+    bonus_container.add_child(bonus_coin)
+    results_vbox.add_child(bonus_container)
+
   session_end_overlay.add_child(results_vbox)
 
   # Show overlay
