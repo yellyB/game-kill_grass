@@ -154,24 +154,13 @@ func _open_world_select() -> void:
   bg.set_anchors_preset(Control.PRESET_FULL_RECT)
   world_overlay.add_child(bg)
 
-  # Center panel — fill 30% more of remaining space on each side
-  var viewport_size = get_viewport().get_visible_rect().size
-  var base_w = 700.0
-  var base_h = 0.0  # auto height
-  var margin_x = (viewport_size.x - base_w) / 2.0
-  var extra_x = margin_x * 0.3
-  var panel_w = base_w + extra_x * 2.0
-  # Vertical: estimate base panel height ~70% of viewport, expand 30% of remaining
-  var base_h_ratio = 0.7
-  var margin_y = viewport_size.y * (1.0 - base_h_ratio) / 2.0
-  var extra_y = margin_y * 0.3
-
+  # Center panel — fixed size
   var center = CenterContainer.new()
   center.set_anchors_preset(Control.PRESET_FULL_RECT)
   world_overlay.add_child(center)
 
   var panel = PanelContainer.new()
-  panel.custom_minimum_size = Vector2(panel_w, viewport_size.y - (margin_y - extra_y) * 2.0)
+  panel.custom_minimum_size = Vector2(780, 1510)
   var panel_style = StyleBoxFlat.new()
   panel_style.bg_color = Color(0.09, 0.12, 0.12)
   panel_style.corner_radius_top_left = 20
