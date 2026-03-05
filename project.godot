@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Kill Grass"
+config/name="풀 좀 베겠습니다"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://resources/images/app_icon/icon_256.png"
