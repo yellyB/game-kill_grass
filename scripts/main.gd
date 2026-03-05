@@ -233,14 +233,14 @@ func show_session_end_overlay(earnings: int) -> void:
 
   var prefix_label = Label.new()
   prefix_label.text = "획득: "
-  prefix_label.add_theme_font_size_override("font_size", 36)
+  prefix_label.add_theme_font_size_override("font_size", 54)
   prefix_label.add_theme_color_override("font_color", Color.WHITE)
   prefix_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  prefix_label.add_theme_constant_override("outline_size", 3)
+  prefix_label.add_theme_constant_override("outline_size", 4)
   earnings_container.add_child(prefix_label)
 
   var coin_hbox = GameManager.create_coin_label(
-    GameManager.format_number(earnings), 36, Color(1, 1, 1), 3)
+    GameManager.format_number(earnings), 54, Color(1, 1, 1), 4)
   earnings_container.add_child(coin_hbox)
   results_vbox.add_child(earnings_container)
 
@@ -252,10 +252,10 @@ func show_session_end_overlay(earnings: int) -> void:
     var key_label = Label.new()
     key_label.text = "+ 열쇠 (%s)" % world_name
     key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    key_label.add_theme_font_size_override("font_size", 34)
+    key_label.add_theme_font_size_override("font_size", 51)
     key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
     key_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-    key_label.add_theme_constant_override("outline_size", 3)
+    key_label.add_theme_constant_override("outline_size", 4)
     results_vbox.add_child(key_label)
 
   session_end_overlay.add_child(results_vbox)

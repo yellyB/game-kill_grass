@@ -81,7 +81,7 @@ const SKILL_DEFS: Array = [
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 5, "max_level": 8,
    "description": "맵 구획당 자라는 풀의 수가 증가합니다.\n구획당 풀: 1개 → 181개 (Lv별 틱당 +1/+2/.../+8)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 8,
-   "description": "높은 등급 풀이 등장할 확률이 높아집니다.\n홀수 레벨: 다음 등급 50%까지\n짝수 레벨: 다음 등급 100%까지\n단계 8 | 최대 Lv.8"},
+   "description": "높은 등급의 풀로 자라날 확률이 높아집니다.\n홀수 레벨: 다음 등급 50%까지\n짝수 레벨: 다음 등급 100%까지\n단계 8 | 최대 Lv.8"},
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
    "description": "맵 구획당 상자 등장 확률이 높아집니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 8,
