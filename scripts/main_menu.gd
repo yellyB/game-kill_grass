@@ -160,7 +160,7 @@ func _open_world_select() -> void:
   world_overlay.add_child(center)
 
   var panel = PanelContainer.new()
-  panel.custom_minimum_size = Vector2(780, 1510)
+  panel.custom_minimum_size = Vector2(780, 1550)
   var panel_style = StyleBoxFlat.new()
   panel_style.bg_color = Color(0.09, 0.12, 0.12)
   panel_style.corner_radius_top_left = 20
@@ -235,8 +235,8 @@ func _open_world_select() -> void:
 
   var close_btn = Button.new()
   close_btn.text = "닫기"
-  close_btn.custom_minimum_size = Vector2(200, 52)
-  close_btn.add_theme_font_size_override("font_size", 26)
+  close_btn.custom_minimum_size = Vector2(420, 90)
+  close_btn.add_theme_font_size_override("font_size", 38)
   close_btn.pressed.connect(_close_world_select)
   GameManager.style_button(close_btn, "muted")
   close_center.add_child(close_btn)
