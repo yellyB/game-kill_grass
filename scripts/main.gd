@@ -5,10 +5,10 @@ const SESSION_TIME: float = 45.0
 const BGM_PATHS: Array = [
   "res://resources/sounds/bgm_슬라임늪.ogg",          # 0: 슬라임 늪
   "res://resources/sounds/bgm_들판.ogg",              # 1: 들판
-  "res://resources/sounds/bgm_기사의성벽.wav",         # 2: 기사의 성벽
+  "res://resources/sounds/bgm_기사의성벽.ogg",         # 2: 기사의 성벽
   "res://resources/sounds/bgm_마법의숲.ogg",           # 3: 마법의 숲
   "res://resources/sounds/bgm_수정호수.ogg",           # 4: 수정 호수
-  "res://resources/sounds/bgm_고대유적.wav",            # 5: 고대 유적
+  "res://resources/sounds/bgm_고대유적.ogg",            # 5: 고대 유적
   "res://resources/sounds/bgm_용의봉우리.ogg",          # 6: 용의 봉우리
 ]
 
