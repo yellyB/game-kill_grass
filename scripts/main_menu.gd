@@ -735,7 +735,7 @@ func _build_debug_buttons() -> void:
   _debug_container.add_child(reset_btn)
 
   var money_btn = Button.new()
-  money_btn.text = "+$100000"
+  money_btn.text = "+$1000000"
   money_btn.add_theme_font_size_override("font_size", 18)
   money_btn.pressed.connect(_on_debug_add_money)
   GameManager.style_button(money_btn, "sub")
@@ -747,6 +747,13 @@ func _build_debug_buttons() -> void:
   gem_btn.pressed.connect(_on_debug_add_gems)
   GameManager.style_button(gem_btn, "sub")
   _debug_container.add_child(gem_btn)
+
+  var reset_money_btn = Button.new()
+  reset_money_btn.text = "코인초기화"
+  reset_money_btn.add_theme_font_size_override("font_size", 18)
+  reset_money_btn.pressed.connect(_on_debug_reset_money)
+  GameManager.style_button(reset_money_btn, "sub")
+  _debug_container.add_child(reset_money_btn)
 
   var unlock_btn = Button.new()
   unlock_btn.text = "월드 전체해금"
@@ -760,12 +767,18 @@ func _on_debug_reset() -> void:
   update_money_display()
 
 func _on_debug_add_money() -> void:
-  GameManager.money += 100000
+  GameManager.money += 1000000
   GameManager.money_changed.emit(GameManager.money)
   SaveManager.save_game()
 
 func _on_debug_add_gems() -> void:
   GameManager.owned_gems += 10
+  SaveManager.save_game()
+  update_money_display()
+
+func _on_debug_reset_money() -> void:
+  GameManager.money = 0
+  GameManager.money_changed.emit(GameManager.money)
   SaveManager.save_game()
   update_money_display()
 
