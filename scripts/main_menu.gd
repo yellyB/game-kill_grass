@@ -70,24 +70,24 @@ func _ready() -> void:
   # 강화 버튼 느낌표 뱃지
   _upgrade_badge = Label.new()
   _upgrade_badge.text = "!"
-  _upgrade_badge.add_theme_font_size_override("font_size", 28)
+  _upgrade_badge.add_theme_font_size_override("font_size", 48)
   _upgrade_badge.add_theme_color_override("font_color", Color.WHITE)
   _upgrade_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   _upgrade_badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
   var badge_bg = StyleBoxFlat.new()
   badge_bg.bg_color = Color(0.9, 0.2, 0.2)
-  badge_bg.corner_radius_top_left = 18
-  badge_bg.corner_radius_top_right = 18
-  badge_bg.corner_radius_bottom_left = 18
-  badge_bg.corner_radius_bottom_right = 18
-  badge_bg.content_margin_left = 6
-  badge_bg.content_margin_right = 6
-  badge_bg.content_margin_top = 2
-  badge_bg.content_margin_bottom = 2
+  badge_bg.corner_radius_top_left = 30
+  badge_bg.corner_radius_top_right = 30
+  badge_bg.corner_radius_bottom_left = 30
+  badge_bg.corner_radius_bottom_right = 30
+  badge_bg.content_margin_left = 12
+  badge_bg.content_margin_right = 12
+  badge_bg.content_margin_top = 4
+  badge_bg.content_margin_bottom = 4
   _upgrade_badge.add_theme_stylebox_override("normal", badge_bg)
-  _upgrade_badge.custom_minimum_size = Vector2(36, 36)
+  _upgrade_badge.custom_minimum_size = Vector2(60, 60)
   upgrade_btn.add_child(_upgrade_badge)
-  _upgrade_badge.position = Vector2(upgrade_btn.custom_minimum_size.x - 44, -10)
+  _upgrade_badge.position = Vector2(upgrade_btn.custom_minimum_size.x - 60, -18)
   _update_upgrade_badge()
 
   GameManager.money_changed.connect(_on_money_changed_badge)
