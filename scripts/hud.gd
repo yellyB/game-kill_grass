@@ -344,10 +344,10 @@ func _setup_strength_label() -> void:
   # Add strength label inside MoneyDisplay VBox (below gem panel)
   var label = Label.new()
   label.text = "초월 Lv.%d" % strength
-  label.add_theme_font_size_override("font_size", 28)
+  label.add_theme_font_size_override("font_size", 48)
   label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  label.add_theme_constant_override("outline_size", 3)
+  label.add_theme_constant_override("outline_size", 4)
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
   label.size_flags_horizontal = Control.SIZE_SHRINK_END
   label.mouse_filter = Control.MOUSE_FILTER_IGNORE
