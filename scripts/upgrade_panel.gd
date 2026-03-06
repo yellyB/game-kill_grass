@@ -210,7 +210,6 @@ var next_weapon_image: TextureRect = null
 var next_weapon_title: Label = null
 var next_weapon_label: Label = null
 var next_weapon_vbox: VBoxContainer = null
-var weapon_buy_btn: Button = null
 var weapon_condition_vbox: VBoxContainer = null
 var weapon_right_vbox: VBoxContainer = null
 var weapon_hbox: HBoxContainer = null
@@ -327,34 +326,6 @@ func _ensure_next_weapon_nodes() -> void:
   weapon_condition_vbox.add_theme_constant_override("separation", 4)
   weapon_right_vbox.add_child(weapon_condition_vbox)
 
-  weapon_buy_btn = Button.new()
-  weapon_buy_btn.text = "다음 무기 구매"
-  weapon_buy_btn.custom_minimum_size = Vector2(0, 80)
-  weapon_buy_btn.add_theme_font_size_override("font_size", 34)
-  weapon_buy_btn.pressed.connect(_on_weapon_buy_pressed)
-  GameManager.style_button(weapon_buy_btn)
-  weapon_right_vbox.add_child(weapon_buy_btn)
-
-func _on_weapon_buy_pressed() -> void:
-  GameManager.play_confirm_click()
-  # 보석 해금 처리
-  var wep_level = GameManager.get_upgrade_level("attack_power")
-  var next_level = wep_level + 1
-  var sub = GameManager.get_upgrade_sub_level("attack_power")
-  if sub == 0 and GameManager.is_gem_locked("attack_power", next_level):
-    if GameManager.unlock_gem_skill("attack_power", next_level):
-      GameManager.play_skill_upgrade_sound()
-      Input.vibrate_handheld(50)
-      build_skill_tree()
-      update_weapon_display()
-      update_money_display()
-    return
-  if GameManager.purchase_upgrade("attack_power"):
-    GameManager.play_skill_upgrade_sound()
-    SaveManager.save_game()
-    build_skill_tree()
-    update_weapon_display()
-    update_money_display()
 
 func _animate_weapon_upgrade() -> void:
   update_weapon_display()
@@ -405,20 +376,15 @@ func _update_weapon_buy_button() -> void:
     var gem_cost = GameManager.get_skill_gem_cost("attack_power", next_level)
     var gem_ok = GameManager.owned_gems >= gem_cost
     _update_weapon_conditions_gem(gem_cost, gem_ok)
-    weapon_buy_btn.text = "해금하기"
-    weapon_buy_btn.disabled = not gem_ok
     _update_next_weapon_card_style(gem_ok)
     return
 
   # Update condition indicators
   _update_weapon_conditions(prereq.met, has_money, cost)
 
-  weapon_buy_btn.text = "강화 (공격력 +1)"
   if prereq.met and has_money:
-    weapon_buy_btn.disabled = false
     _update_next_weapon_card_style(true)
   else:
-    weapon_buy_btn.disabled = true
     _update_next_weapon_card_style(false)
 
 func _update_weapon_conditions_gem(gem_cost: int, gem_ok: bool) -> void:
