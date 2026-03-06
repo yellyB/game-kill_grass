@@ -46,7 +46,7 @@ func _create_gem_row() -> void:
   add_child(gem_panel)
 
   gem_row = HBoxContainer.new()
-  gem_row.add_theme_constant_override("separation", 8)
+  gem_row.add_theme_constant_override("separation", 16)
   gem_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
   gem_panel.add_child(gem_row)
 

@@ -25,7 +25,7 @@ mouse_filter = 2
 [node name="CoinRow" type="HBoxContainer" parent="CoinPanel"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 16
 
 [node name="CoinIcon" type="TextureRect" parent="CoinPanel/CoinRow"]
 custom_minimum_size = Vector2(36, 36)
