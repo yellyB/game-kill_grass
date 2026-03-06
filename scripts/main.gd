@@ -220,7 +220,7 @@ func show_session_end_overlay(earnings: int) -> void:
   results_vbox.anchor_bottom = session_earnings_label.anchor_bottom
   results_vbox.offset_left = session_earnings_label.offset_left
   results_vbox.offset_right = session_earnings_label.offset_right
-  results_vbox.offset_top = session_earnings_label.offset_top
+  results_vbox.offset_top = session_earnings_label.offset_top + 15
   results_vbox.offset_bottom = session_earnings_label.offset_bottom
   results_vbox.grow_horizontal = session_earnings_label.grow_horizontal
   results_vbox.grow_vertical = session_earnings_label.grow_vertical
@@ -240,7 +240,7 @@ func show_session_end_overlay(earnings: int) -> void:
   earnings_container.add_child(prefix_label)
 
   var coin_hbox = GameManager.create_coin_label(
-    GameManager.format_number(earnings), 54, Color(1, 1, 1), 4)
+    GameManager.format_number(earnings), 54, Color(0.3, 1.0, 0.5), 4)
   earnings_container.add_child(coin_hbox)
   results_vbox.add_child(earnings_container)
 
@@ -273,7 +273,7 @@ func show_session_end_overlay(earnings: int) -> void:
     bonus_container.add_child(bonus_prefix)
 
     var bonus_coin = GameManager.create_coin_label(
-      "+" + GameManager.format_number(GameManager.session_boss_reward), 51, Color(1, 0.9, 0.3), 4)
+      GameManager.format_number(GameManager.session_boss_reward), 51, Color(1, 0.9, 0.3), 4)
     bonus_container.add_child(bonus_coin)
     results_vbox.add_child(bonus_container)
 
