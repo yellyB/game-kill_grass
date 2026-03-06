@@ -594,11 +594,12 @@ func _on_blackhole() -> void:
       coin.is_being_collected = true
 
 func _draw() -> void:
-  # Draw chunk boundaries
-  for chunk_coord in loaded_chunks:
-    var origin = Vector2(chunk_coord.x * chunk_size, chunk_coord.y * chunk_size)
-    var rect = Rect2(origin, Vector2(chunk_size, chunk_size))
-    draw_rect(rect, Color(1.0, 1.0, 1.0, 0.15), false, 2.0)
+  # Draw chunk boundaries (debug only)
+  if GameManager.debug_mode:
+    for chunk_coord in loaded_chunks:
+      var origin = Vector2(chunk_coord.x * chunk_size, chunk_coord.y * chunk_size)
+      var rect = Rect2(origin, Vector2(chunk_size, chunk_size))
+      draw_rect(rect, Color(1.0, 1.0, 1.0, 0.15), false, 2.0)
 
   if not _has_active_hp_bars:
     return

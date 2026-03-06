@@ -4,6 +4,9 @@ extends Node
 const SCREEN_PADDING_H: float = 40.0
 const SCREEN_PADDING_V: float = 60.0
 
+# Debug mode (toggled by tapping coin display 5 times on main menu)
+var debug_mode: bool = false
+
 # Game state
 var money: int = 0
 var session_money: int = 0
@@ -75,7 +78,6 @@ func get_world_grass_reward_mult() -> float:
   return base * (1.0 + strength * 0.5)
 
 signal world_unlocked(index: int)
-signal key_acquired(world_index: int)
 
 # Skill definitions — single source of truth for all skills
 const SKILL_DEFS: Array = [
@@ -1239,7 +1241,6 @@ func get_part_penalty_mult() -> float:
 func add_key(world_index: int) -> void:
   if world_index not in owned_keys:
     owned_keys.append(world_index)
-    key_acquired.emit(world_index)
     SaveManager.save_game()
 
 func has_key(world_index: int) -> bool:

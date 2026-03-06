@@ -716,6 +716,7 @@ func _on_money_display_input(event: InputEvent) -> void:
     _debug_tap_count += 1
     if _debug_tap_count >= 5:
       _debug_container.visible = !_debug_container.visible
+      GameManager.debug_mode = _debug_container.visible
       _debug_tap_count = 0
 
 func _build_debug_buttons() -> void:
