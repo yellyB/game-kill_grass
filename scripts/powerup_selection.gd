@@ -42,7 +42,7 @@ const POWERUP_DATA = [
   {
     "type": "critical_surge",
     "name": "크리티컬 서지",
-    "desc": "치명타 100% + 치피 2배",
+    "desc": "치명타 100% 증가 & 치명타 피해 x2",
     "color": Color(1.0, 0.2, 0.4),
     "image": "크리티컬서지.png",
     "stackable": false,
@@ -51,7 +51,7 @@ const POWERUP_DATA = [
   {
     "type": "golden_luck",
     "name": "골든 럭",
-    "desc": "황금풀 절단 시 랜덤 파워업",
+    "desc": "황금풀 제거 시 무작위 파워업 스킬 획득",
     "color": Color(1.0, 0.85, 0.0),
     "image": "골든럭.png",
     "stackable": false,
@@ -60,7 +60,7 @@ const POWERUP_DATA = [
   {
     "type": "critical_reaper",
     "name": "크리티컬 리퍼",
-    "desc": "치명타 시 주변 풀 3개 즉사",
+    "desc": "치명타 발동 시 주변 풀 3개 즉시 제거",
     "color": Color(0.6, 0.1, 0.3),
     "image": "크리티컬리퍼.png",
     "stackable": true,
@@ -78,7 +78,7 @@ const POWERUP_DATA = [
   {
     "type": "gold_rush",
     "name": "골드 러시",
-    "desc": "10초간 코인 2배",
+    "desc": "10초간 획득하는 코인의 가치 2배",
     "color": Color(1.0, 0.85, 0.0),
     "image": "골드러시.png",
     "stackable": false,
@@ -96,7 +96,7 @@ const POWERUP_DATA = [
   {
     "type": "double_or_dust",
     "name": "더블 오어 더스트",
-    "desc": "50% 코인 2배 / 50% 전부 증발",
+    "desc": "50% 코인 2배 or 50% 전부 증발",
     "color": Color(0.8, 0.2, 0.8),
     "image": "더블오어더스트.png",
     "stackable": false,
@@ -225,6 +225,10 @@ func _build_ui() -> void:
   title.add_theme_constant_override("outline_size", 4)
   center.add_child(title)
 
+  # Bold font for powerup names
+  var bold_font = SystemFont.new()
+  bold_font.font_weight = 700
+
   # Buttons
   for data in selected:
     var btn = Button.new()
@@ -286,20 +290,53 @@ func _build_ui() -> void:
       placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
       hbox.add_child(placeholder)
 
-    var text_label = Label.new()
-    text_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    text_label.add_theme_font_size_override("font_size", 35)
-    text_label.add_theme_color_override("font_color", Color.WHITE)
-    text_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-    text_label.add_theme_constant_override("outline_size", 3)
-    text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var text_vbox = VBoxContainer.new()
+    text_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    text_vbox.add_theme_constant_override("separation", 0)
+    text_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+    # Line 1: Name (bold, large)
+    var name_label = Label.new()
+    name_label.text = data.name
+    name_label.add_theme_font_override("font", bold_font)
+    name_label.add_theme_font_size_override("font_size", 40)
+    name_label.add_theme_color_override("font_color", Color.WHITE)
+    name_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    name_label.add_theme_constant_override("outline_size", 3)
+    name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    text_vbox.add_child(name_label)
+
+    # Spacer
+    var spacer = Control.new()
+    spacer.custom_minimum_size = Vector2(0, 6)
+    spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    text_vbox.add_child(spacer)
+
+    # Line 2: Description
+    var desc_label = Label.new()
+    desc_label.text = data.desc
+    desc_label.add_theme_font_size_override("font_size", 26)
+    desc_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
+    desc_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    desc_label.add_theme_constant_override("outline_size", 2)
+    desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    text_vbox.add_child(desc_label)
+
+    # Line 3: Level (stackable only)
     if data.stackable:
       var level = _get_current_level(data.type)
       var next_level = level + 1
-      text_label.text = "%s\nLv.%d → Lv.%d  (%s)" % [data.name, level, next_level, data.desc]
-    else:
-      text_label.text = "%s\n%s" % [data.name, data.desc]
-    hbox.add_child(text_label)
+      var level_rtl = RichTextLabel.new()
+      level_rtl.bbcode_enabled = true
+      level_rtl.fit_content = true
+      level_rtl.scroll_active = false
+      level_rtl.text = "Lv.%d → [color=lime]Lv.%d[/color]" % [level, next_level]
+      level_rtl.add_theme_font_size_override("normal_font_size", 26)
+      level_rtl.add_theme_color_override("default_color", Color(1, 1, 1, 0.75))
+      level_rtl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      text_vbox.add_child(level_rtl)
+
+    hbox.add_child(text_vbox)
 
     btn.add_child(hbox)
     btn.pressed.connect(_on_selected.bind(data.type))
