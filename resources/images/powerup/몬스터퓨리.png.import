@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7boeh52setju"
-path="res://.godot/imported/비스트러시.png-b29f4634488c7a9c9a17d7eed98e9d75.ctex"
+path="res://.godot/imported/몬스터퓨리.png-0660f13a69555989bacc2039b7a526e1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/images/powerup/비스트러시.png"
-dest_files=["res://.godot/imported/비스트러시.png-b29f4634488c7a9c9a17d7eed98e9d75.ctex"]
+source_file="res://resources/images/powerup/몬스터퓨리.png"
+dest_files=["res://.godot/imported/몬스터퓨리.png-0660f13a69555989bacc2039b7a526e1.ctex"]
 
 [params]
 

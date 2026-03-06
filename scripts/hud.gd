@@ -89,7 +89,10 @@ const POWERUP_NAMES = {
   "gold_rush": "골드 러시",
   "golden_bloom": "골든 블룸",
   "double_or_dust": "더블 오어 더스트",
-  "beast_rush": "비스트 러시",
+  "golden_luck": "골든 럭",
+  "critical_surge": "크리티컬 서지",
+  "critical_reaper": "크리티컬 리퍼",
+  "monster_fury": "몬스터 퓨리",
   "overdrive": "오버드라이브",
   "harvest_madness": "하베스트 매드니스",
   "field_clear": "필드 클리어",
@@ -104,7 +107,10 @@ const POWERUP_COLORS = {
   "gold_rush": Color(1.0, 0.85, 0.0),
   "golden_bloom": Color(1.0, 0.9, 0.2),
   "double_or_dust": Color(0.8, 0.2, 0.8),
-  "beast_rush": Color(0.9, 0.2, 0.2),
+  "golden_luck": Color(1.0, 0.85, 0.0),
+  "critical_surge": Color(1.0, 0.2, 0.4),
+  "critical_reaper": Color(0.6, 0.1, 0.3),
+  "monster_fury": Color(0.9, 0.2, 0.2),
   "overdrive": Color(1.0, 0.3, 0.5),
   "harvest_madness": Color(1.0, 0.5, 1.0),
   "field_clear": Color(0.3, 1.0, 0.3),
@@ -196,12 +202,6 @@ func _create_buff_container() -> void:
   perm_icons_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
   perm_icons_hbox.add_theme_constant_override("separation", 0)
   buff_container.add_child(perm_icons_hbox)
-
-const TIMED_BUFF_NAMES = {
-  "gold_rush": "골드 러시",
-  "harvest_madness": "하베스트 매드니스",
-  "overdrive": "오버드라이브",
-}
 
 func _on_timed_buff_started(type: String, _duration: float) -> void:
   if buff_labels.has(type):

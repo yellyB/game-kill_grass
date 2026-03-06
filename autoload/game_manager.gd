@@ -135,6 +135,9 @@ var session_buff_attack_speed: int = 0
 var session_buff_attack_range: int = 0
 var session_buff_magnet_range: int = 0
 var session_buff_move_speed: int = 0
+var session_buff_critical_surge: bool = false
+var session_buff_critical_reaper: int = 0
+var session_buff_golden_luck: bool = false
 
 # Timed buffs: { "gold_rush": remaining_seconds, ... }
 var timed_buffs: Dictionary = {}
@@ -162,6 +165,7 @@ signal timed_buff_started(type: String, duration: float)
 signal timed_buff_ended(type: String)
 signal extra_time_requested(seconds: float)
 signal golden_bloom_requested()
+signal golden_grass_cut()
 signal field_clear_requested()
 signal blackhole_requested()
 
@@ -220,6 +224,31 @@ func _ready() -> void:
   _sfx_skill_click.stream = preload("res://resources/sounds/effect/skill_click.wav")
   _sfx_skill_click.volume_db = -5.0
   add_child(_sfx_skill_click)
+  golden_grass_cut.connect(_on_golden_grass_cut)
+
+# 골든 럭: 황금풀 절단 시 랜덤 파워업 자동 적용
+const GOLDEN_LUCK_POOL: Array = [
+  {"type": "attack_speed", "weight": 20},
+  {"type": "attack_range", "weight": 20},
+  {"type": "magnet_range", "weight": 20},
+  {"type": "move_speed", "weight": 20},
+  {"type": "critical_surge", "weight": 20},
+  {"type": "critical_reaper", "weight": 10},
+  {"type": "extra_time", "weight": 10},
+  {"type": "gold_rush", "weight": 10},
+]
+
+func _on_golden_grass_cut() -> void:
+  var total_weight = 0
+  for item in GOLDEN_LUCK_POOL:
+    total_weight += item.weight
+  var roll = randi() % total_weight
+  var cumulative = 0
+  for item in GOLDEN_LUCK_POOL:
+    cumulative += item.weight
+    if roll < cumulative:
+      apply_powerup(item.type)
+      return
 
 func play_skill_click() -> void:
   _sfx_skill_click.play()
@@ -549,13 +578,18 @@ func get_chest_spawn_chance() -> float:
 
 # 치명타 확률: 0% → 80%, 틱당 +2% (총 40틱)
 func get_crit_chance() -> float:
+  if session_buff_critical_surge:
+    return 1.0
   var ticks = get_skill_total_progress("crit_chance")
   return minf(ticks * 0.02, 0.8)
 
 # 치명타 데미지: 1.2x → 3.0x, 틱당 +0.06 (총 30틱)
 func get_crit_damage_mult() -> float:
   var ticks = get_skill_total_progress("crit_damage")
-  return 1.2 + ticks * 0.06
+  var mult = 1.2 + ticks * 0.06
+  if session_buff_critical_surge:
+    mult *= 2.0
+  return mult
 
 # 몬스터 피해 배율 (미정 — 임시: 틱당 +0.1, 총 35틱)
 func get_monster_damage_mult() -> float:
@@ -652,6 +686,15 @@ func apply_powerup(type: String) -> void:
     "move_speed":
       session_buff_move_speed += 1
       powerup_acquired.emit(type, session_buff_move_speed)
+    "critical_surge":
+      session_buff_critical_surge = true
+      powerup_acquired.emit(type, 1)
+    "critical_reaper":
+      session_buff_critical_reaper += 3
+      powerup_acquired.emit(type, session_buff_critical_reaper)
+    "golden_luck":
+      session_buff_golden_luck = true
+      powerup_acquired.emit(type, 1)
     "overdrive":
       _start_timed_buff("overdrive", 10.0)
       powerup_acquired.emit(type, 1)
@@ -666,8 +709,8 @@ func apply_powerup(type: String) -> void:
       powerup_acquired.emit(type, 0)
     "double_or_dust":
       _apply_double_or_dust()
-    "beast_rush":
-      add_fury(10.0)
+    "monster_fury":
+      add_fury(get_fury_max() * 0.2 / get_fury_rate_mult())
       powerup_acquired.emit(type, 0)
     "harvest_madness":
       _start_timed_buff("harvest_madness", 5.0)
@@ -1195,6 +1238,9 @@ func reset_session_data() -> void:
   session_buff_attack_range = 0
   session_buff_magnet_range = 0
   session_buff_move_speed = 0
+  session_buff_critical_surge = false
+  session_buff_critical_reaper = 0
+  session_buff_golden_luck = false
   timed_buffs.clear()
   hit_penalty_active = false
   fury = 0.0
