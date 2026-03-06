@@ -122,13 +122,12 @@ func _ready() -> void:
   if title_label:
     title_label.visible = false
 
-  # Reposition section label (스킬) to top
+  # Section label font size (rendered inside skill_tree_container for centering)
   section_label.add_theme_font_size_override("font_size", 37)
-  section_label.offset_top = 130.0
-  section_label.offset_bottom = 175.0
+  section_label.visible = false
 
-  # Reposition skill tree scroll to start below section label
-  skill_tree_scroll.offset_top = 220.0
+  # Skill tree scroll starts below header (close btn + money display)
+  skill_tree_scroll.offset_top = 130.0
 
   # Style description panel to stand out from background
   var desc_style = StyleBoxFlat.new()
@@ -525,8 +524,20 @@ func build_skill_tree() -> void:
   if container_width <= 0:
     container_width = panel.size.x - 80
 
+  # Add "── 스킬 ──" label inside container (for centering together)
+  var section_lbl = Label.new()
+  section_lbl.text = "── 스킬 ──"
+  section_lbl.add_theme_font_size_override("font_size", 37)
+  section_lbl.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8, 1))
+  section_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  section_lbl.size = Vector2(container_width, 45)
+  section_lbl.position = Vector2(0, 0)
+  skill_tree_container.add_child(section_lbl)
+
+  var section_label_height: float = 60.0  # label height + gap
+
   var group_count = GameManager.SKILL_GROUPS.size()
-  var accumulated_y: float = 0.0
+  var accumulated_y: float = section_label_height
   var row_gap = NODE_MARGIN + NODE_INNER_PAD * 2
   var first_columns: int = GameManager.SKILL_GROUPS[0]["columns"]
 
@@ -545,7 +556,7 @@ func build_skill_tree() -> void:
     scroll_height = 700.0
   # total_height = group_count * group_width + (group_count - 1) * GROUP_GAP
   # group_width = (node_size + NODE_INNER_PAD) * first_columns + NODE_MARGIN * (first_columns + 1)
-  var avail_v = scroll_height - (group_count - 1) * GROUP_GAP
+  var avail_v = scroll_height - section_label_height - (group_count - 1) * GROUP_GAP
   var group_width_max = avail_v / float(group_count)
   var node_size_v = (group_width_max - NODE_MARGIN * (first_columns + 1)) / float(first_columns) - NODE_INNER_PAD
 
@@ -688,7 +699,15 @@ func build_skill_tree() -> void:
 
     accumulated_y += group_width + GROUP_GAP
 
-  skill_tree_container.custom_minimum_size = Vector2(0, accumulated_y + 20)
+  # Center tree vertically in scroll area
+  var scroll_h = skill_tree_scroll.size.y
+  if scroll_h <= 0:
+    scroll_h = 700.0
+  if accumulated_y < scroll_h:
+    var y_offset = (scroll_h - accumulated_y) / 2.0
+    for child in skill_tree_container.get_children():
+      child.position.y += y_offset
+  skill_tree_container.custom_minimum_size = Vector2(0, maxf(accumulated_y + 20, scroll_h))
 
 func _create_skill_node(skill_type: String, state: String, node_size: float, group_idx: int) -> Button:
   var btn = Button.new()
