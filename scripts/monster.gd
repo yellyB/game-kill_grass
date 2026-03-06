@@ -41,6 +41,7 @@ var collision_base_scale: float = 0.0
 var collision_rotation: float = 0.0
 var key_world_index: int = -1  # >= 0 이면 사망 시 해당 월드 열쇠 드롭
 var boss_reward: int = 0  # > 0 이면 사망 시 해당 금액 코인 드롭 (클리어 후 보상)
+var boss_gems: int = 0  # > 0 이면 사망 시 보석 드롭 (초월 보상)
 var boss_potion: String = ""  # 비어있지 않으면 사망 시 해당 아이템 드롭
 var is_fury_boss: bool = false  # 분노 보스 여부 (사망 시 세션 종료)
 var is_boss_entering: bool = false  # 보스 등장 애니메이션 중
@@ -60,6 +61,7 @@ func setup(config: Dictionary) -> void:
   collision_rotation = config.get("collision_rotation", 0.0)
   key_world_index = config.get("key_world_index", -1)
   boss_reward = config.get("boss_reward", 0)
+  boss_gems = config.get("boss_gems", 0)
   boss_potion = config.get("boss_potion", "")
   is_fury_boss = config.get("is_fury_boss", false)
 
@@ -265,7 +267,7 @@ func die() -> void:
     _drop_key()
   elif boss_potion != "":
     _drop_potion()
-  elif boss_reward > 0:
+  elif boss_reward > 0 or boss_gems > 0:
     _drop_boss_reward()
   elif is_fury_boss:
     # 분노 보스: 드롭 없이 세션 종료
@@ -280,15 +282,27 @@ func die() -> void:
   queue_free()
 
 func _drop_boss_reward() -> void:
-  GameManager.session_boss_reward = boss_reward
-  GameManager.add_money(boss_reward)
-  # Spawn 7 visual-only coins that spray upward in arcs
-  var coin_count = 7
-  for i in coin_count:
-    var coin = CoinScene.instantiate()
-    coin.position = position
-    coin.boss_drop = true
-    get_parent().add_child(coin)
+  if boss_reward > 0:
+    GameManager.session_boss_reward = boss_reward
+    GameManager.add_money(boss_reward)
+    # Spawn 7 visual-only coins that spray upward in arcs
+    var coin_count = 7
+    for i in coin_count:
+      var coin = CoinScene.instantiate()
+      coin.position = position
+      coin.boss_drop = true
+      get_parent().add_child(coin)
+
+  # 보석 드롭 (초월 보상)
+  if boss_gems > 0:
+    var player = get_tree().get_first_node_in_group("player")
+    if player:
+      for i in boss_gems:
+        var item = DroppedItemScene.instantiate()
+        item.setup_gem(player)
+        item.position = position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+        get_parent().add_child(item)
+
   # 1s delay for spray animation, then end session
   get_tree().create_timer(1.0).timeout.connect(func():
     GameManager.boss_key_collected.emit(-1)

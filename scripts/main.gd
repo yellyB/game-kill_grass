@@ -202,49 +202,74 @@ func show_session_end_overlay(earnings: int) -> void:
   sfx.play()
   sfx.finished.connect(sfx.queue_free)
 
-  # Hide elements initially
+  # Hide scene labels (replaced by dynamic container)
   session_earnings_label.visible = false
   bonus_label.visible = false
-  tap_to_return_label.modulate = Color(1, 1, 1, 0)
+  tap_to_return_label.visible = false
   touch_button.disabled = true
+  # Hide the scene's SessionEndLabel too
+  var scene_end_label = session_end_overlay.get_node_or_null("SessionEndLabel")
+  if scene_end_label:
+    scene_end_label.visible = false
 
-  # Results container (vertical stack)
+  # Main container: 세션종료 / 획득정보 / 터치하여돌아가기 를 하나의 VBox로 관리
+  var main_vbox = VBoxContainer.new()
+  main_vbox.name = "MainResultsVBox"
+  main_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  main_vbox.set_anchors_preset(Control.PRESET_CENTER)
+  main_vbox.offset_left = -300
+  main_vbox.offset_right = 300
+  main_vbox.offset_top = -280
+  main_vbox.offset_bottom = 280
+  main_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+  main_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+  main_vbox.add_theme_constant_override("separation", 0)
+  main_vbox.modulate = Color(1, 1, 1, 0)
+
+  # ── Section 1: 세션 종료 ──
+  var end_label = Label.new()
+  end_label.text = "세션 종료"
+  end_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  end_label.add_theme_font_size_override("font_size", 58)
+  end_label.add_theme_color_override("font_color", Color.WHITE)
+  end_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  end_label.add_theme_constant_override("outline_size", 4)
+  main_vbox.add_child(end_label)
+
+  # Gap: 세션종료 ↔ 획득정보 (60px)
+  var gap1 = Control.new()
+  gap1.custom_minimum_size = Vector2(0, 60)
+  main_vbox.add_child(gap1)
+
+  # ── Section 2: 획득 정보 ──
   var results_vbox = VBoxContainer.new()
-  results_vbox.name = "ResultsVBox"
   results_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
   results_vbox.add_theme_constant_override("separation", 12)
-  results_vbox.layout_mode = 1
-  results_vbox.anchor_left = session_earnings_label.anchor_left
-  results_vbox.anchor_right = session_earnings_label.anchor_right
-  results_vbox.anchor_top = session_earnings_label.anchor_top
-  results_vbox.anchor_bottom = session_earnings_label.anchor_bottom
-  results_vbox.offset_left = session_earnings_label.offset_left
-  results_vbox.offset_right = session_earnings_label.offset_right
-  results_vbox.offset_top = session_earnings_label.offset_top + 15
-  results_vbox.offset_bottom = session_earnings_label.offset_bottom
-  results_vbox.grow_horizontal = session_earnings_label.grow_horizontal
-  results_vbox.grow_vertical = session_earnings_label.grow_vertical
-  results_vbox.modulate = Color(1, 1, 1, 0)
+
+  # 순차 fade-in 대상 목록
+  var fade_rows: Array[Control] = []
 
   # Earnings row
   var earnings_container = HBoxContainer.new()
   earnings_container.alignment = BoxContainer.ALIGNMENT_CENTER
-  earnings_container.add_theme_constant_override("separation", 8)
+  earnings_container.add_theme_constant_override("separation", 6)
+  earnings_container.modulate = Color(1, 1, 1, 0)
 
   var prefix_label = Label.new()
   prefix_label.text = "획득: "
-  prefix_label.add_theme_font_size_override("font_size", 54)
-  prefix_label.add_theme_color_override("font_color", Color.WHITE)
+  prefix_label.add_theme_font_size_override("font_size", 42)
+  prefix_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
   prefix_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   prefix_label.add_theme_constant_override("outline_size", 4)
   earnings_container.add_child(prefix_label)
 
   var coin_hbox = GameManager.create_coin_label(
-    GameManager.format_number(earnings), 54, Color(0.3, 1.0, 0.5), 4)
+    GameManager.format_number(earnings), 42, Color(0.3, 1.0, 0.5), 4)
   earnings_container.add_child(coin_hbox)
   results_vbox.add_child(earnings_container)
+  fade_rows.append(earnings_container)
 
-  # Key row (if boss key acquired this session)
+  # Key row
   var key_world = GameManager.session_key_acquired
   if key_world >= 0:
     var world_names = ["슬라임 늪", "들판", "기사의 성벽", "마법의 숲", "수정 호수", "고대 유적", "용의 봉우리"]
@@ -252,53 +277,139 @@ func show_session_end_overlay(earnings: int) -> void:
     var key_label = Label.new()
     key_label.text = "+ 열쇠 (%s)" % world_name
     key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    key_label.add_theme_font_size_override("font_size", 51)
+    key_label.add_theme_font_size_override("font_size", 40)
     key_label.add_theme_color_override("font_color", Color(0.3, 1.0, 1.0))
     key_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
     key_label.add_theme_constant_override("outline_size", 4)
+    key_label.modulate = Color(1, 1, 1, 0)
     results_vbox.add_child(key_label)
+    fade_rows.append(key_label)
+
+  # Gem row
+  if GameManager.session_gems > 0:
+    var gem_container = HBoxContainer.new()
+    gem_container.alignment = BoxContainer.ALIGNMENT_CENTER
+    gem_container.add_theme_constant_override("separation", 6)
+    gem_container.modulate = Color(1, 1, 1, 0)
+
+    var gem_plus = Label.new()
+    gem_plus.text = "+ "
+    gem_plus.add_theme_font_size_override("font_size", 40)
+    gem_plus.add_theme_color_override("font_color", Color(0.95, 0.3, 0.5))
+    gem_plus.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    gem_plus.add_theme_constant_override("outline_size", 4)
+    gem_container.add_child(gem_plus)
+
+    gem_container.add_child(_create_gem_icon(34))
+
+    var gem_count = Label.new()
+    gem_count.text = "x%d" % GameManager.session_gems
+    gem_count.add_theme_font_size_override("font_size", 40)
+    gem_count.add_theme_color_override("font_color", Color(0.95, 0.3, 0.5))
+    gem_count.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    gem_count.add_theme_constant_override("outline_size", 4)
+    gem_container.add_child(gem_count)
+
+    results_vbox.add_child(gem_container)
+    fade_rows.append(gem_container)
 
   # Boss reward bonus row
   if GameManager.session_boss_reward > 0:
     var bonus_container = HBoxContainer.new()
     bonus_container.alignment = BoxContainer.ALIGNMENT_CENTER
-    bonus_container.add_theme_constant_override("separation", 8)
+    bonus_container.add_theme_constant_override("separation", 6)
+    bonus_container.modulate = Color(1, 1, 1, 0)
 
-    var bonus_prefix = Label.new()
-    bonus_prefix.text = "보너스: "
-    bonus_prefix.add_theme_font_size_override("font_size", 51)
-    bonus_prefix.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
-    bonus_prefix.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-    bonus_prefix.add_theme_constant_override("outline_size", 4)
-    bonus_container.add_child(bonus_prefix)
+    var bonus_plus = Label.new()
+    bonus_plus.text = "+ "
+    bonus_plus.add_theme_font_size_override("font_size", 40)
+    bonus_plus.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+    bonus_plus.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    bonus_plus.add_theme_constant_override("outline_size", 4)
+    bonus_container.add_child(bonus_plus)
 
     var bonus_coin = GameManager.create_coin_label(
-      GameManager.format_number(GameManager.session_boss_reward), 51, Color(1, 0.9, 0.3), 4)
+      GameManager.format_number(GameManager.session_boss_reward), 40, Color(1, 0.9, 0.3), 4)
     bonus_container.add_child(bonus_coin)
     results_vbox.add_child(bonus_container)
+    fade_rows.append(bonus_container)
 
-  session_end_overlay.add_child(results_vbox)
+  main_vbox.add_child(results_vbox)
+
+  # Gap: 획득정보 ↔ 터치하여돌아가기 (110px)
+  var gap2 = Control.new()
+  gap2.custom_minimum_size = Vector2(0, 110)
+  main_vbox.add_child(gap2)
+
+  # ── Section 3: 터치하여 돌아가기 ──
+  var tap_label = Label.new()
+  tap_label.name = "TapLabel"
+  tap_label.text = "터치하여 돌아가기"
+  tap_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  tap_label.add_theme_font_size_override("font_size", 36)
+  tap_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+  tap_label.modulate = Color(1, 1, 1, 0)
+  main_vbox.add_child(tap_label)
+
+  session_end_overlay.add_child(main_vbox)
 
   # Show overlay
   session_end_overlay.visible = true
 
-  # Fade in results
+  # "세션 종료" 먼저 표시
   var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-  tween.tween_property(results_vbox, "modulate:a", 1.0, 0.4)
+  tween.tween_property(main_vbox, "modulate:a", 1.0, 0.3)
+  tween.tween_interval(0.3)
 
-  # Show tap to return
-  tween.tween_interval(0.6)
-  tween.tween_property(tap_to_return_label, "modulate:a", 1.0, 0.3)
+  # 획득 정보 한 줄씩 순차 fade-in
+  for row in fade_rows:
+    tween.tween_property(row, "modulate:a", 1.0, 0.3)
+    tween.tween_interval(0.15)
+
+  # 터치하여 돌아가기
+  tween.tween_interval(0.3)
+  tween.tween_property(tap_label, "modulate:a", 1.0, 0.3)
   tween.tween_callback(func():
     touch_button.disabled = false
-    animate_tap_label()
+    _animate_tap_label(tap_label)
   )
 
-func animate_tap_label() -> void:
+func _create_gem_icon(icon_size: int) -> Control:
+  var container = Control.new()
+  container.custom_minimum_size = Vector2(icon_size, icon_size)
+  var cx = icon_size * 0.5
+  var cy = icon_size * 0.5
+  var sx = icon_size * 0.38
+  var sy = icon_size * 0.5
+  # 본체: 세로 길쭉 육각형
+  var body = Polygon2D.new()
+  body.color = Color(0.9, 0.2, 0.4)
+  body.polygon = PackedVector2Array([
+    Vector2(cx, cy - sy),
+    Vector2(cx + sx, cy - sy * 0.35),
+    Vector2(cx + sx, cy + sy * 0.35),
+    Vector2(cx, cy + sy),
+    Vector2(cx - sx, cy + sy * 0.35),
+    Vector2(cx - sx, cy - sy * 0.35),
+  ])
+  container.add_child(body)
+  # 하이라이트 (상단)
+  var hl = Polygon2D.new()
+  hl.color = Color(1.0, 0.5, 0.6, 0.5)
+  hl.polygon = PackedVector2Array([
+    Vector2(cx, cy - sy),
+    Vector2(cx + sx, cy - sy * 0.35),
+    Vector2(cx, cy),
+    Vector2(cx - sx, cy - sy * 0.35),
+  ])
+  container.add_child(hl)
+  return container
+
+func _animate_tap_label(label: Label) -> void:
   var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
   tween.set_loops()
-  tween.tween_property(tap_to_return_label, "modulate:a", 0.3, 0.7)
-  tween.tween_property(tap_to_return_label, "modulate:a", 1.0, 0.7)
+  tween.tween_property(label, "modulate:a", 0.3, 0.7)
+  tween.tween_property(label, "modulate:a", 1.0, 0.7)
 
 func _on_session_end_touch() -> void:
   GameManager.play_confirm_click()

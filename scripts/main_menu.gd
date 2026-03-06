@@ -441,11 +441,16 @@ func _create_world_card(index: int) -> PanelContainer:
         str_info.add_child(rw_label)
 
       var str_btn = Button.new()
-      str_btn.text = "초월"
       str_btn.add_theme_font_size_override("font_size", 36)
       str_btn.custom_minimum_size = Vector2(150, 108)
-      str_btn.pressed.connect(_on_strengthen_pressed.bind(index))
-      GameManager.style_button(str_btn, "main")
+      if strength >= GameManager.MAX_STRENGTH_LEVEL:
+        str_btn.text = "MAX"
+        str_btn.disabled = true
+        GameManager.style_button(str_btn, "muted")
+      else:
+        str_btn.text = "초월"
+        str_btn.pressed.connect(_on_strengthen_pressed.bind(index))
+        GameManager.style_button(str_btn, "main")
       str_hbox.add_child(str_btn)
 
     # Cost / key status (locked with key)

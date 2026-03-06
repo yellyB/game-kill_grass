@@ -26,15 +26,22 @@ func setup_key(p_world_index: int, p_target: Node2D) -> void:
 	target = p_target
 
 var use_potion_visual: bool = false
+var is_gem: bool = false
 
 func setup_potion(p_item_id: String, p_target: Node2D) -> void:
 	item_id = p_item_id
 	use_potion_visual = true
 	target = p_target
 
+func setup_gem(p_target: Node2D) -> void:
+	is_gem = true
+	target = p_target
+
 func _ready() -> void:
 	if is_key:
 		_build_key_visual()
+	elif is_gem:
+		_build_gem_visual()
 	elif use_potion_visual:
 		_build_potion_visual()
 	elif sprite and item_texture:
@@ -131,6 +138,32 @@ func _build_potion_visual() -> void:
 	])
 	add_child(cap)
 
+func _build_gem_visual() -> void:
+	if sprite:
+		sprite.visible = false
+	# 세로로 길쭉한 육각형 보석 (위아래 뾰족)
+	var body = Polygon2D.new()
+	body.color = Color(0.9, 0.2, 0.4)
+	body.polygon = PackedVector2Array([
+		Vector2(0, -14),   # 위 꼭짓점
+		Vector2(10, -5),   # 우상
+		Vector2(10, 5),    # 우하
+		Vector2(0, 14),    # 아래 꼭짓점
+		Vector2(-10, 5),   # 좌하
+		Vector2(-10, -5),  # 좌상
+	])
+	add_child(body)
+	# 밝은 면 (왼쪽 위 반사광)
+	var highlight = Polygon2D.new()
+	highlight.color = Color(1.0, 0.5, 0.6, 0.5)
+	highlight.polygon = PackedVector2Array([
+		Vector2(0, -14),
+		Vector2(10, -5),
+		Vector2(0, 0),
+		Vector2(-10, -5),
+	])
+	add_child(highlight)
+
 func _build_key_visual() -> void:
 	# Hide the default sprite
 	if sprite:
@@ -167,6 +200,9 @@ func _collect() -> void:
 
 	if is_key:
 		GameManager.add_key(key_world_index)
+	elif is_gem:
+		GameManager.add_gem()
+		SaveManager.save_game()
 	elif use_potion_visual:
 		GameManager.has_potion = true
 		SaveManager.save_game()
