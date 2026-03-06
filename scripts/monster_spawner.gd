@@ -35,7 +35,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   2: {
     "type": "knight",
     "sprite_path": "res://resources/images/monster/knight/",
-    "max_health": 350,
+    "max_health": 700,
     "wander_speed": 48,
     "sprite_scale": 0.84,
     "effect_scene": "res://scenes/effects/spark_effect.tscn",
@@ -48,7 +48,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   3: {
     "type": "mage",
     "sprite_path": "res://resources/images/monster/mage/",
-    "max_health": 700,
+    "max_health": 1750,
     "wander_speed": 54,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/spore_effect.tscn",
@@ -61,7 +61,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   4: {
     "type": "deer",
     "sprite_path": "res://resources/images/monster/deer/",
-    "max_health": 1200,
+    "max_health": 3600,
     "wander_speed": 72,
     "sprite_scale": 0.84,
     "effect_scene": "res://scenes/effects/crystal_shimmer_effect.tscn",
@@ -74,7 +74,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   5: {
     "type": "golem",
     "sprite_path": "res://resources/images/monster/golem/",
-    "max_health": 2000,
+    "max_health": 7000,
     "wander_speed": 40,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/rock_debris_effect.tscn",
@@ -87,7 +87,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   6: {
     "type": "dragon",
     "sprite_path": "res://resources/images/monster/dragon/",
-    "max_health": 3500,
+    "max_health": 14000,
     "wander_speed": 80,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/fire_wisp_effect.tscn",
