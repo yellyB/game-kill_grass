@@ -179,7 +179,9 @@ const FURY_THRESHOLDS: Array = [300.0, 1200.0, 3000.0, 7500.0, 16000.0, 22500.0,
 
 func get_fury_max() -> float:
   var idx = clampi(selected_world, 0, FURY_THRESHOLDS.size() - 1)
-  return FURY_THRESHOLDS[idx]
+  var base = FURY_THRESHOLDS[idx]
+  var strength = get_world_strength_level(selected_world)
+  return base * (1.0 + strength * 0.3)
 
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
