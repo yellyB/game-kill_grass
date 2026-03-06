@@ -148,25 +148,84 @@ func update_visual() -> void:
 	# Color based on value
 	var coin_color: Color
 	var shine_color: Color
-	if value > 200:
+	if value >= 1000:
 		coin_color = Color(0.3, 0.5, 1.0) # Diamond - blue
 		shine_color = Color(0.6, 0.7, 1.0, 0.8)
-	elif value > 100:
+	elif value >= 500:
 		coin_color = Color(1.0, 0.85, 0.0) # Gold - bright yellow
 		shine_color = Color(1.0, 1.0, 0.6, 0.7)
-	elif value > 50:
+	elif value >= 100:
 		coin_color = Color(0.75, 0.78, 0.85) # Silver - cool gray-blue
 		shine_color = Color(0.9, 0.92, 1.0, 0.6)
 	else:
 		coin_color = Color(0.85, 0.55, 0.25) # Bronze - bright copper
 		shine_color = Color(1.0, 0.75, 0.4, 0.6)
 
+	# 3개 쌓임 조건: 각 등급의 절반 금액 이상 (다이아 제외)
+	var is_stacked: bool = false
+	if value >= 1000:
+		is_stacked = false  # 다이아는 스택 없음
+	elif value >= 500:
+		is_stacked = value >= 750
+	elif value >= 100:
+		is_stacked = value >= 300
+	else:
+		is_stacked = value >= 50
+
+	# 기존 스택 복제본 제거
+	for child in visual.get_children():
+		if child.name.begins_with("StackCoin"):
+			child.queue_free()
+
 	var coin_body = visual.get_node_or_null("CoinBody")
 	var coin_shine = visual.get_node_or_null("CoinShine")
+
+	var is_diamond = value >= 1000
+	var diamond_polygon = PackedVector2Array([Vector2(-7, -10), Vector2(7, -10), Vector2(12, -3), Vector2(0, 14), Vector2(-12, -3)])
+
 	if coin_body:
 		coin_body.color = coin_color
-		if value > 200:
-			# Gem diamond shape (flat top, faceted)
-			coin_body.polygon = PackedVector2Array([Vector2(-7, -10), Vector2(7, -10), Vector2(12, -3), Vector2(0, 14), Vector2(-12, -3)])
+		if is_diamond:
+			coin_body.polygon = diamond_polygon
 	if coin_shine:
 		coin_shine.color = shine_color
+
+	# 3개 쌓인 코인: 피라미드 (아래 2개 + 위 1개), 외곽선으로 구분
+	if is_stacked and coin_body:
+		var edge_color = Color(coin_color.r * 0.4, coin_color.g * 0.4, coin_color.b * 0.4, 0.8)
+		# 메인 코인을 위쪽 중앙으로 이동
+		coin_body.position = Vector2(0, -8)
+		if coin_shine:
+			coin_shine.position = Vector2(-3, -11)
+		# 아래 2개 코인 (좌, 우)
+		var bottom_offsets = [Vector2(-9, 6), Vector2(9, 6)]
+		for i in 2:
+			# 코인 몸체
+			var stack = Polygon2D.new()
+			stack.name = "StackCoin%d" % i
+			stack.polygon = coin_body.polygon
+			stack.color = coin_color
+			stack.position = bottom_offsets[i]
+			visual.add_child(stack)
+			visual.move_child(stack, 0)
+			# 외곽선
+			var outline = Line2D.new()
+			outline.name = "StackOutline%d" % i
+			var pts = coin_body.polygon.duplicate()
+			pts.append(pts[0])  # 닫기
+			outline.points = pts
+			outline.width = 1.2
+			outline.default_color = edge_color
+			outline.position = bottom_offsets[i]
+			visual.add_child(outline)
+			visual.move_child(outline, 0)  # 메인 코인 뒤로
+		# 메인 코인 외곽선
+		var main_outline = Line2D.new()
+		main_outline.name = "StackCoin_main_outline"
+		var main_pts = coin_body.polygon.duplicate()
+		main_pts.append(main_pts[0])
+		main_outline.points = main_pts
+		main_outline.width = 1.2
+		main_outline.default_color = edge_color
+		main_outline.position = coin_body.position
+		visual.add_child(main_outline)
