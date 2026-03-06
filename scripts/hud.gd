@@ -24,7 +24,6 @@ var arrow_container: Node2D = null
 
 func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
-  GameManager.key_acquired.connect(_on_key_acquired)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
   GameManager.timed_buff_started.connect(_on_timed_buff_started)
   GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
@@ -145,9 +144,6 @@ func _on_powerup_acquired(type: String, level: int) -> void:
 
 const WORLD_NAMES: Array = ["슬라임 늪", "들판", "기사의 성벽", "마법의 숲", "수정 호수", "고대 유적", "용의 봉우리"]
 
-func _on_key_acquired(world_index: int) -> void:
-  var world_name = WORLD_NAMES[world_index] if world_index < WORLD_NAMES.size() else "월드 %d" % world_index
-  _show_notif("+ 열쇠 (%s)" % world_name, Color(0.3, 1.0, 1.0))
 
 func _show_notif(text: String, color: Color = Color.WHITE, font_size: int = 50, display_time: float = 1.5) -> void:
   var label = Label.new()
@@ -345,6 +341,7 @@ func _setup_strength_label() -> void:
   var strength = GameManager.get_world_strength_level(world)
   if strength <= 0:
     return
+  # Add strength label inside MoneyDisplay VBox (below gem panel)
   var label = Label.new()
   label.text = "초월 Lv.%d" % strength
   label.add_theme_font_size_override("font_size", 28)
@@ -352,15 +349,9 @@ func _setup_strength_label() -> void:
   label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
   label.add_theme_constant_override("outline_size", 3)
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.anchors_preset = Control.PRESET_TOP_RIGHT
-  label.anchor_left = 1.0
-  label.anchor_right = 1.0
-  label.offset_left = -260.0
-  label.offset_top = 70.0
-  label.offset_right = 0.0
-  label.offset_bottom = 100.0
-  label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-  padded_area.add_child(label)
+  label.size_flags_horizontal = Control.SIZE_SHRINK_END
+  label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  money_display.add_child(label)
 
 # ── Monster Arrow Indicators (내비게이션) ──
 
