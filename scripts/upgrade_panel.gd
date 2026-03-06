@@ -1083,8 +1083,8 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       delta = "%.2f" % d if d < 0 else "+%.2f" % d
     "attack_range":
       label = "공격범위"
-      var cv = int(60.0 + ticks * 4.0)
-      var nv = int(60.0 + next_ticks * 4.0)
+      var cv = int(60.0 + ticks * 5.0)
+      var nv = int(60.0 + next_ticks * 5.0)
       cur = "%dpx" % cv
       nxt = "%dpx" % nv
       delta = "+%dpx" % (nv - cv)
