@@ -246,9 +246,8 @@ func load_chunk(chunk_coord: Vector2i) -> void:
       if not grass_data.has(grid_pos):
         var gd = GameManager.get_random_grass_data()
         var base_regen = gd.regen_time if gd else 5.0
-        var is_golden = gd == GameManager.grass_data_list[5] if gd else false
-        var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
-        var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
+        var hp_mult = GameManager.get_world_grass_hp_mult()
+        var rw_mult = GameManager.get_world_grass_reward_mult()
         var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
         var scaled_value = int(round((randi_range(gd.min_drop_value, gd.max_drop_value) if gd else 1) * rw_mult))
         grass_data[grid_pos] = {
@@ -339,9 +338,8 @@ func process_regen(delta: float) -> void:
     if data.regen_timer >= data.regen_time:
       var gd = GameManager.get_random_grass_data()
       var base_regen = gd.regen_time if gd else 5.0
-      var is_golden = gd == GameManager.grass_data_list[5] if gd else false
-      var hp_mult = 1.0 if is_golden else GameManager.get_world_grass_hp_mult()
-      var rw_mult = 1.0 if is_golden else GameManager.get_world_grass_reward_mult()
+      var hp_mult = GameManager.get_world_grass_hp_mult()
+      var rw_mult = GameManager.get_world_grass_reward_mult()
       var scaled_hp = int(round((gd.max_health if gd else 1) * hp_mult))
       data.cut = false
       data.type = get_grass_type_index(gd)
@@ -493,6 +491,16 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
       total_value += data.value
       total_max_health += GameManager.grass_data_list[data.type].max_health
       attacked_positions.append(Vector2(grid_pos.x, grid_pos.y))
+      if data.type == 5 and GameManager.session_buff_golden_luck:
+        GameManager.golden_grass_cut.emit()
+
+  # Critical hit + 크리티컬 리퍼 파워업: 주변 풀 3개 즉사
+  if is_crit and hit_count > 0 and GameManager.session_buff_critical_reaper > 0:
+    var crit_kills = _crit_kill_nearby(center, radius * 2.0, GameManager.session_buff_critical_reaper, locked_targets)
+    for ck in crit_kills:
+      total_value += ck.value
+      total_max_health += GameManager.grass_data_list[ck.type].max_health
+      attacked_positions.append(Vector2(ck.grid_pos.x, ck.grid_pos.y))
 
   # Spawn coins for cut grass (GrassData.drop_chance / guaranteed_drop)
   for pos in attacked_positions:
@@ -515,6 +523,38 @@ func spawn_coin(pos: Vector2, value: int) -> void:
   var final_value = int(round(value * GameManager.get_grass_reward_multiplier()))
   coin.set_value(max(1, final_value))
   get_parent().add_child(coin)
+
+
+func _crit_kill_nearby(center: Vector2, radius: float, count: int, exclude: Array) -> Array:
+  var candidates: Array = []
+  var min_chunk = get_chunk_coord(center - Vector2(radius, radius))
+  var max_chunk = get_chunk_coord(center + Vector2(radius, radius))
+  for cx in range(min_chunk.x, max_chunk.x + 1):
+    for cy in range(min_chunk.y, max_chunk.y + 1):
+      var chunk_coord = Vector2i(cx, cy)
+      if not loaded_chunks.has(chunk_coord):
+        continue
+      for grid_pos in loaded_chunks[chunk_coord]:
+        if grid_pos in exclude:
+          continue
+        if not grass_data.has(grid_pos):
+          continue
+        var data = grass_data[grid_pos]
+        if data.cut:
+          continue
+        var world_pos = Vector2(grid_pos.x, grid_pos.y)
+        if center.distance_to(world_pos) <= radius:
+          candidates.append(grid_pos)
+  candidates.shuffle()
+  var results: Array = []
+  for i in mini(count, candidates.size()):
+    var grid_pos = candidates[i]
+    var data = grass_data[grid_pos]
+    data.cut = true
+    data.regen_timer = 0.0
+    _mark_grass_cut(grid_pos)
+    results.append({"grid_pos": grid_pos, "value": data.value, "type": data.type})
+  return results
 
 
 func _on_golden_bloom() -> void:
