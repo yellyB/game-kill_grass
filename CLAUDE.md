@@ -59,7 +59,8 @@
 
 ### 코인 시스템
 - 풀을 베면 해당 위치에 코인 생성 (WorldRoot 자식)
-- 코인 색상: 브론즈($1~4), 실버($5~14), 골드($15+)
+- 코인 색상: 브론즈($0~99), 실버($100~499), 골드($500~999), 다이아($1,000+)
+- 고액 코인(브론즈 $50+, 실버 $300+, 골드 $750+)은 피라미드형 3개 쌓인 비주얼
 - 자석 범위 내 접근 시 자동 끌려옴 (기본 범위 75)
 - 수집 시 플로팅 텍스트 표시 (배치 합산)
 
@@ -76,15 +77,11 @@
 9. 날개달린 선풍기 - $45,000, 공격력 11
 10. 위성 레이저 제초기 - $90,000, 공격력 12
 
-### 업그레이드 시스템 (상세: `docs/업그레이드정보.md`)
-- 비용 공식: `100 * 1.8^현재레벨` (스킬별 추가 배율 적용)
-- 풀 밀도: 최대 Lv.10, 셀 크기 감소로 풀 빽빽하게
-- 풀 등급: 최대 Lv.8, 고급 풀 등장 확률 증가
-- 풀 재생: 최대 Lv.2 (Lv.1=13초, Lv.2=4초)
-- 풀 보상: 최대 Lv.6, 레벨당 40% 증가
-- 패널티 감소: 최대 Lv.3, 몬스터 피격 시 코인 손실 감소
-- 드롭률 증가: 최대 Lv.5, 기본 30%에서 최대 60%까지
-- 황금풀 확률: 최대 Lv.5, 기본 0.02%에서 최대 1%까지
+### 업그레이드 시스템 (상세: `docs/스킬트리.md`)
+- 스킬 트리 기반 업그레이드: 무기/수확/탐험 3개 그룹
+- 특정 스킬 레벨은 보석으로 해금 필요 (총 41개 보석)
+- 보석 해금 UI: dim 오버레이 + 보석 아이콘, "해금하기" 버튼
+- 공격 속도: 최대 Lv.6, 틱당 -0.02초 (0.70초→0.10초)
 
 ### 몬스터 시스템
 - 7종 몬스터가 월드별로 스폰 (`monster_spawner.gd`)
@@ -123,10 +120,22 @@
 - 열쇠 획득 시 화면 우측 상단(돈 아래)에 시안색 알림
 - 1.5초 표시 후 0.5초간 페이드아웃
 
+### 보석 시스템
+- 초월 보스 처치 시 보석 드롭 (초월 레벨만큼)
+- 각 월드+초월 레벨당 1회만 보석 드롭 (중복 불가, `collected_gem_levels`로 추적)
+- 보석으로 특정 스킬 레벨 해금 (`SKILL_GEM_COSTS`)
+- 보유 보석은 코인과 함께 HUD/메뉴에 표시 (`money_display.gd`)
+
+### 세션 종료 화면
+- 수집/보너스 내역 표시 후 합계 표시
+- 보석 획득 시 보석 행 추가
+- 순차 fade-in 애니메이션
+
 ### 디버그 기능
 메인 메뉴 하단에 디버그 버튼 (debug build only):
 - 초기화: 모든 데이터 리셋
 - +$100000: 돈 추가
+- +보석10: 보석 10개 추가
 - 월드 전체해금: 모든 월드 해금
 
 ## 파일 구조
@@ -143,7 +152,8 @@ scripts/
   main_menu.gd       - 메인 메뉴 UI, 월드 선택, 메뉴 BGM
   player.gd          - 플레이어 이동, 자동 공격, 무기 비주얼, SFX
   grass_spawner.gd   - MultiMesh 기반 청크 풀 생성/관리, 월드별 풀 색상
-  coin.gd            - 코인 수집, 자석 효과
+  coin.gd            - 코인 수집, 자석 효과, 색상/스택 비주얼
+  money_display.gd   - 코인/보석 보유량 표시 (메뉴/강화 화면)
   floating_text.gd   - 금액 표시 UI
   world_root.gd      - 월드 이동, 배경 처리, 월드별 배경색
   hud.gd             - HUD 표시 + 열쇠 획득 알림
@@ -190,6 +200,7 @@ scenes/
   ui/pause_menu.tscn        - 일시정지 메뉴
   ui/virtual_joystick.tscn  - 가상 조이스틱 (미사용)
   ui/floating_text.tscn     - 플로팅 텍스트
+  ui/money_display.tscn     - 코인/보석 표시
 
 resources/
   grass_data.gd                    - 풀 데이터 리소스 클래스
@@ -224,7 +235,7 @@ var local_attack_center = attack_center - grass_spawner.global_position
 
 ## 세이브 데이터
 - 위치: `~/Library/Application Support/Godot/app_userdata/풀 좀 베겠습니다/savegame.json`
-- 저장 항목: money, upgrades, selected_world, unlocked_worlds, owned_keys, has_potion, world_strength_levels
+- 저장 항목: money, upgrades, selected_world, unlocked_worlds, owned_keys, has_potion, world_strength_levels, owned_gems, unlocked_gem_skills, collected_gem_levels
 
 ## 알려진 이슈 및 해결책
 
