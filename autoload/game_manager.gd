@@ -1015,9 +1015,9 @@ func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
 func _get_raw_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var sub = upgrade_sub_levels.get(upgrade_type, 0)
 
-  # Special: grass_density Lv.1 (sub/2+1 패턴)
+  # Special: grass_density Lv.1
   if current_level == 0 and upgrade_type == "grass_density":
-    return sub / 2 + 1
+    return 1 + sub
 
   # Special: grass_quality — Lv.1~2 틱 기반, Lv.3+ 고정 단가
   if upgrade_type == "grass_quality":
