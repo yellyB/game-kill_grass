@@ -1,15 +1,86 @@
-extends HBoxContainer
+extends VBoxContainer
 
-@onready var coin_icon: TextureRect = $CoinIcon
-@onready var money_label: Label = $MoneyLabel
+@onready var coin_panel: PanelContainer = $CoinPanel
+@onready var coin_row: HBoxContainer = $CoinPanel/CoinRow
+@onready var coin_icon: TextureRect = $CoinPanel/CoinRow/CoinIcon
+@onready var money_label: Label = $CoinPanel/CoinRow/MoneyLabel
+
+var gem_panel: PanelContainer = null
+var gem_row: HBoxContainer = null
+var gem_label: Label = null
 
 func _ready() -> void:
   GameManager.money_changed.connect(_on_money_changed)
+  _style_panel(coin_panel)
+  _create_gem_row()
   update_display()
 
 func _on_money_changed(_amount: int) -> void:
   update_display()
 
+func _style_panel(panel: PanelContainer) -> void:
+  var style = StyleBoxFlat.new()
+  style.bg_color = Color(0.16, 0.16, 0.22, 0.9)
+  style.border_width_top = 2
+  style.border_width_bottom = 2
+  style.border_width_left = 2
+  style.border_width_right = 2
+  style.border_color = Color(0.65, 0.7, 0.8, 0.6)
+  style.corner_radius_top_left = 12
+  style.corner_radius_top_right = 12
+  style.corner_radius_bottom_left = 12
+  style.corner_radius_bottom_right = 12
+  style.content_margin_left = 20
+  style.content_margin_right = 20
+  style.content_margin_top = 8
+  style.content_margin_bottom = 8
+  style.shadow_color = Color(0.6, 0.7, 0.9, 0.25)
+  style.shadow_size = 4
+  panel.add_theme_stylebox_override("panel", style)
+
+func _create_gem_row() -> void:
+  gem_panel = PanelContainer.new()
+  gem_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  gem_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
+  _style_panel(gem_panel)
+  add_child(gem_panel)
+
+  gem_row = HBoxContainer.new()
+  gem_row.add_theme_constant_override("separation", 8)
+  gem_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  gem_panel.add_child(gem_row)
+
+  var gem_icon = GameManager._create_gem_display_icon(36)
+  gem_row.add_child(gem_icon)
+
+  gem_label = Label.new()
+  gem_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  gem_label.add_theme_font_size_override("font_size", 38)
+  gem_label.add_theme_color_override("font_color", Color(0.95, 0.3, 0.5))
+  gem_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  gem_label.add_theme_constant_override("outline_size", 4)
+  gem_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  gem_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+  gem_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  gem_row.add_child(gem_label)
+
 func update_display() -> void:
   money_label.text = GameManager.format_number(GameManager.money)
+  if gem_label:
+    gem_label.text = GameManager.format_number(GameManager.owned_gems)
+  # 두 패널 너비 동기화: 더 넓은 쪽에 맞춤
+  await get_tree().process_frame
+  _sync_panel_widths()
 
+func _sync_panel_widths() -> void:
+  if not gem_panel or not is_instance_valid(gem_panel):
+    return
+  # 리셋하여 자연 크기 측정
+  coin_panel.custom_minimum_size.x = 0
+  gem_panel.custom_minimum_size.x = 0
+  # 한 프레임 후 자연 크기 비교
+  var coin_w = coin_panel.get_combined_minimum_size().x
+  var gem_w = gem_panel.get_combined_minimum_size().x
+  var max_w = maxf(coin_w, gem_w)
+  coin_panel.custom_minimum_size.x = max_w
+  gem_panel.custom_minimum_size.x = max_w

@@ -338,6 +338,18 @@ func _ensure_next_weapon_nodes() -> void:
 
 func _on_weapon_buy_pressed() -> void:
   GameManager.play_confirm_click()
+  # 보석 해금 처리
+  var wep_level = GameManager.get_upgrade_level("attack_power")
+  var next_level = wep_level + 1
+  var sub = GameManager.get_upgrade_sub_level("attack_power")
+  if sub == 0 and GameManager.is_gem_locked("attack_power", next_level):
+    if GameManager.unlock_gem_skill("attack_power", next_level):
+      GameManager.play_skill_upgrade_sound()
+      Input.vibrate_handheld(50)
+      build_skill_tree()
+      update_weapon_display()
+      update_money_display()
+    return
   if GameManager.purchase_upgrade("attack_power"):
     GameManager.play_skill_upgrade_sound()
     SaveManager.save_game()
@@ -387,6 +399,18 @@ func _update_weapon_buy_button() -> void:
   var prereq = GameManager.check_skill_prereqs("attack_power", next_level)
   var has_money = GameManager.money >= cost
 
+  # 보석 해금 체크
+  var sub = GameManager.get_upgrade_sub_level("attack_power")
+  var gem_locked = sub == 0 and GameManager.is_gem_locked("attack_power", next_level)
+  if gem_locked:
+    var gem_cost = GameManager.get_skill_gem_cost("attack_power", next_level)
+    var gem_ok = GameManager.owned_gems >= gem_cost
+    _update_weapon_conditions_gem(gem_cost, gem_ok)
+    weapon_buy_btn.text = "해금하기"
+    weapon_buy_btn.disabled = not gem_ok
+    _update_next_weapon_card_style(gem_ok)
+    return
+
   # Update condition indicators
   _update_weapon_conditions(prereq.met, has_money, cost)
 
@@ -397,6 +421,21 @@ func _update_weapon_buy_button() -> void:
   else:
     weapon_buy_btn.disabled = true
     _update_next_weapon_card_style(false)
+
+func _update_weapon_conditions_gem(gem_cost: int, gem_ok: bool) -> void:
+  for child in weapon_condition_vbox.get_children():
+    child.queue_free()
+  var gem_hbox = HBoxContainer.new()
+  gem_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  gem_hbox.add_theme_constant_override("separation", 6)
+  var gem_color = Color(0.95, 0.3, 0.5) if gem_ok else Color(1.0, 0.35, 0.3)
+  gem_hbox.add_child(_create_gem_icon(28, gem_color))
+  var gem_lbl = Label.new()
+  gem_lbl.text = "%d개 필요" % gem_cost
+  gem_lbl.add_theme_font_size_override("font_size", 34)
+  gem_lbl.add_theme_color_override("font_color", gem_color)
+  gem_hbox.add_child(gem_lbl)
+  weapon_condition_vbox.add_child(gem_hbox)
 
 func _update_weapon_conditions(prereq_met: bool, has_money: bool, price: int) -> void:
   for child in weapon_condition_vbox.get_children():
@@ -463,6 +502,11 @@ func _get_node_state(skill_type: String) -> String:
     if has_started:
       return "in_progress"  # 찍은 적 있지만 조건 미충족 → 비활성화
     return "locked"  # 한 번도 안 찍음 → 잠금
+
+  # 보석 해금 체크 (sub_level == 0 = 레벨 경계에서만)
+  var sub = GameManager.get_upgrade_sub_level(skill_type)
+  if sub == 0 and GameManager.is_gem_locked(skill_type, next_level):
+    return "gem_locked"
 
   if has_started:
     return "in_progress"
@@ -709,6 +753,15 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
       style.border_color = gc.in_progress_border
       btn.disabled = false
       btn.pressed.connect(_on_skill_node_pressed.bind(btn, skill_type, next_level))
+    "gem_locked":
+      style.bg_color = gc.purchasable
+      style.border_width_top = 2
+      style.border_width_bottom = 2
+      style.border_width_left = 2
+      style.border_width_right = 2
+      style.border_color = gc.purchasable_border
+      btn.disabled = false
+      btn.pressed.connect(_on_skill_node_pressed.bind(btn, skill_type, next_level))
     "locked":
       style.bg_color = gc.locked
       style.border_width_top = 2
@@ -747,6 +800,25 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
     if not is_active:
       icon_rect.modulate = Color(0.5, 0.5, 0.5)
     btn.add_child(icon_rect)
+
+  # Gem lock overlay + gem icon
+  if state == "gem_locked":
+    var overlay = ColorRect.new()
+    overlay.color = Color(0, 0, 0, 0.35)
+    overlay.anchors_preset = Control.PRESET_FULL_RECT
+    overlay.anchor_right = 1.0
+    overlay.anchor_bottom = 1.0
+    overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    btn.add_child(overlay)
+    var gem_size = int(node_size * 0.4)
+    var margin = style.content_margin_left
+    var inner = node_size - margin * 2
+    var cx = margin + inner / 2.0
+    var cy = margin + inner / 2.0
+    var gem_ctrl = _create_gem_icon(gem_size)
+    gem_ctrl.position = Vector2(cx - gem_size / 2.0, cy - gem_size / 2.0)
+    gem_ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    btn.add_child(gem_ctrl)
 
   # Lock icon (center) — for locked states
   if is_locked:
@@ -1170,8 +1242,13 @@ func _update_skill_description() -> void:
   var is_maxed = ticks >= total_ticks
 
   # Title: [이름] Lv.X  ■■□□□ (sub/sub_max)
+  var node_state = _get_node_state(selected_type)
   var title_bbcode = ""
-  if is_maxed:
+  if node_state == "gem_locked":
+    _clear_description_extras()
+    _show_gem_locked_description(chain_info.name, current_level + 1)
+    return
+  elif is_maxed:
     title_bbcode = "[center][color=#ffdd77]%s[/color] Lv.%d (MAX)[/center]" % [chain_info.name, current_level + 1]
   else:
     var filled = sub_level
@@ -1263,6 +1340,90 @@ func _update_skill_description() -> void:
   var sub_filled = sub_level >= sub_max
   _update_description_cost(cost, base_y, is_maxed or sub_filled)
 
+func _show_gem_locked_description(skill_name: String, display_level: int) -> void:
+  var pad_top: float = 28.0
+  var pad_lr: float = 24.0
+  var base_y: float = pad_top
+
+  # Title: 스킬 이름만
+  description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  description_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+  description_label.anchors_preset = Control.PRESET_TOP_WIDE
+  description_label.anchor_right = 1.0
+  description_label.anchor_bottom = 0.0
+  description_label.offset_left = pad_lr
+  description_label.offset_top = base_y
+  description_label.offset_right = -pad_lr
+  description_label.offset_bottom = base_y + 50
+  description_label.add_theme_font_size_override("font_size", 36)
+  description_label.text = ""
+  if not _desc_title_rt:
+    _desc_title_rt = RichTextLabel.new()
+    _desc_title_rt.bbcode_enabled = true
+    _desc_title_rt.fit_content = false
+    _desc_title_rt.scroll_active = false
+    description_panel.add_child(_desc_title_rt)
+  _desc_title_rt.anchor_left = 0.0
+  _desc_title_rt.anchor_right = 1.0
+  _desc_title_rt.anchor_top = 0.0
+  _desc_title_rt.anchor_bottom = 0.0
+  _desc_title_rt.offset_left = pad_lr
+  _desc_title_rt.offset_top = base_y
+  _desc_title_rt.offset_right = -pad_lr
+  _desc_title_rt.offset_bottom = base_y + 50
+  _desc_title_rt.add_theme_font_size_override("normal_font_size", 36)
+  _desc_title_rt.add_theme_color_override("default_color", Color(0.85, 0.85, 0.9))
+  _desc_title_rt.text = "[center][color=#ffdd77]%s[/color] Lv.%d[/center]" % [skill_name, display_level]
+  base_y += 60
+
+  # Divider
+  var divider = ColorRect.new()
+  divider.color = Color(0.24, 0.24, 0.32)
+  divider.anchor_left = 0.0
+  divider.anchor_right = 1.0
+  divider.anchor_top = 0.0
+  divider.anchor_bottom = 0.0
+  divider.offset_left = 50
+  divider.offset_top = base_y
+  divider.offset_right = -50
+  divider.offset_bottom = base_y + 2
+  description_panel.add_child(divider)
+  _desc_divider = divider
+  base_y += 30
+
+  # 해금 비용만 표시
+  var current_level = _get_current_level(selected_type)
+  var next_level = current_level + 1
+  var gem_cost = GameManager.get_skill_gem_cost(selected_type, next_level)
+  var gem_affordable = GameManager.owned_gems >= gem_cost
+  var gem_color = Color(0.95, 0.3, 0.5) if gem_affordable else Color(1.0, 0.35, 0.3)
+
+  var cost_row = HBoxContainer.new()
+  cost_row.alignment = BoxContainer.ALIGNMENT_CENTER
+  cost_row.add_theme_constant_override("separation", 8)
+  cost_row.anchor_left = 0.0
+  cost_row.anchor_right = 1.0
+  cost_row.anchor_top = 0.0
+  cost_row.anchor_bottom = 0.0
+  cost_row.offset_top = base_y
+  cost_row.offset_bottom = base_y + 40
+
+  var price_lbl = Label.new()
+  price_lbl.text = "해금 비용:"
+  price_lbl.add_theme_font_size_override("font_size", 36)
+  price_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
+  cost_row.add_child(price_lbl)
+
+  cost_row.add_child(_create_gem_icon(30, gem_color))
+  var gem_count_lbl = Label.new()
+  gem_count_lbl.text = "%d" % gem_cost
+  gem_count_lbl.add_theme_font_size_override("font_size", 36)
+  gem_count_lbl.add_theme_color_override("font_color", gem_color)
+  cost_row.add_child(gem_count_lbl)
+
+  description_panel.add_child(cost_row)
+  _btn_cost_node = cost_row
+
 func _update_stat_display(data: Dictionary, base_y: float) -> void:
   if _desc_stat_node:
     _desc_stat_node.queue_free()
@@ -1325,23 +1486,34 @@ func _update_description_cost(cost: int, base_y: float, is_maxed: bool) -> void:
     _btn_cost_node = null
   if is_maxed:
     return
-  var affordable = GameManager.money >= cost
-  var color = Color(1, 0.9, 0.3) if affordable else Color(1.0, 0.35, 0.3)
-  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 36, color, 0, true)
+
+  var cost_row = HBoxContainer.new()
+  cost_row.alignment = BoxContainer.ALIGNMENT_CENTER
+  cost_row.add_theme_constant_override("separation", 8)
+  cost_row.anchor_left = 0.0
+  cost_row.anchor_right = 1.0
+  cost_row.anchor_top = 0.0
+  cost_row.anchor_bottom = 0.0
+  cost_row.offset_top = base_y
+  cost_row.offset_bottom = base_y + 40
+
   var price_lbl = Label.new()
   price_lbl.text = "가격:"
   price_lbl.add_theme_font_size_override("font_size", 36)
   price_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.9))
-  coin_hbox.add_child(price_lbl)
-  coin_hbox.move_child(price_lbl, 0)
-  coin_hbox.anchor_left = 0.0
-  coin_hbox.anchor_right = 1.0
-  coin_hbox.anchor_top = 0.0
-  coin_hbox.anchor_bottom = 0.0
-  coin_hbox.offset_top = base_y
-  coin_hbox.offset_bottom = base_y + 40
-  description_panel.add_child(coin_hbox)
-  _btn_cost_node = coin_hbox
+  cost_row.add_child(price_lbl)
+
+  # 코인 비용
+  var affordable = GameManager.money >= cost
+  var color = Color(1, 0.9, 0.3) if affordable else Color(1.0, 0.35, 0.3)
+  var coin_hbox = GameManager.create_coin_label(GameManager.format_number(cost), 36, color)
+  cost_row.add_child(coin_hbox)
+
+  description_panel.add_child(cost_row)
+  _btn_cost_node = cost_row
+
+func _create_gem_icon(icon_size: int, tint: Color = Color(0.9, 0.2, 0.4)) -> Control:
+  return GameManager._create_gem_display_icon(icon_size, tint)
 
 func _clear_btn_cost() -> void:
   if _btn_cost_node:
@@ -1373,6 +1545,14 @@ func update_confirm_button() -> void:
     _clear_btn_cost()
     return
 
+  # 보석 해금이 필요한 경우
+  var node_state = _get_node_state(selected_type)
+  if node_state == "gem_locked":
+    var gem_cost = GameManager.get_skill_gem_cost(selected_type, next_level)
+    confirm_btn.text = "해금하기"
+    confirm_btn.disabled = GameManager.owned_gems < gem_cost
+    return
+
   var affordable = GameManager.money >= cost
   confirm_btn.disabled = not affordable
   confirm_btn.text = "강화하기"
@@ -1380,6 +1560,19 @@ func update_confirm_button() -> void:
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
   if selected_type.is_empty():
+    return
+
+  # 보석 해금 처리
+  var node_state = _get_node_state(selected_type)
+  if node_state == "gem_locked":
+    var current_level = _get_current_level(selected_type)
+    var next_level = current_level + 1
+    if GameManager.unlock_gem_skill(selected_type, next_level):
+      GameManager.play_skill_upgrade_sound()
+      Input.vibrate_handheld(50)
+      build_skill_tree()
+      clear_selection()
+      update_money_display()
     return
 
   var prev_sub = GameManager.get_upgrade_sub_level(selected_type)

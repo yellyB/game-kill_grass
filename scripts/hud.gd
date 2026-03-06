@@ -2,7 +2,7 @@ extends CanvasLayer
 
 @onready var padded_area: Control = $PaddedArea
 @onready var money_display = $PaddedArea/MoneyDisplay
-@onready var money_label: Label = $PaddedArea/MoneyDisplay/MoneyLabel
+@onready var money_label: Label = $PaddedArea/MoneyDisplay/CoinPanel/CoinRow/MoneyLabel
 @onready var item_notif_container: VBoxContainer = $PaddedArea/ItemNotifContainer
 @onready var fury_hbox: HBoxContainer = $PaddedArea/FuryHBox
 @onready var fury_progress: ProgressBar = $PaddedArea/FuryHBox/FuryProgressBar

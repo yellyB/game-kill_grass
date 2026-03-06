@@ -14,8 +14,9 @@ var selected_world: int = 0
 var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
 var has_potion: bool = false  # 졸음 약 획득 여부
-var owned_gems: int = 0  # 보석 총 보유량
+var owned_gems: int = 1  # 보석 총 보유량 (TODO: 테스트용 1개, 나중에 0으로 복원)
 var session_gems: int = 0  # 세션 중 획득한 보석 수
+var unlocked_gem_skills: Array = []  # 보석으로 해금한 스킬 (예: "attack_power:2")
 const WORLD_UNLOCK_COSTS: Array = [0, 100, 1000, 10000, 25000, 50000, 100000]
 
 # 월드별 풀 체력/보상 기본 배율 (매 월드 x1.3 균일 증가, 황금풀 제외)
@@ -24,6 +25,7 @@ const WORLD_GRASS_REWARD_MULT: Array = [1.0, 1.3, 1.69, 2.2, 2.86, 3.71, 4.83]
 
 # 월드 초월 시스템
 var world_strength_levels: Dictionary = {}  # {world_index: level}
+var collected_gem_levels: Dictionary = {}  # {world_index: [strength_levels...]} 이미 보석 획득한 초월 레벨
 func is_world_cleared(world: int) -> bool:
   var next = world + 1
   var is_last = next >= WORLD_UNLOCK_COSTS.size()
@@ -77,8 +79,8 @@ signal key_acquired(world_index: int)
 
 # Skill definitions — single source of truth for all skills
 const SKILL_DEFS: Array = [
-  {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 12,
-   "description": "다음 공격까지의 대기 시간이 짧아집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.01초)\n단계 5 | 최대 Lv.12"},
+  {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 6,
+   "description": "다음 공격까지의 대기 시간이 짧아집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.02초)\n단계 5 | 최대 Lv.6"},
   {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 10,
    "description": "공격 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +4)\n단계 5 | 최대 Lv.10"},
   {"type": "attack_count", "name": "공격 개수", "short_name": "개수", "sub_max": 3, "max_level": 5,
@@ -323,6 +325,31 @@ func create_coin_label(amount_text: String, font_size: int = 30,
 
   return hbox
 
+func _create_gem_display_icon(icon_size: int, tint: Color = Color(0.9, 0.2, 0.4)) -> Control:
+  var container = Control.new()
+  container.custom_minimum_size = Vector2(icon_size, icon_size)
+  container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  var cx = icon_size * 0.5
+  var cy = icon_size * 0.5
+  var sx = icon_size * 0.38
+  var sy = icon_size * 0.5
+  var body = Polygon2D.new()
+  body.color = tint
+  body.polygon = PackedVector2Array([
+    Vector2(cx, cy - sy), Vector2(cx + sx, cy - sy * 0.35),
+    Vector2(cx + sx, cy + sy * 0.35), Vector2(cx, cy + sy),
+    Vector2(cx - sx, cy + sy * 0.35), Vector2(cx - sx, cy - sy * 0.35),
+  ])
+  container.add_child(body)
+  var hl = Polygon2D.new()
+  hl.color = Color(tint.r + 0.1, tint.g + 0.3, tint.b + 0.2, 0.5)
+  hl.polygon = PackedVector2Array([
+    Vector2(cx, cy - sy), Vector2(cx + sx, cy - sy * 0.35),
+    Vector2(cx, cy), Vector2(cx - sx, cy - sy * 0.35),
+  ])
+  container.add_child(hl)
+  return container
+
 func style_button(btn: Button, color_type: String = "main", btn_size: Vector2 = Vector2.ZERO) -> void:
   var main_color = BUTTON_COLORS.get(color_type, BUTTON_COLORS["main"])
   if btn_size != Vector2.ZERO:
@@ -535,10 +562,10 @@ func get_skill_total_progress(type: String) -> int:
 
 # ── Permanent upgrade getters ──
 
-# 공격 속도: 0.7s → 0.1s, 틱당 -0.01s (총 60틱)
+# 공격 속도: 0.7s → 0.1s, 틱당 -0.02s (총 30틱)
 func get_attack_interval() -> float:
   var ticks = get_skill_total_progress("attack_speed")
-  return maxf(0.1, 0.7 - ticks * 0.01)
+  return maxf(0.1, 0.7 - ticks * 0.02)
 
 # 공격 범위: 60 → 260, 틱당 +4 (총 50틱)
 func get_attack_range() -> float:
@@ -870,6 +897,9 @@ func has_any_purchasable_skill() -> bool:
     var prereq = check_skill_prereqs(type, next_level)
     if not prereq.met:
       continue
+    var sub = upgrade_sub_levels.get(type, 0)
+    if sub == 0 and is_gem_locked(type, next_level):
+      continue
     var cost = get_upgrade_cost(current_level, type)
     if money >= cost:
       return true
@@ -922,20 +952,14 @@ const ATTACK_POWER_TICK_COSTS: Array = [
   [300000, 30000],  # Lv.8: 300000,330000,360000,390000,420000 = 1,800,000
   [800000, 80000],  # Lv.9: 800000,880000,960000,1040000,1120000 = 4,800,000
 ]
-# row1: 공격 속도 (5t×12L)
+# row1: 공격 속도 (5t×6L)
 const ATTACK_SPEED_TICK_COSTS: Array = [
-  [15, 2],          # Lv.1: 15,17,19,21,23 = 95
-  [40, 5],          # Lv.2: 40,45,50,55,60 = 250
-  [120, 10],        # Lv.3: 120,130,140,150,160 = 700
-  [1500, 150],      # Lv.4: 1500,1650,1800,1950,2100 = 9,000
-  [4500, 450],      # Lv.5: 4500,4950,5400,5850,6300 = 27,000
-  [12000, 1200],    # Lv.6: 12000,13200,14400,15600,16800 = 72,000
-  [30000, 3000],    # Lv.7: 30000,33000,36000,39000,42000 = 180,000
-  [75000, 7500],    # Lv.8: 75000,82500,90000,97500,105000 = 450,000
-  [180000, 15000],  # Lv.9: 180000,195000,210000,225000,240000 = 1,050,000
-  [420000, 37500],  # Lv.10: 420000,457500,495000,532500,570000 = 2,475,000
-  [975000, 82500],  # Lv.11: 975000,1057500,1140000,1222500,1305000 = 5,700,000
-  [2250000, 180000], # Lv.12: 2250000,2430000,2610000,2790000,2970000 = 13,050,000
+  [15, 2],            # Lv.1: 15,17,19,21,23 = 95
+  [45, 5],            # Lv.2: 45,50,55,60,65 = 275
+  [180, 12],          # Lv.3: 180,192,204,216,228 = 1,020
+  [1500, 150],        # Lv.4: 1500,1650,1800,1950,2100 = 9,000
+  [180000, 10000],    # Lv.5: 180000,190000,200000,210000,220000 = 1,000,000
+  [800000, 80000],    # Lv.6: 800000,880000,960000,1040000,1120000 = 4,800,000
 ]
 # row1: 공격 범위 (5t×10L)
 const ATTACK_RANGE_TICK_COSTS: Array = [
@@ -1073,6 +1097,54 @@ const FURY_RATE_TICK_COSTS: Array = [
   [3000, 300],      # Lv.4: 3000,3300,3600,3900 = 13,800
 ]
 
+# 스킬 레벨 첫 틱 구매 시 필요한 보석 비용
+# 형식: { "스킬타입": { 레벨: 보석수 } }
+# 예: "attack_power": {6: 1} → Lv.6 첫 틱 구매 시 보석 1개 필요
+const SKILL_GEM_COSTS: Dictionary = {
+  "attack_power": {4: 1, 6: 2, 8: 3},
+  "attack_speed": {4: 1, 5: 2, 6: 3},
+  "attack_range": {6: 1},
+  "crit_chance": {5: 1},
+  "monster_damage": {5: 1},
+  "crit_damage": {5: 1},
+  "grass_density": {5: 1, 7: 2},
+  "grass_quality": {5: 1, 7: 2},
+  "attack_count": {3: 1, 4: 2, 5: 3},
+  "golden_chance": {5: 1},
+  "magnet_range": {6: 1, 8: 2},
+  "golden_reward": {4: 1},
+  "move_speed": {5: 1},
+  "session_time": {3: 1, 5: 2},
+  "chest_chance": {4: 1, 5: 2},
+  "fury_rate": {4: 1},
+}
+
+func get_skill_gem_cost(upgrade_type: String, level: int) -> int:
+  if not SKILL_GEM_COSTS.has(upgrade_type):
+    return 0
+  return SKILL_GEM_COSTS[upgrade_type].get(level, 0)
+
+func is_gem_locked(type: String, level: int) -> bool:
+  var gem_cost = get_skill_gem_cost(type, level)
+  if gem_cost <= 0:
+    return false
+  var key = "%s:%d" % [type, level]
+  return key not in unlocked_gem_skills
+
+func unlock_gem_skill(type: String, level: int) -> bool:
+  var gem_cost = get_skill_gem_cost(type, level)
+  if gem_cost <= 0:
+    return false
+  if owned_gems < gem_cost:
+    return false
+  var key = "%s:%d" % [type, level]
+  if key in unlocked_gem_skills:
+    return false
+  owned_gems -= gem_cost
+  unlocked_gem_skills.append(key)
+  SaveManager.save_game()
+  return true
+
 func get_upgrade_cost(current_level: int, upgrade_type: String = "") -> int:
   var cost = _get_raw_upgrade_cost(current_level, upgrade_type)
   # 80% 이상 달성 시 최소 5000/틱 (1.6배씩 스케일)
@@ -1141,10 +1213,16 @@ func purchase_upgrade(upgrade_type: String) -> bool:
   if money < cost:
     return false
 
+  # 보석 해금 체크 (첫 틱 시 해금되지 않았으면 구매 불가)
+  var sub = upgrade_sub_levels.get(upgrade_type, 0)
+  if sub == 0 and is_gem_locked(upgrade_type, next_level):
+    return false
+
   money -= cost
   money_changed.emit(money)
-  upgrade_sub_levels[upgrade_type] = upgrade_sub_levels.get(upgrade_type, 0) + 1
-  if upgrade_sub_levels[upgrade_type] >= get_skill_sub_max(upgrade_type):
+  sub += 1
+  upgrade_sub_levels[upgrade_type] = sub
+  if sub >= get_skill_sub_max(upgrade_type):
     upgrade_levels[upgrade_type] = next_level
     upgrade_sub_levels[upgrade_type] = 0
     # 무기 레벨 변경 시 WeaponManager 동기화
@@ -1195,7 +1273,9 @@ func get_save_data() -> Dictionary:
     "owned_keys": owned_keys,
     "has_potion": has_potion,
     "owned_gems": owned_gems,
+    "unlocked_gem_skills": unlocked_gem_skills.duplicate(),
     "world_strength_levels": world_strength_levels.duplicate(),
+    "collected_gem_levels": collected_gem_levels.duplicate(),
   }
 
 func load_save_data(data: Dictionary) -> void:
@@ -1221,6 +1301,10 @@ func load_save_data(data: Dictionary) -> void:
     unlocked_worlds.append(0)
   has_potion = data.get("has_potion", false)
   owned_gems = int(data.get("owned_gems", 0))
+  var saved_gem_skills = data.get("unlocked_gem_skills", [])
+  unlocked_gem_skills = []
+  for s in saved_gem_skills:
+    unlocked_gem_skills.append(str(s))
   var saved_keys = data.get("owned_keys", [])
   owned_keys = []
   for k in saved_keys:
@@ -1230,10 +1314,29 @@ func load_save_data(data: Dictionary) -> void:
   var saved_strength = data.get("world_strength_levels", {})
   for k in saved_strength:
     world_strength_levels[int(k)] = int(saved_strength[k])
+  # 보석 수집 기록 복원
+  collected_gem_levels = {}
+  var saved_gem_levels = data.get("collected_gem_levels", {})
+  for k in saved_gem_levels:
+    var levels_arr: Array = []
+    for v in saved_gem_levels[k]:
+      levels_arr.append(int(v))
+    collected_gem_levels[int(k)] = levels_arr
   money_changed.emit(money)
   # weapon 스킬 레벨에서 WeaponManager 동기화
   WeaponManager.current_weapon_level = upgrade_levels.get("attack_power", 0)
   WeaponManager.weapon_changed.emit(WeaponManager.current_weapon_level)
+
+func has_collected_gems(world: int, strength: int) -> bool:
+  if not collected_gem_levels.has(world):
+    return false
+  return strength in collected_gem_levels[world]
+
+func mark_gems_collected(world: int, strength: int) -> void:
+  if not collected_gem_levels.has(world):
+    collected_gem_levels[world] = []
+  if strength not in collected_gem_levels[world]:
+    collected_gem_levels[world].append(strength)
 
 func add_gem(count: int = 1) -> void:
   session_gems += count

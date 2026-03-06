@@ -157,9 +157,9 @@ func _on_fury_boss_requested() -> void:
     # 이미 클리어한 월드: 코인 보상
     var reward = BOSS_CLEAR_REWARDS[world] if world < BOSS_CLEAR_REWARDS.size() else 0
     config["boss_reward"] = reward
-    # 초월 보상: 초월 레벨만큼 보석 드롭
+    # 초월 보상: 미수집 초월 레벨의 보석만 드롭 (레벨당 1회)
     var strength = GameManager.get_world_strength_level(world)
-    if strength > 0:
+    if strength > 0 and not GameManager.has_collected_gems(world, strength):
       config["boss_gems"] = strength
   elif is_last:
     # 마지막 월드 첫 클리어: 졸음 약 드롭
