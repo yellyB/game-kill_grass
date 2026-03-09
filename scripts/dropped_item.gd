@@ -27,15 +27,19 @@ func setup_key(p_world_index: int, p_target: Node2D) -> void:
 
 var use_potion_visual: bool = false
 var is_gem: bool = false
+var gem_world: int = -1
+var gem_strength: int = 0
 
 func setup_potion(p_item_id: String, p_target: Node2D) -> void:
 	item_id = p_item_id
 	use_potion_visual = true
 	target = p_target
 
-func setup_gem(p_target: Node2D) -> void:
+func setup_gem(p_target: Node2D, p_world: int = -1, p_strength: int = 0) -> void:
 	is_gem = true
 	target = p_target
+	gem_world = p_world
+	gem_strength = p_strength
 
 func _ready() -> void:
 	if is_key:
@@ -202,6 +206,8 @@ func _collect() -> void:
 		GameManager.add_key(key_world_index)
 	elif is_gem:
 		GameManager.add_gem()
+		if gem_world >= 0:
+			GameManager.mark_gems_collected(gem_world, gem_strength)
 		SaveManager.save_game()
 	elif use_potion_visual:
 		GameManager.has_potion = true

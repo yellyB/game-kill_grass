@@ -301,11 +301,9 @@ func _drop_boss_reward() -> void:
     if player:
       for i in boss_gems:
         var item = DroppedItemScene.instantiate()
-        item.setup_gem(player)
+        item.setup_gem(player, GameManager.selected_world, boss_gems)
         item.position = position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
         get_parent().add_child(item)
-      # 이 월드+초월 레벨에서 보석 수집 완료 기록
-      GameManager.mark_gems_collected(GameManager.selected_world, boss_gems)
 
   # 1s delay for spray animation, then end session
   get_tree().create_timer(1.0).timeout.connect(func():
