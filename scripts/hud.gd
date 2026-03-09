@@ -3,7 +3,6 @@ extends CanvasLayer
 @onready var padded_area: Control = $PaddedArea
 @onready var money_display = $PaddedArea/MoneyDisplay
 @onready var money_label: Label = $PaddedArea/MoneyDisplay/CoinPanel/CoinRow/MoneyLabel
-@onready var item_notif_container: VBoxContainer = $PaddedArea/ItemNotifContainer
 @onready var fury_hbox: HBoxContainer = $PaddedArea/FuryHBox
 @onready var fury_progress: ProgressBar = $PaddedArea/FuryHBox/FuryProgressBar
 @onready var fury_label: Label = $PaddedArea/FuryHBox/FuryLabel
@@ -79,94 +78,13 @@ func update_money_display() -> void:
   money_label.text = GameManager.format_number(displayed_money)
 
 
-const POWERUP_NAMES = {
-  "attack_speed": "어택 부스트",
-  "attack_range": "와이드 어택",
-  "magnet_range": "메가 마그넷",
-  "move_speed": "라이트닝 대시",
-  "extra_time": "엑스트라 타임",
-  "gold_rush": "골드 러시",
-  "golden_bloom": "골든 블룸",
-  "double_or_dust": "더블 오어 더스트",
-  "golden_luck": "골든 럭",
-  "critical_surge": "크리티컬 서지",
-  "critical_reaper": "크리티컬 리퍼",
-  "monster_fury": "몬스터 퓨리",
-  "overdrive": "오버드라이브",
-  "harvest_madness": "하베스트 매드니스",
-  "field_clear": "필드 클리어",
-  "blackhole": "블랙홀",
-}
-const POWERUP_COLORS = {
-  "attack_speed": Color(1.0, 0.5, 0.2),
-  "attack_range": Color(0.3, 0.6, 1.0),
-  "magnet_range": Color(0.2, 1.0, 0.8),
-  "move_speed": Color(1.0, 1.0, 0.3),
-  "extra_time": Color(0.4, 1.0, 0.4),
-  "gold_rush": Color(1.0, 0.85, 0.0),
-  "golden_bloom": Color(1.0, 0.9, 0.2),
-  "double_or_dust": Color(0.8, 0.2, 0.8),
-  "golden_luck": Color(1.0, 0.85, 0.0),
-  "critical_surge": Color(1.0, 0.2, 0.4),
-  "critical_reaper": Color(0.6, 0.1, 0.3),
-  "monster_fury": Color(0.9, 0.2, 0.2),
-  "overdrive": Color(1.0, 0.3, 0.5),
-  "harvest_madness": Color(1.0, 0.5, 1.0),
-  "field_clear": Color(0.3, 1.0, 0.3),
-  "blackhole": Color(0.5, 0.2, 0.8),
-}
-
 const PERSISTENT_BUFFS = ["attack_speed", "attack_range", "magnet_range", "move_speed"]
 
 func _on_powerup_acquired(type: String, level: int) -> void:
-  var pname = POWERUP_NAMES.get(type, type)
-  var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
-  var text: String
-
-  # Special display for different powerup types
-  if type == "double_or_dust":
-    if level == 1:
-      text = "DOUBLE! 코인 2배!"
-      pcolor = Color(1.0, 0.85, 0.0)
-    else:
-      text = "DUST! 코인 증발..."
-      pcolor = Color(0.5, 0.1, 0.1)
-  elif level > 0 and type in ["attack_speed", "attack_range", "magnet_range", "move_speed"]:
-    text = "%s Lv.%d!" % [pname, level]
-  else:
-    text = "%s!" % pname
-
-  _show_notif(text, pcolor)
-
-  # Update persistent buff display
   if type in PERSISTENT_BUFFS:
     _update_perm_buff(type, level)
 
 const WORLD_NAMES: Array = ["슬라임 늪", "들판", "기사의 성벽", "마법의 숲", "수정 호수", "고대 유적", "용의 봉우리"]
-
-
-func _show_notif(text: String, color: Color = Color.WHITE, font_size: int = 50, display_time: float = 1.5) -> void:
-  var label = Label.new()
-  label.text = text
-  label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-  label.add_theme_font_size_override("font_size", font_size)
-  label.add_theme_color_override("font_color", color)
-  label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-  label.add_theme_constant_override("outline_size", 3)
-  var bg = StyleBoxFlat.new()
-  bg.bg_color = Color(0.2, 0.2, 0.2, 0.4)
-  bg.set_corner_radius_all(6)
-  bg.content_margin_left = 8
-  bg.content_margin_right = 8
-  bg.content_margin_top = 3
-  bg.content_margin_bottom = 3
-  label.add_theme_stylebox_override("normal", bg)
-  item_notif_container.add_child(label)
-
-  var tween = create_tween()
-  tween.tween_interval(display_time)
-  tween.tween_property(label, "modulate:a", 0.0, 0.5)
-  tween.tween_callback(label.queue_free)
 
 func _connect_player_hit() -> void:
   var player = get_tree().get_first_node_in_group("player")
