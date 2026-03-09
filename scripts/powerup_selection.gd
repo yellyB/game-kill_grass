@@ -51,7 +51,7 @@ const POWERUP_DATA = [
   {
     "type": "golden_luck",
     "name": "골든 럭",
-    "desc": "황금풀 제거 시 무작위 파워업 스킬 획득",
+    "desc": "황금풀 제거 시 30% 확률로 파워업 획득",
     "color": Color(1.0, 0.85, 0.0),
     "image": "골든럭.png",
     "stackable": false,

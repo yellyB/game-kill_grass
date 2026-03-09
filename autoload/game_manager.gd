@@ -258,6 +258,8 @@ const GOLDEN_LUCK_POOL: Array = [
 ]
 
 func _on_golden_grass_cut() -> void:
+  if randf() > 0.3:
+    return
   var total_weight = 0
   for item in GOLDEN_LUCK_POOL:
     total_weight += item.weight
