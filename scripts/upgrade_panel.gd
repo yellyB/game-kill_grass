@@ -901,7 +901,8 @@ func _create_skill_node(skill_type: String, state: String, node_size: float, gro
   else:
     # Level label (left side)
     var level_label = Label.new()
-    level_label.text = "Lv.%d" % (current_level + 1)
+    var display_level = current_level if state == "completed" else current_level + 1
+    level_label.text = "Lv.%d" % display_level
     level_label.add_theme_font_size_override("font_size", 20)
     level_label.add_theme_color_override("font_color", label_color)
     level_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
@@ -1101,8 +1102,8 @@ func _get_skill_stat_data(type: String) -> Dictionary:
         delta = "+%d" % d if d >= 0 else "%d" % d
     "magnet_range":
       label = "수집범위"
-      var cv = int(40.0 + ticks * 4.0)
-      var nv = int(40.0 + next_ticks * 4.0)
+      var cv = int(50.0 + ticks * 5.0)
+      var nv = int(50.0 + next_ticks * 5.0)
       cur = "%dpx" % cv
       nxt = "%dpx" % nv
       delta = "+%dpx" % (nv - cv)
@@ -1141,8 +1142,8 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       delta = "+%.1f" % (nv - cv)
     "crit_chance":
       label = "치명타확률"
-      var cv = ticks * 2.0
-      var nv = minf(next_ticks * 2.0, 80.0)
+      var cv = ticks * 4.0
+      var nv = minf(next_ticks * 4.0, 80.0)
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
@@ -1234,7 +1235,7 @@ func _update_skill_description() -> void:
     _show_gem_locked_description(chain_info.name, current_level + 1)
     return
   elif is_maxed:
-    title_bbcode = "[center][color=#ffdd77]%s[/color] Lv.%d (MAX)[/center]" % [chain_info.name, current_level + 1]
+    title_bbcode = "[center][color=#ffdd77]%s[/color] Lv.%d (MAX)[/center]" % [chain_info.name, current_level]
   else:
     var filled = sub_level
     var empty = sub_max - sub_level
