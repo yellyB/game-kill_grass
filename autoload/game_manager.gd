@@ -106,8 +106,8 @@ const SKILL_DEFS: Array = [
    "description": "맵 구획당 상자 등장 확률이 높아집니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 4,
    "description": "치명타 발생 확률이 높아집니다.\n확률: 0% → 80% (틱당 +4%)\n단계 5 | 최대 Lv.4"},
-  {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 5, "max_level": 6,
-   "description": "치명타 피해량이 증가합니다.\n배율: 120% → 300% (틱당 +6%)\n단계 5 | 최대 Lv.6"},
+  {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 5, "max_level": 5,
+   "description": "치명타 피해량이 증가합니다.\n배율: 120% → 270% (틱당 +6%)\n단계 5 | 최대 Lv.5"},
   {"type": "attack_power", "name": "공격력", "short_name": "공격력", "sub_max": 5, "max_level": 9,
    "description": "공격력이 증가합니다.\nLv.1~3: +1/틱, Lv.4~5: +2/틱\nLv.6~7: +3/틱, Lv.8~9: +4/틱\n단계 5 | 최대 Lv.9"},
   {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
@@ -629,7 +629,7 @@ func get_crit_chance() -> float:
   var ticks = get_skill_total_progress("crit_chance")
   return minf(ticks * 0.04, 0.8)
 
-# 치명타 데미지: 1.2x → 3.0x, 틱당 +0.06 (총 30틱)
+# 치명타 데미지: 1.2x → 2.7x, 틱당 +0.06 (총 25틱)
 func get_crit_damage_mult() -> float:
   var ticks = get_skill_total_progress("crit_damage")
   var mult = 1.2 + ticks * 0.06
@@ -1004,12 +1004,11 @@ const MONSTER_DAMAGE_TICK_COSTS: Array = [
 ]
 # row3: 치명타 피해 (5t×6L)
 const CRIT_DAMAGE_TICK_COSTS: Array = [
-  [50, 5],          # Lv.1: 50,55,60,65,70 = 300
-  [1000, 80],       # Lv.2: 1000,1080,1160,1240,1320 = 5,800
-  [4500, 360],      # Lv.3: 4500,4860,5220,5580,5940 = 26,100
-  [30000, 2400],    # Lv.4: 30000,32400,34800,37200,39600 = 174,000
-  [120000, 9600],   # Lv.5: 120000,129600,139200,148800,158400 = 696,000
-  [580000, 46400],  # Lv.6: 580000,626400,672800,719200,765600 = 3,364,000
+  [50, 5],            # Lv.1: 50,55,60,65,70 = 300
+  [1000, 80],         # Lv.2: 1000,1080,1160,1240,1320 = 5,800
+  [6000, 500],        # Lv.3: 6000,6500,7000,7500,8000 = 35,000
+  [60000, 5000],      # Lv.4: 60000,65000,70000,75000,80000 = 350,000
+  [580000, 46400],    # Lv.5: 580000,626400,672800,719200,765600 = 3,364,000
 ]
 
 # ━━ 수확 그룹 ━━
