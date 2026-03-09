@@ -43,9 +43,9 @@ func get_strengthen_cost(world: int) -> int:
   var next = world + 1
   var base: int
   if next < WORLD_UNLOCK_COSTS.size():
-    base = int(WORLD_UNLOCK_COSTS[next] * 1.2)
+    base = int(WORLD_UNLOCK_COSTS[next] * 2.0)
   else:
-    base = int(WORLD_UNLOCK_COSTS[world] * 3.0)
+    base = int(WORLD_UNLOCK_COSTS[world] * 5.0)
   var level = get_world_strength_level(world)
   return int(base * pow(3, level))
 
