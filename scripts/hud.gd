@@ -120,7 +120,6 @@ func _create_buff_container() -> void:
 func _on_timed_buff_started(type: String, _duration: float) -> void:
   if buff_labels.has(type):
     return
-  var pcolor = POWERUP_COLORS.get(type, Color.WHITE)
 
   var hbox = HBoxContainer.new()
   hbox.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -128,6 +127,7 @@ func _on_timed_buff_started(type: String, _duration: float) -> void:
 
   var PowerupSelection = preload("res://scripts/powerup_selection.gd")
   var data = PowerupSelection.get_powerup_data_by_type(type)
+  var pcolor = data.get("color", Color.WHITE)
   var tex = PowerupSelection.get_powerup_texture(data) if not data.is_empty() else null
   if tex:
     var icon = TextureRect.new()
