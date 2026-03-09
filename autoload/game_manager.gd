@@ -78,7 +78,7 @@ func get_world_grass_hp_mult() -> float:
   var w = selected_world
   var base = WORLD_GRASS_HP_MULT[w] if w < WORLD_GRASS_HP_MULT.size() else 1.0
   var strength = get_world_strength_level(w)
-  return base * (1.0 + strength * 0.3)
+  return base * (1.0 + strength * 0.4)
 
 func get_world_grass_reward_mult() -> float:
   var w = selected_world
