@@ -21,7 +21,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   1: {
     "type": "boar",
     "sprite_path": "res://resources/images/monster/boar/",
-    "max_health": 140,
+    "max_health": 230,
     "wander_speed": 60,
     "sprite_scale": 0.84,
     "effect_scene": "res://scenes/effects/dust_cloud_effect.tscn",
@@ -35,7 +35,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   2: {
     "type": "knight",
     "sprite_path": "res://resources/images/monster/knight/",
-    "max_health": 700,
+    "max_health": 1400,
     "wander_speed": 48,
     "sprite_scale": 0.84,
     "effect_scene": "res://scenes/effects/spark_effect.tscn",
@@ -48,7 +48,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   3: {
     "type": "mage",
     "sprite_path": "res://resources/images/monster/mage/",
-    "max_health": 1750,
+    "max_health": 5800,
     "wander_speed": 54,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/spore_effect.tscn",
@@ -61,7 +61,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   4: {
     "type": "deer",
     "sprite_path": "res://resources/images/monster/deer/",
-    "max_health": 9000,
+    "max_health": 31500,
     "wander_speed": 72,
     "sprite_scale": 0.84,
     "effect_scene": "res://scenes/effects/crystal_shimmer_effect.tscn",
@@ -74,7 +74,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   5: {
     "type": "golem",
     "sprite_path": "res://resources/images/monster/golem/",
-    "max_health": 17500,
+    "max_health": 58000,
     "wander_speed": 40,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/rock_debris_effect.tscn",
@@ -87,7 +87,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   6: {
     "type": "dragon",
     "sprite_path": "res://resources/images/monster/dragon/",
-    "max_health": 35000,
+    "max_health": 145000,
     "wander_speed": 80,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/fire_wisp_effect.tscn",
@@ -137,7 +137,7 @@ func _spawn_chest_at_chunk(chunk_coord: Vector2i) -> void:
   get_parent().add_child(chest)
 
 # 보스 처치 보상 (클리어 후 반복 플레이 시 코인 보상, 고정값)
-const BOSS_CLEAR_REWARDS: Array = [30, 300, 1000, 3000, 10000, 30000, 60000]
+const BOSS_CLEAR_REWARDS: Array = [50, 700, 3000, 15000, 50000, 140000, 350000]
 
 const LAST_WORLD_POTION: String = "졸음 약"
 
