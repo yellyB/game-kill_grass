@@ -198,7 +198,7 @@ var fury: float = 0.0
 var fury_boss_alive: bool = false
 var session_key_acquired: int = -1  # 세션 중 보스 드롭 열쇠 (-1 = 없음)
 # 월드별 분노 필요 수치
-const FURY_THRESHOLDS: Array = [300.0, 1200.0, 6000.0, 18750.0, 48000.0, 78750.0, 132000.0]
+const FURY_THRESHOLDS: Array = [300.0, 1200.0, 6000.0, 18750.0, 90000.0, 148000.0, 248000.0]
 
 func get_fury_max() -> float:
   var idx = clampi(selected_world, 0, FURY_THRESHOLDS.size() - 1)

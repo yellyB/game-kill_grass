@@ -61,7 +61,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   4: {
     "type": "deer",
     "sprite_path": "res://resources/images/monster/deer/",
-    "max_health": 3600,
+    "max_health": 9000,
     "wander_speed": 72,
     "sprite_scale": 0.84,
     "effect_scene": "res://scenes/effects/crystal_shimmer_effect.tscn",
@@ -74,7 +74,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   5: {
     "type": "golem",
     "sprite_path": "res://resources/images/monster/golem/",
-    "max_health": 7000,
+    "max_health": 17500,
     "wander_speed": 40,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/rock_debris_effect.tscn",
@@ -87,7 +87,7 @@ const FURY_BOSS_TYPES: Dictionary = {
   6: {
     "type": "dragon",
     "sprite_path": "res://resources/images/monster/dragon/",
-    "max_health": 14000,
+    "max_health": 35000,
     "wander_speed": 80,
     "sprite_scale": 0.96,
     "effect_scene": "res://scenes/effects/fire_wisp_effect.tscn",
