@@ -506,7 +506,8 @@ func _show_strengthen_dialog(world: int) -> void:
 
   var level = GameManager.get_world_strength_level(world)
   var cost = GameManager.get_strengthen_cost(world)
-  var can_afford = GameManager.money >= cost
+  var needs_gems = level > 0 and not GameManager.has_collected_gems(world, level)
+  var can_afford = GameManager.money >= cost and not needs_gems
 
   var base_hp = GameManager.WORLD_GRASS_HP_MULT[world] if world < GameManager.WORLD_GRASS_HP_MULT.size() else 1.0
   var base_rw = GameManager.WORLD_GRASS_REWARD_MULT[world] if world < GameManager.WORLD_GRASS_REWARD_MULT.size() else 1.0
@@ -605,8 +606,15 @@ func _show_strengthen_dialog(world: int) -> void:
 
   vbox.add_child(effects_vbox)
 
-  # Not enough money warning
-  if not can_afford:
+  # Warning messages
+  if needs_gems:
+    var warn = Label.new()
+    warn.text = "초월 Lv.%d 보석을 먼저 획득하세요" % level
+    warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    warn.add_theme_font_size_override("font_size", 22)
+    warn.add_theme_color_override("font_color", Color(0.95, 0.3, 0.5))
+    vbox.add_child(warn)
+  elif GameManager.money < cost:
     var warn = Label.new()
     warn.text = "돈이 부족합니다"
     warn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
