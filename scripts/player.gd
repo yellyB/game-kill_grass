@@ -69,7 +69,6 @@ func _ready() -> void:
   attack_area.collision_layer = 0
   attack_area.collision_mask = 8  # layer 4: hittable
   attack_shape = CollisionShape2D.new()
-  attack_shape.debug_color = Color(1.0, 0.2, 0.2, 0.3)
   var shape = CircleShape2D.new()
   shape.radius = attack_radius
   attack_shape.shape = shape

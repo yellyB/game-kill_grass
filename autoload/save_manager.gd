@@ -19,11 +19,9 @@ func save_game() -> void:
     file.store_string(json_string)
     file.close()
     game_saved.emit()
-    print("[SaveManager] Game saved")
 
 func load_game() -> void:
   if not FileAccess.file_exists(SAVE_PATH):
-    print("[SaveManager] No save file found")
     return
 
   var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
@@ -38,14 +36,10 @@ func load_game() -> void:
       GameManager.load_save_data(save_data)
       WeaponManager.load_save_data(save_data)
       game_loaded.emit()
-      print("[SaveManager] Game loaded")
-    else:
-      print("[SaveManager] Failed to parse save file")
 
 func delete_save() -> void:
   if FileAccess.file_exists(SAVE_PATH):
     DirAccess.remove_absolute(SAVE_PATH)
-    print("[SaveManager] Save file deleted")
 
 func has_save() -> bool:
   return FileAccess.file_exists(SAVE_PATH)
@@ -71,4 +65,3 @@ func reset_all_data() -> void:
   # Reset WeaponManager
   WeaponManager.current_weapon_level = 0
   WeaponManager.weapon_changed.emit(0)
-  print("[SaveManager] All data reset")

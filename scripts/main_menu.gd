@@ -44,11 +44,12 @@ func _ready() -> void:
 
   # Money display is handled by MoneyDisplay scene
 
-  # Debug buttons (hidden, activated by tapping money display 5 times)
-  _build_debug_buttons()
-  _debug_container.visible = false
-  money_display.mouse_filter = Control.MOUSE_FILTER_STOP
-  money_display.gui_input.connect(_on_money_display_input)
+  # Debug buttons (debug build only)
+  if OS.has_feature("debug"):
+    _build_debug_buttons()
+    _debug_container.visible = false
+    money_display.mouse_filter = Control.MOUSE_FILTER_STOP
+    money_display.gui_input.connect(_on_money_display_input)
 
   # 버튼 스타일 적용 (btn_size로 크기+폰트 자동 비례)
   var viewport_w = get_viewport_rect().size.x
@@ -716,6 +717,8 @@ func _close_world_select() -> void:
 # ── Debug Buttons ──
 
 func _on_money_display_input(event: InputEvent) -> void:
+  if not OS.has_feature("debug"):
+    return
   if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
     var now = Time.get_ticks_msec() / 1000.0
     if now - _debug_last_tap_time > 3.0:
