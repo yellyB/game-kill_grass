@@ -3,11 +3,12 @@
 importer="oggvorbisstr"
 type="AudioStreamOggVorbis"
 uid="uid://c2o2t67x1v6lp"
-valid=false
+path="res://.godot/imported/bgm_기사의성벽.ogg-3644780419213ad38c729c674984bcde.oggvorbisstr"
 
 [deps]
 
 source_file="res://resources/sounds/bgm_기사의성벽.ogg"
+dest_files=["res://.godot/imported/bgm_기사의성벽.ogg-3644780419213ad38c729c674984bcde.oggvorbisstr"]
 
 [params]
 
