@@ -804,7 +804,7 @@ func _build_debug_buttons() -> void:
   _debug_container.add_child(reset_btn)
 
   var money_btn = Button.new()
-  money_btn.text = "+$1000000"
+  money_btn.text = "+$10000000"
   money_btn.add_theme_font_size_override("font_size", 18)
   money_btn.pressed.connect(_on_debug_add_money)
   GameManager.style_button(money_btn, "sub")
@@ -836,7 +836,7 @@ func _on_debug_reset() -> void:
   update_money_display()
 
 func _on_debug_add_money() -> void:
-  GameManager.money += 1000000
+  GameManager.money += 10000000
   GameManager.money_changed.emit(GameManager.money)
   SaveManager.save_game()
 
