@@ -1,5 +1,7 @@
 extends Node2D
 
+signal health_changed(current: int, max_hp: int)
+
 const DroppedItemScene = preload("res://scenes/world/dropped_item.tscn")
 const PowerupScene = preload("res://scenes/world/powerup.tscn")
 const CoinScene = preload("res://scenes/world/coin.tscn")
@@ -45,6 +47,7 @@ var boss_gems: int = 0  # > 0 이면 사망 시 보석 드롭 (초월 보상)
 var boss_potion: String = ""  # 비어있지 않으면 사망 시 해당 아이템 드롭
 var is_fury_boss: bool = false  # 분노 보스 여부 (사망 시 세션 종료)
 var is_boss_entering: bool = false  # 보스 등장 애니메이션 중
+var boss_name: String = ""
 var sfx_hit: AudioStreamPlayer
 
 func setup(config: Dictionary) -> void:
@@ -64,6 +67,7 @@ func setup(config: Dictionary) -> void:
   boss_gems = config.get("boss_gems", 0)
   boss_potion = config.get("boss_potion", "")
   is_fury_boss = config.get("is_fury_boss", false)
+  boss_name = config.get("boss_name", "")
 
 func _ready() -> void:
   add_to_group("monsters")
@@ -214,6 +218,9 @@ func take_damage(amount: int, from_global_pos: Variant = null) -> void:
   # Effect burst on hit
   if effect_node and effect_node.has_method("burst"):
     effect_node.burst(2)
+  health_changed.emit(health, max_health)
+  if is_fury_boss:
+    queue_redraw()
   if health <= 0:
     die()
 
@@ -331,4 +338,30 @@ func _drop_key() -> void:
   get_parent().add_child(item)
 
 func _draw() -> void:
-  pass
+  if not is_fury_boss or is_dead or is_boss_entering:
+    return
+
+  # 스프라이트 위에 체력바 위치 계산
+  var tex_h = 0.0
+  if sprite and sprite.texture:
+    tex_h = sprite.texture.get_height() * sprite_scale / 2.0
+  var bar_width = 140.0
+  var bar_height = 10.0
+  var bar_y = -(tex_h + 20)
+  var bar_x = -bar_width / 2.0
+
+  # 배경 (어두운)
+  draw_rect(Rect2(bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2), Color(0, 0, 0, 0.7))
+  # 체력 fill (빨간색)
+  var fill_ratio = clampf(float(health) / float(max_health), 0.0, 1.0) if max_health > 0 else 0.0
+  if fill_ratio > 0:
+    draw_rect(Rect2(bar_x, bar_y, bar_width * fill_ratio, bar_height), Color(0.85, 0.15, 0.1))
+
+  # 보스 이름 (체력바 위)
+  if boss_name != "":
+    var font = ThemeDB.fallback_font
+    var font_size = 24
+    var text_size = font.get_string_size(boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+    var text_pos = Vector2(-text_size.x / 2.0, bar_y - 8)
+    draw_string_outline(font, text_pos, boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 3, Color(0, 0, 0))
+    draw_string(font, text_pos, boss_name, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(1, 0.9, 0.85))
