@@ -202,7 +202,10 @@ func _on_fury_changed(value: float) -> void:
     return
   var pct = value / GameManager.get_fury_max() * 100.0
   fury_progress.value = pct
-  fury_label.text = "%d%% (%d/%d)" % [int(pct), int(value), int(GameManager.get_fury_max())]
+  if OS.is_debug_build():
+    fury_label.text = "%d%% (%d/%d)" % [int(pct), int(value), int(GameManager.get_fury_max())]
+  else:
+    fury_label.text = "%d%%" % int(pct)
 
 func _on_fury_boss_spawned() -> void:
   fury_hidden = true
