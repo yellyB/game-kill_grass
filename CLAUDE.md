@@ -19,13 +19,16 @@
 - 게임 중 "처음으로" 버튼으로 메뉴 복귀 가능 (확인 다이얼로그)
 
 ### 월드 시스템
-4개 월드, 각각 고유한 배경색/풀 색상/몬스터/BGM:
-| 월드 | 이름 | 해금 비용 | 등장 몬스터 | 테마색 |
+7개 월드, 각각 고유한 배경색/풀 색상/몬스터/BGM:
+| 월드 | 이름 | 해금 비용 | 보스 몬스터 | 테마색 |
 |------|------|-----------|-------------|--------|
-| 0 | 슬라임 늪 | 무료 | 슬라임 | 어두운 초록 |
-| 1 | 들판 | $3,000 | 멧돼지, 잔디 기사 | 따뜻한 갈색 |
-| 2 | 마법의 숲 | $20,000 | 마도사, 수정 사슴 | 어두운 남보라 |
-| 3 | 용의 봉우리 | $50,000 | 잔디 골렘, 드래곤 | 어두운 적갈색 |
+| 1 | 슬라임 늪 | 무료 | 슬라임 | 어두운 초록 |
+| 2 | 들판 | $100 | 멧돼지 | 따뜻한 갈색 |
+| 3 | 기사의 성벽 | $1,000 | 잔디 기사 | 회청 |
+| 4 | 마법의 숲 | $10,000 | 마도사 | 어두운 남보라 |
+| 5 | 수정 호수 | $25,000 | 수정 사슴 | 투명한 시안 |
+| 6 | 고대 유적 | $50,000 | 잔디 골렘 | 어두운 올리브 |
+| 7 | 용의 봉우리 | $100,000 | 드래곤 | 어두운 적갈색 |
 
 - 해금 조건: 코인 + 이전 월드 상자에서 획득한 열쇠
 - 월드별 풀 색상: `WORLD_GRASS_TINTS` (메시 꼭짓점) × `WORLD_GRASS_COLORS` (인스턴스별)
@@ -35,7 +38,7 @@
 - 각 월드에 상자 1개 스폰 (다음 월드 열쇠 드롭)
 - 상자는 "monsters" 그룹에 소속 → 플레이어 자동공격으로 파괴
 - 상자 파괴 → 열쇠(또는 아이템) 드롭 → 플레이어에게 비행 → 수집
-- 마지막 월드(3)의 상자는 "졸음 약" 드롭 (최종 조립에 필요)
+- 마지막 월드(7)의 보스 처치 시 "황금 왕관" 드롭 (엔딩 아이템)
 - 이미 열쇠를 보유하면 상자 미출현
 - `CHEST_SPAWN_CHANCE = 1.0` (디버깅용 100%)
 
@@ -235,7 +238,7 @@ var local_attack_center = attack_center - grass_spawner.global_position
 
 ## 세이브 데이터
 - 위치: `~/Library/Application Support/Godot/app_userdata/풀 좀 베겠습니다/savegame.json`
-- 저장 항목: money, upgrades, selected_world, unlocked_worlds, owned_keys, has_potion, world_strength_levels, owned_gems, unlocked_gem_skills, collected_gem_levels
+- 저장 항목: money, upgrades, selected_world, unlocked_worlds, owned_keys, has_potion, world_strength_levels, owned_gems, unlocked_gem_skills, collected_gem_levels, has_ever_transcended
 
 ## 알려진 이슈 및 해결책
 

@@ -16,7 +16,7 @@ var session_boss_reward: int = 0
 var selected_world: int = 0
 var unlocked_worlds: Array = [0]
 var owned_keys: Array = []  # 소유 열쇠 목록 (예: [1] = 월드1 열쇠 보유)
-var has_potion: bool = false  # 졸음 약 획득 여부
+var has_potion: bool = false  # 황금 왕관 획득 여부 (엔딩 아이템)
 var owned_gems: int = 0
 var session_gems: int = 0  # 세션 중 획득한 보석 수
 var unlocked_gem_skills: Array = []  # 보석으로 해금한 스킬 (예: "attack_power:2")

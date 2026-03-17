@@ -139,7 +139,7 @@ func _spawn_chest_at_chunk(chunk_coord: Vector2i) -> void:
 # 보스 처치 보상 (클리어 후 반복 플레이 시 코인 보상, 고정값)
 const BOSS_CLEAR_REWARDS: Array = [50, 700, 3000, 15000, 50000, 140000, 350000]
 
-const LAST_WORLD_POTION: String = "졸음 약"
+const LAST_WORLD_POTION: String = "황금 왕관"
 
 func _is_world_cleared(world: int) -> bool:
   return GameManager.is_world_cleared(world)
@@ -162,7 +162,7 @@ func _on_fury_boss_requested() -> void:
     if strength > 0 and not GameManager.has_collected_gems(world, strength):
       config["boss_gems"] = strength
   elif is_last:
-    # 마지막 월드 첫 클리어: 졸음 약 드롭
+    # 마지막 월드 첫 클리어: 황금 왕관 드롭
     config["boss_potion"] = LAST_WORLD_POTION
   elif world + 1 < GameManager.WORLD_UNLOCK_COSTS.size():
     # 첫 클리어: 다음 월드 열쇠 드롭

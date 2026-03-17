@@ -120,27 +120,29 @@ func _animate() -> void:
 func _build_potion_visual() -> void:
 	if sprite:
 		sprite.visible = false
-	# 병 몸통 (보라색)
-	var body = Polygon2D.new()
-	body.color = Color(0.6, 0.3, 0.8)
-	body.polygon = PackedVector2Array([
-		Vector2(-8, -4), Vector2(8, -4), Vector2(10, 12), Vector2(-10, 12)
+	# 왕관 밴드 (금색)
+	var band = Polygon2D.new()
+	band.color = Color(0.85, 0.65, 0.1)
+	band.polygon = PackedVector2Array([
+		Vector2(-12, 0), Vector2(12, 0), Vector2(12, 8), Vector2(-12, 8)
 	])
-	add_child(body)
-	# 병 목
-	var neck = Polygon2D.new()
-	neck.color = Color(0.7, 0.4, 0.9)
-	neck.polygon = PackedVector2Array([
-		Vector2(-4, -12), Vector2(4, -12), Vector2(4, -4), Vector2(-4, -4)
+	add_child(band)
+	# 왕관 꼭지 3개 (밝은 금색)
+	var crown = Polygon2D.new()
+	crown.color = Color(1.0, 0.85, 0.2)
+	crown.polygon = PackedVector2Array([
+		Vector2(-12, 0), Vector2(-8, -10), Vector2(-4, 0),
+		Vector2(0, -14), Vector2(4, 0),
+		Vector2(8, -10), Vector2(12, 0)
 	])
-	add_child(neck)
-	# 뚜껑
-	var cap = Polygon2D.new()
-	cap.color = Color(0.9, 0.8, 0.3)
-	cap.polygon = PackedVector2Array([
-		Vector2(-5, -15), Vector2(5, -15), Vector2(5, -12), Vector2(-5, -12)
+	add_child(crown)
+	# 중앙 보석 (빨간색)
+	var gem = Polygon2D.new()
+	gem.color = Color(0.9, 0.15, 0.15)
+	gem.polygon = PackedVector2Array([
+		Vector2(0, -8), Vector2(3, -5), Vector2(0, -2), Vector2(-3, -5)
 	])
-	add_child(cap)
+	add_child(gem)
 
 func _build_gem_visual() -> void:
 	if sprite:
