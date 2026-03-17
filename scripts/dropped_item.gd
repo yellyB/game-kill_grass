@@ -213,6 +213,7 @@ func _collect() -> void:
 		SaveManager.save_game()
 	elif use_potion_visual:
 		GameManager.has_potion = true
+		GameManager.session_crown_acquired = true
 		SaveManager.save_game()
 
 	if ends_session:

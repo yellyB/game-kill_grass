@@ -8,6 +8,7 @@ extends VBoxContainer
 var gem_panel: PanelContainer = null
 var gem_row: HBoxContainer = null
 var gem_label: Label = null
+var crown_icon: Control = null
 
 func _ready() -> void:
   GameManager.money_changed.connect(_on_money_changed)
@@ -16,6 +17,8 @@ func _ready() -> void:
   var in_hud = get_tree().current_scene and get_tree().current_scene.scene_file_path == "res://scenes/core/main.tscn"
   if not in_hud:
     _create_gem_row()
+    if GameManager.has_potion:
+      _create_crown_row()
   update_display()
 
 func _on_money_changed(_amount: int) -> void:
@@ -67,6 +70,16 @@ func _create_gem_row() -> void:
   gem_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
   gem_row.add_child(gem_label)
 
+func _create_crown_row() -> void:
+  crown_icon = TextureRect.new()
+  crown_icon.texture = preload("res://resources/images/icon/crown.png")
+  crown_icon.custom_minimum_size = Vector2(48, 48)
+  crown_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+  crown_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+  crown_icon.size_flags_horizontal = Control.SIZE_SHRINK_END
+  crown_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  add_child(crown_icon)
+
 func update_display() -> void:
   money_label.text = GameManager.format_number(GameManager.money)
   if gem_label:
@@ -81,7 +94,6 @@ func _sync_panel_widths() -> void:
   # 리셋하여 자연 크기 측정
   coin_panel.custom_minimum_size.x = 0
   gem_panel.custom_minimum_size.x = 0
-  # 한 프레임 후 자연 크기 비교
   var coin_w = coin_panel.get_combined_minimum_size().x
   var gem_w = gem_panel.get_combined_minimum_size().x
   var max_w = maxf(coin_w, gem_w)

@@ -337,6 +337,31 @@ func show_session_end_overlay(earnings: int) -> void:
     info_block.add_child(key_row)
     fade_rows.append(key_row)
 
+  # {왕관} 황금 왕관 (가운데 정렬)
+  if GameManager.session_crown_acquired:
+    var crown_row = HBoxContainer.new()
+    crown_row.add_theme_constant_override("separation", 10)
+    crown_row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+    crown_row.modulate = Color(1, 1, 1, 0)
+
+    var crown_icon = TextureRect.new()
+    crown_icon.texture = preload("res://resources/images/icon/crown.png")
+    crown_icon.custom_minimum_size = Vector2(42, 42)
+    crown_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    crown_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    crown_row.add_child(crown_icon)
+
+    var crown_label = Label.new()
+    crown_label.text = "황금 왕관"
+    crown_label.add_theme_font_size_override("font_size", 42)
+    crown_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+    crown_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+    crown_label.add_theme_constant_override("outline_size", 4)
+    crown_row.add_child(crown_label)
+
+    info_block.add_child(crown_row)
+    fade_rows.append(crown_row)
+
   main_vbox.add_child(info_block)
 
   # Gap: 획득정보 ↔ 터치하여돌아가기 (110px)
