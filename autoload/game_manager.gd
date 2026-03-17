@@ -29,6 +29,7 @@ const WORLD_GRASS_REWARD_MULT: Array = [1.0, 1.3, 1.69, 2.2, 2.86, 3.71, 4.83]
 # 월드 초월 시스템
 var world_strength_levels: Dictionary = {}  # {world_index: level}
 var collected_gem_levels: Dictionary = {}  # {world_index: [strength_levels...]} 이미 보석 획득한 초월 레벨
+var has_ever_transcended: bool = false  # 최초 초월 여부 (툴팁 표시용)
 func is_world_cleared(world: int) -> bool:
   var next = world + 1
   var is_last = next >= WORLD_UNLOCK_COSTS.size()
@@ -70,6 +71,7 @@ func strengthen_world(world: int) -> bool:
   var cost = get_strengthen_cost(world)
   money -= cost
   world_strength_levels[world] = get_world_strength_level(world) + 1
+  has_ever_transcended = true
   money_changed.emit(money)
   SaveManager.save_game()
   return true
@@ -1292,6 +1294,7 @@ func get_save_data() -> Dictionary:
     "unlocked_gem_skills": unlocked_gem_skills.duplicate(),
     "world_strength_levels": world_strength_levels.duplicate(),
     "collected_gem_levels": collected_gem_levels.duplicate(),
+    "has_ever_transcended": has_ever_transcended,
   }
 
 func load_save_data(data: Dictionary) -> void:
@@ -1330,6 +1333,10 @@ func load_save_data(data: Dictionary) -> void:
   var saved_strength = data.get("world_strength_levels", {})
   for k in saved_strength:
     world_strength_levels[int(k)] = int(saved_strength[k])
+  has_ever_transcended = data.get("has_ever_transcended", false)
+  # 기존 세이브 호환: 초월 레벨이 있으면 이미 초월한 것
+  if not has_ever_transcended and not saved_strength.is_empty():
+    has_ever_transcended = true
   # 보석 수집 기록 복원
   collected_gem_levels = {}
   var saved_gem_levels = data.get("collected_gem_levels", {})
