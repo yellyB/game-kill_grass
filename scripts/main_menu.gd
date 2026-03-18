@@ -422,9 +422,7 @@ func _create_world_card(index: int) -> PanelContainer:
         str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
         str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
         str_label.add_theme_constant_override("outline_size", 2)
-        str_row.add_child(str_label)
-
-        # 현재 초월 레벨 보석 수집 완료 시 ✓ 표시
+        # 현재 초월 레벨 보석 수집 완료 시 ✓ 표시 (레벨 왼쪽)
         if GameManager.has_collected_gems(index, strength):
           var gem_mark = Label.new()
           gem_mark.text = "✓"
@@ -435,6 +433,8 @@ func _create_world_card(index: int) -> PanelContainer:
           gem_mark.add_theme_constant_override("outline_size", 2)
           gem_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
           str_row.add_child(gem_mark)
+
+        str_row.add_child(str_label)
 
       if strength > 0:
         var str_spacer = Control.new()
