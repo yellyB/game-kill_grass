@@ -410,15 +410,31 @@ func _create_world_card(index: int) -> PanelContainer:
       str_hbox.add_child(str_info)
 
       if strength > 0:
+        var str_row = HBoxContainer.new()
+        str_row.add_theme_constant_override("separation", 6)
+        str_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        str_info.add_child(str_row)
+
         var str_label = Label.new()
         str_label.text = "초월 Lv.%d" % strength
         str_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        str_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
         str_label.add_theme_font_size_override("font_size", 28)
         str_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.3))
         str_label.add_theme_color_override("font_outline_color", Color(0, 0, 0))
         str_label.add_theme_constant_override("outline_size", 2)
-        str_info.add_child(str_label)
+        str_row.add_child(str_label)
+
+        # 현재 초월 레벨 보석 수집 완료 시 ✓ 표시
+        if GameManager.has_collected_gems(index, strength):
+          var gem_mark = Label.new()
+          gem_mark.text = "✓"
+          gem_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+          gem_mark.add_theme_font_size_override("font_size", 28)
+          gem_mark.add_theme_color_override("font_color", Color(0.95, 0.3, 0.5))
+          gem_mark.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+          gem_mark.add_theme_constant_override("outline_size", 2)
+          gem_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+          str_row.add_child(gem_mark)
 
       if strength > 0:
         var str_spacer = Control.new()
