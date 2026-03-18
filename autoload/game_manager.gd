@@ -865,6 +865,8 @@ const SKILL_PREREQS = {
 
 # Required total skill levels to unlock (해금 게이트)
 const SKILL_REQUIRED_TOTAL = {
+  # 수확: row1 (Lv.1+)
+  "attack_count:1": 7,
   # 수확: row2 (Lv.2+)
   "attack_count:2": 3,
   # 무기: row2 (Lv.2+)
