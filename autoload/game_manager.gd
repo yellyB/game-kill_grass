@@ -579,6 +579,7 @@ func add_fury(amount: float) -> void:
   fury = minf(fury + amount * get_fury_rate_mult(), fury_max)
   fury_changed.emit(fury)
   if fury >= fury_max:
+    fury_boss_alive = true
     fury_boss_requested.emit()
     fury = 0.0
     fury_changed.emit(fury)
