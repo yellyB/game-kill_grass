@@ -201,7 +201,9 @@ var fury_boss_alive: bool = false
 var session_key_acquired: int = -1  # 세션 중 보스 드롭 열쇠 (-1 = 없음)
 var session_crown_acquired: bool = false  # 세션 중 황금 왕관 획득 여부
 # 월드별 분노 필요 수치 (0초월 기준)
-const FURY_THRESHOLDS: Array = [300.0, 1500.0, 6000.0, 18750.0, 90000.0, 148000.0, 248000.0]
+const FURY_THRESHOLDS: Array = [300.0, 1500.0, 6000.0, 18750.0, 105000.0, 168000.0, 280000.0]
+
+const STRENGTH_MULTIPLIERS: Array = [1.0, 1.5, 2.0, 3.0]
 
 func get_fury_max() -> float:
   var idx = clampi(selected_world, 0, FURY_THRESHOLDS.size() - 1)
@@ -211,16 +213,21 @@ func get_fury_max() -> float:
     return base
   # 1초월 = +2월드의 0초월 분노치
   var ref_idx = idx + 2
+  var result: float
   if ref_idx >= FURY_THRESHOLDS.size():
-    return base * (1.0 + strength * 0.3)
-  var target = FURY_THRESHOLDS[ref_idx]
-  var gap = target - base
-  if strength == 1:
-    return target
-  elif strength == 2:
-    return target + gap
-  else:  # 3초월: 2→3 간격을 약 1.46배로 증가
-    return target + gap + gap * 1.46
+    result = base * (1.0 + strength * 0.3)
+  else:
+    var target = FURY_THRESHOLDS[ref_idx]
+    var gap = target - base
+    if strength == 1:
+      result = target
+    elif strength == 2:
+      result = target + gap
+    else:
+      result = target + gap + gap * 1.46
+  # 초월 배율 적용
+  var mult = STRENGTH_MULTIPLIERS[clampi(strength, 0, STRENGTH_MULTIPLIERS.size() - 1)]
+  return result * mult
 
 var _sfx_click: AudioStreamPlayer
 var _sfx_confirm: AudioStreamPlayer
