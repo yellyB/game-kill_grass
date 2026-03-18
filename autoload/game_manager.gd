@@ -107,9 +107,9 @@ const SKILL_DEFS: Array = [
   {"type": "chest_chance", "name": "상자 확률", "short_name": "상자", "sub_max": 5, "max_level": 5,
    "description": "맵 구획당 상자 등장 확률이 높아집니다.\n확률: 0% → 5% (틱당 +0.2%)\n단계 5 | 최대 Lv.5"},
   {"type": "crit_chance", "name": "치명타 확률", "short_name": "치확", "sub_max": 5, "max_level": 4,
-   "description": "치명타 발생 확률이 높아집니다.\n확률: 0% → 80% (틱당 +4%)\n단계 5 | 최대 Lv.4"},
+   "description": "치명타 발생 확률이 높아집니다.\n확률: 0% → 100% (틱당 +5%)\n단계 5 | 최대 Lv.4"},
   {"type": "crit_damage", "name": "치명타 피해", "short_name": "치피", "sub_max": 5, "max_level": 5,
-   "description": "치명타 피해량이 증가합니다.\n배율: 120% → 270% (틱당 +6%)\n단계 5 | 최대 Lv.5"},
+   "description": "치명타 피해량이 증가합니다.\n배율: 120% → 370% (틱당 +10%)\n단계 5 | 최대 Lv.5"},
   {"type": "attack_power", "name": "공격력", "short_name": "공격력", "sub_max": 5, "max_level": 9,
    "description": "공격력이 증가합니다.\nLv.1~3: +1/틱, Lv.4~5: +2/틱\nLv.6~7: +3/틱, Lv.8~9: +4/틱\n단계 5 | 최대 Lv.9"},
   {"type": "monster_damage", "name": "몬스터 피해", "short_name": "몬피", "sub_max": 5, "max_level": 7,
@@ -646,17 +646,17 @@ func get_chest_spawn_chance() -> float:
   var ticks = get_skill_total_progress("chest_chance")
   return ticks * 0.002
 
-# 치명타 확률: 0% → 80%, 틱당 +4% (총 20틱)
+# 치명타 확률: 0% → 100%, 틱당 +5% (총 20틱)
 func get_crit_chance() -> float:
   if session_buff_critical_surge:
     return 1.0
   var ticks = get_skill_total_progress("crit_chance")
-  return minf(ticks * 0.04, 0.8)
+  return minf(ticks * 0.05, 1.0)
 
-# 치명타 데미지: 1.2x → 2.7x, 틱당 +0.06 (총 25틱)
+# 치명타 데미지: 1.2x → 3.7x, 틱당 +0.10 (총 25틱)
 func get_crit_damage_mult() -> float:
   var ticks = get_skill_total_progress("crit_damage")
-  var mult = 1.2 + ticks * 0.06
+  var mult = 1.2 + ticks * 0.10
   if session_buff_critical_surge:
     mult *= 2.0
   return mult

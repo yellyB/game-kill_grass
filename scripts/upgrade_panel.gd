@@ -1142,15 +1142,15 @@ func _get_skill_stat_data(type: String) -> Dictionary:
       delta = "+%.1f" % (nv - cv)
     "crit_chance":
       label = "치명타확률"
-      var cv = ticks * 4.0
-      var nv = minf(next_ticks * 4.0, 80.0)
+      var cv = ticks * 5.0
+      var nv = minf(next_ticks * 5.0, 100.0)
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
     "crit_damage":
       label = "치명타피해"
-      var cv = 120.0 + ticks * 6.0
-      var nv = 120.0 + next_ticks * 6.0
+      var cv = 120.0 + ticks * 10.0
+      var nv = 120.0 + next_ticks * 10.0
       cur = "%.0f%%" % cv
       nxt = "%.0f%%" % nv
       delta = "+%.0f" % (nv - cv)
