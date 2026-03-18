@@ -157,11 +157,14 @@ func _on_fury_boss_requested() -> void:
   config["boss_name"] = BOSS_NAMES[world] if world < BOSS_NAMES.size() else ""
   var is_last = world + 1 >= GameManager.WORLD_UNLOCK_COSTS.size()
   if _is_world_cleared(world):
-    # 이미 클리어한 월드: 코인 보상
+    # 이미 클리어한 월드: 코인 보상 (초월 배율 적용)
     var reward = BOSS_CLEAR_REWARDS[world] if world < BOSS_CLEAR_REWARDS.size() else 0
+    var strength = GameManager.get_world_strength_level(world)
+    if strength > 0:
+      var mult = GameManager.STRENGTH_MULTIPLIERS[clampi(strength, 0, GameManager.STRENGTH_MULTIPLIERS.size() - 1)]
+      reward = int(reward * mult)
     config["boss_reward"] = reward
     # 초월 보상: 미수집 초월 레벨의 보석만 드롭 (레벨당 1회)
-    var strength = GameManager.get_world_strength_level(world)
     if strength > 0 and not GameManager.has_collected_gems(world, strength):
       config["boss_gems"] = strength
   elif is_last:
