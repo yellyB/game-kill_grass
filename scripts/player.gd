@@ -543,21 +543,28 @@ func _spawn_crit_effect(dir: Vector2) -> void:
   # "CRIT!" text label
   var label = Label.new()
   label.text = "CRIT!"
-  label.add_theme_font_size_override("font_size", 28)
-  label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
-  label.add_theme_color_override("font_outline_color", Color(0.6, 0.3, 0.0))
-  label.add_theme_constant_override("outline_size", 4)
+  label.add_theme_font_size_override("font_size", 36)
+  label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.1))
+  label.add_theme_color_override("font_outline_color", Color(0.7, 0.25, 0.0))
+  label.add_theme_color_override("font_shadow_color", Color(1.0, 1.0, 0.6, 0.5))
+  label.add_theme_constant_override("outline_size", 6)
+  label.add_theme_constant_override("shadow_offset_x", 0)
+  label.add_theme_constant_override("shadow_offset_y", 2)
   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   label.position = Vector2(-40, -90)
-  label.scale = Vector2(0.5, 0.5)
+  label.scale = Vector2(0.3, 0.3)
   label.pivot_offset = Vector2(40, 14)
   add_child(label)
   var tw_label = create_tween()
-  tw_label.set_parallel(true)
-  tw_label.tween_property(label, "scale", Vector2(1.2, 1.2), 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-  tw_label.tween_property(label, "position:y", -130.0, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-  tw_label.tween_property(label, "modulate:a", 0.0, 0.2).set_delay(0.3)
-  tw_label.chain().tween_callback(label.queue_free)
+  # Pop-in: 0.3 → 1.4 (overshoot)
+  tw_label.tween_property(label, "scale", Vector2(1.4, 1.4), 0.12).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+  # Settle: 1.4 → 1.0 (bounce back)
+  tw_label.tween_property(label, "scale", Vector2(1.0, 1.0), 0.08).set_ease(Tween.EASE_IN_OUT)
+  # Float up + fade out (parallel)
+  var tw_float = create_tween().set_parallel(true)
+  tw_float.tween_property(label, "position:y", -140.0, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+  tw_float.tween_property(label, "modulate:a", 0.0, 0.2).set_delay(0.35)
+  tw_float.chain().tween_callback(label.queue_free)
 
 
 
