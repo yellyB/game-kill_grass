@@ -417,9 +417,16 @@ func _show_powerup_notification(type: String, level: int) -> void:
 
   _notif_container.add_child(hbox)
 
-  # 페이드인 → 유지 → 페이드아웃
+  # 페이드인 → 유지 → 페이드아웃 → 높이 접기
   var tween = create_tween()
   tween.tween_property(hbox, "modulate:a", 1.0, 0.2)
   tween.tween_interval(1.5)
   tween.tween_property(hbox, "modulate:a", 0.0, 0.5)
+  tween.tween_callback(func():
+    var h = hbox.size.y
+    for child in hbox.get_children():
+      child.free()
+    hbox.custom_minimum_size.y = h
+  )
+  tween.tween_property(hbox, "custom_minimum_size:y", 0.0, 0.2)
   tween.tween_callback(hbox.queue_free)
