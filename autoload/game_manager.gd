@@ -95,11 +95,11 @@ const SKILL_DEFS: Array = [
   {"type": "attack_speed", "name": "공격 속도", "short_name": "공속", "sub_max": 5, "max_level": 6,
    "description": "다음 공격까지의 대기 시간이 짧아집니다.\n공격 간격: 0.70초 → 0.10초 (틱당 -0.02초)\n단계 5 | 최대 Lv.6"},
   {"type": "attack_range", "name": "공격 범위", "short_name": "범위", "sub_max": 5, "max_level": 8,
-   "description": "공격 범위가 넓어집니다.\n범위: 60 → 260 (틱당 +5)\n단계 5 | 최대 Lv.8"},
+   "description": "공격 범위가 넓어집니다.\n범위: 60 → 340 (틱당 +7)\n단계 5 | 최대 Lv.8"},
   {"type": "attack_count", "name": "공격 개수", "short_name": "개수", "sub_max": 3, "max_level": 5,
    "description": "한 번에 베는 풀의 개수가 증가합니다.\n횟수: 1 → 46 (레벨별 +1/+2/+3/+4/+5)\n단계 3 | 최대 Lv.5"},
   {"type": "magnet_range", "name": "수집 범위", "short_name": "수집", "sub_max": 5, "max_level": 6,
-   "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 50 → 200 (틱당 +5)\n단계 5 | 최대 Lv.6"},
+   "description": "코인을 끌어당기는 범위가 넓어집니다.\n범위: 50 → 260 (틱당 +7)\n단계 5 | 최대 Lv.6"},
   {"type": "grass_density", "name": "풀 밀도", "short_name": "밀도", "sub_max": 5, "max_level": 8,
    "description": "맵 구획당 자라는 풀의 수가 증가합니다.\n구획당 풀: 1개 → 181개 (Lv별 틱당 +1/+2/.../+8)\n단계 5 | 최대 Lv.8"},
   {"type": "grass_quality", "name": "풀 등급", "short_name": "등급", "sub_max": 8, "max_level": 8,
@@ -604,10 +604,10 @@ func get_attack_interval() -> float:
   var ticks = get_skill_total_progress("attack_speed")
   return maxf(0.1, 0.7 - ticks * 0.02)
 
-# 공격 범위: 60 → 260, 틱당 +5 (총 40틱)
+# 공격 범위: 60 → 340, 틱당 +7 (총 40틱)
 func get_attack_range() -> float:
   var ticks = get_skill_total_progress("attack_range")
-  return 60.0 + ticks * 5.0
+  return 60.0 + ticks * 7.0
 
 # 공격 횟수: 1 → 46, 레벨별 틱당 +1/+2/+3/+4/+5 (총 15틱)
 func get_attack_count() -> int:
@@ -621,10 +621,10 @@ func get_attack_count() -> int:
     count += (level + 1) * sub
   return count
 
-# 수집 범위: 50 → 200, 틱당 +5 (총 30틱)
+# 수집 범위: 50 → 260, 틱당 +7 (총 30틱)
 func get_base_magnet_range() -> float:
   var ticks = get_skill_total_progress("magnet_range")
-  return 50.0 + ticks * 5.0
+  return 50.0 + ticks * 7.0
 
 # 풀 밀도: 1 → 181, 레벨별 틱당 +Lv (총 40틱, 5틱×8레벨)
 func get_grass_density_value() -> int:
