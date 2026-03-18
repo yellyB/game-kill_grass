@@ -83,6 +83,7 @@ const PERSISTENT_BUFFS = ["attack_speed", "attack_range", "magnet_range", "move_
 func _on_powerup_acquired(type: String, level: int) -> void:
   if type in PERSISTENT_BUFFS:
     _update_perm_buff(type, level)
+  _show_powerup_notification(type, level)
 
 const WORLD_NAMES: Array = ["슬라임 늪", "들판", "기사의 성벽", "마법의 숲", "수정 호수", "고대 유적", "용의 봉우리"]
 
@@ -340,3 +341,85 @@ func _get_arrow_edge_position(center: Vector2, dir: Vector2, vp_size: Vector2) -
     t_y = abs(half_h / dir.y)
   var t = min(t_x, t_y)
   return center + dir * t
+
+# ── 파워업 획득 알림 ──
+
+var _notif_container: VBoxContainer = null
+var _notif_queue: Array = []  # 대기 중인 알림
+
+func _setup_notif_container() -> void:
+  _notif_container = VBoxContainer.new()
+  _notif_container.anchors_preset = Control.PRESET_CENTER
+  _notif_container.anchor_left = 0.5
+  _notif_container.anchor_right = 0.5
+  _notif_container.anchor_top = 0.5
+  _notif_container.anchor_bottom = 0.5
+  _notif_container.offset_left = -250.0
+  _notif_container.offset_top = -280.0
+  _notif_container.offset_right = 250.0
+  _notif_container.offset_bottom = -140.0
+  _notif_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
+  _notif_container.add_theme_constant_override("separation", 6)
+  _notif_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  padded_area.add_child(_notif_container)
+
+func _show_powerup_notification(type: String, level: int) -> void:
+  if not _notif_container:
+    _setup_notif_container()
+
+  var PowerupSelection = preload("res://scripts/powerup_selection.gd")
+  var data = PowerupSelection.get_powerup_data_by_type(type)
+  if data.is_empty():
+    return
+
+  var text = data.get("name", type)
+
+  # 더블 오어 더스트: 결과 표시
+  if type == "double_or_dust":
+    if level == 1:
+      text = "더블! 코인 x2"
+    else:
+      text = "더스트! 코인 증발"
+
+  var hbox = HBoxContainer.new()
+  hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+  hbox.add_theme_constant_override("separation", 8)
+  hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  hbox.modulate = Color(1, 1, 1, 0)
+
+  # 아이콘
+  var tex = PowerupSelection.get_powerup_texture(data)
+  if tex:
+    var icon = TextureRect.new()
+    icon.texture = tex
+    icon.custom_minimum_size = Vector2(56, 56)
+    icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    hbox.add_child(icon)
+
+  # 텍스트 (외광선 + 내부색 고정)
+  var label = Label.new()
+  label.text = text
+  label.add_theme_font_size_override("font_size", 44)
+  if type == "double_or_dust" and level == 0:
+    label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+    label.add_theme_color_override("font_outline_color", Color(0.4, 0.0, 0.0))
+  else:
+    label.add_theme_color_override("font_color", Color(1.0, 1.0, 0.85))
+    label.add_theme_color_override("font_outline_color", Color(0.15, 0.35, 0.1))
+  label.add_theme_constant_override("outline_size", 8)
+  label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.5))
+  label.add_theme_constant_override("shadow_offset_x", 2)
+  label.add_theme_constant_override("shadow_offset_y", 2)
+  label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  hbox.add_child(label)
+
+  _notif_container.add_child(hbox)
+
+  # 페이드인 → 유지 → 페이드아웃
+  var tween = create_tween()
+  tween.tween_property(hbox, "modulate:a", 1.0, 0.2)
+  tween.tween_interval(1.5)
+  tween.tween_property(hbox, "modulate:a", 0.0, 0.5)
+  tween.tween_callback(hbox.queue_free)
