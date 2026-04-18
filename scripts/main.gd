@@ -33,6 +33,7 @@ var session_ready: bool = false
 var bgm_player: AudioStreamPlayer
 var _tick_sfx: AudioStreamPlayer = null
 var _last_tick_second: int = -1
+var _timer_warning_applied: bool = false
 
 func _ready() -> void:
   camera.add_to_group("camera")
@@ -114,15 +115,14 @@ func update_timer_display() -> void:
   var total_time = SESSION_TIME + GameManager.get_session_time_bonus()
   timer_progress.value = clampf((session_time_remaining / total_time) * 100.0, 0.0, 100.0)
 
-  # Change color when time is low
-  if seconds <= 10:
+  # Change color when time is low (apply once)
+  if seconds <= 10 and not _timer_warning_applied:
+    _timer_warning_applied = true
     timer_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
     var fill_style = StyleBoxFlat.new()
     fill_style.bg_color = Color(1, 0.3, 0.3)
     fill_style.set_corner_radius_all(6)
     timer_progress.add_theme_stylebox_override("fill", fill_style)
-  else:
-    timer_label.add_theme_color_override("font_color", Color(1, 1, 1))
 
 func _play_tick() -> void:
   if not _tick_sfx:
