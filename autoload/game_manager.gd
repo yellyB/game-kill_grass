@@ -814,8 +814,7 @@ func get_monster_knockback_strength() -> float:
   return BASE_KNOCKBACK
 
 func get_grass_drop_chance() -> float:
-  # 레벨당 6% 증가 (Lv.5 = 50%)
-  return GRASS_DROP_CHANCE + upgrade_levels.get("grass_drop", 0) * 0.06
+  return GRASS_DROP_CHANCE
 
 # get_golden_grass_chance() is defined above in permanent upgrade getters
 
@@ -828,8 +827,7 @@ func get_total_skill_level() -> int:
   return total
 
 func get_grass_reward_multiplier() -> float:
-  # 레벨당 30% 증가 (Lv.10 = x4.0)
-  return 1.0 + upgrade_levels.get("grass_reward", 0) * 0.4
+  return 1.0
 
 # 무기 레벨별 필요 스킬 포인트 (수동 튜닝)
 # Lv0 나뭇가지, Lv1 녹슨식칼, Lv2 피자커터, Lv3 전기파리채,
@@ -1261,10 +1259,6 @@ func purchase_upgrade(upgrade_type: String) -> bool:
       WeaponManager.weapon_changed.emit(next_level)
   upgrade_purchased.emit(upgrade_type, next_level)
   return true
-
-func get_part_penalty_mult() -> float:
-  # 스킬트리 기반: Lv1 -25%, Lv2 -50%, Lv3 -75%
-  return 1.0 - upgrade_levels.get("penalty_reduce", 0) * 0.25
 
 func add_key(world_index: int) -> void:
   if world_index not in owned_keys:
