@@ -28,6 +28,7 @@ const BGM_PATHS: Array = [
 @onready var timer_progress: ProgressBar = $HUD/PaddedArea/TimerHBox/TimerProgressBar
 
 var session_time_remaining: float = SESSION_TIME + GameManager.get_session_time_bonus()
+var session_total_time: float = SESSION_TIME + GameManager.get_session_time_bonus()
 var session_ended: bool = false
 var session_ready: bool = false
 var bgm_player: AudioStreamPlayer
@@ -112,8 +113,7 @@ func update_timer_display() -> void:
   timer_label.text = str(seconds)
 
   # Update progress bar
-  var total_time = SESSION_TIME + GameManager.get_session_time_bonus()
-  timer_progress.value = clampf((session_time_remaining / total_time) * 100.0, 0.0, 100.0)
+  timer_progress.value = clampf((session_time_remaining / session_total_time) * 100.0, 0.0, 100.0)
 
   # Change color when time is low (apply once)
   if seconds <= 10 and not _timer_warning_applied:
@@ -535,3 +535,4 @@ func _boss_end_session() -> void:
 
 func _on_extra_time(seconds: float) -> void:
   session_time_remaining += seconds
+  session_total_time += seconds
