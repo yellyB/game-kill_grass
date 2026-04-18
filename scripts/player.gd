@@ -407,7 +407,7 @@ var touch_start_pos: Vector2 = Vector2.ZERO
 var touch_direction: Vector2 = Vector2.ZERO
 var is_touching: bool = false
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
   if event is InputEventScreenTouch:
     if event.pressed:
       is_touching = true
