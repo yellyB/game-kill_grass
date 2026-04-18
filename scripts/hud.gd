@@ -13,13 +13,6 @@ var fury_hidden: bool = false
 var buff_labels: Dictionary = {}  # type -> Label
 var perm_buff_icons: Array = []  # ordered list of icons
 
-# Monster arrow indicators (내비게이션 부품)
-const ARROW_SIZE: float = 14.0
-const ARROW_COLOR: Color = Color(1, 0.2, 0.2, 0.85)
-const ARROW_MARGIN: float = 50.0
-const MAX_ARROWS: int = 20
-var arrow_pool: Array = []
-var arrow_container: Node2D = null
 
 func _ready() -> void:
   GameManager.session_money_changed.connect(_on_session_money_changed)
@@ -29,7 +22,6 @@ func _ready() -> void:
 
   # Create buff timer container (below timer, centered)
   _create_buff_container()
-  _setup_monster_arrows()
 
   # 세션 금액 표시: 초록색으로 변경, total money 자동 업데이트 해제
   money_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5, 1.0))
@@ -55,7 +47,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
   # Update timed buff countdowns
   _update_buff_timers()
-  _update_monster_arrows()
 
   # Smooth money counter
   if displayed_money != target_money:
@@ -275,72 +266,6 @@ func _setup_strength_label() -> void:
   label.mouse_filter = Control.MOUSE_FILTER_IGNORE
   money_display.add_child(label)
 
-# ── Monster Arrow Indicators (내비게이션) ──
-
-func _setup_monster_arrows() -> void:
-  arrow_container = Node2D.new()
-  add_child(arrow_container)
-  for i in MAX_ARROWS:
-    var arrow = Polygon2D.new()
-    arrow.polygon = PackedVector2Array([
-      Vector2(ARROW_SIZE, 0),
-      Vector2(-ARROW_SIZE * 0.6, -ARROW_SIZE * 0.7),
-      Vector2(-ARROW_SIZE * 0.6, ARROW_SIZE * 0.7),
-    ])
-    arrow.color = ARROW_COLOR
-    arrow.visible = false
-    arrow_container.add_child(arrow)
-    arrow_pool.append(arrow)
-
-func _update_monster_arrows() -> void:
-  var has_navi = false
-  if not has_navi:
-    for arrow in arrow_pool:
-      arrow.visible = false
-    return
-
-  var viewport_size = get_viewport().get_visible_rect().size
-  var screen_center = viewport_size / 2.0
-  var canvas_xform = get_viewport().get_canvas_transform()
-  var monsters = get_tree().get_nodes_in_group("monsters")
-
-  var arrow_idx = 0
-  for monster in monsters:
-    if arrow_idx >= MAX_ARROWS:
-      break
-    if not is_instance_valid(monster):
-      continue
-    if monster.has_method("take_damage") and monster.get("is_dead") == true:
-      continue
-
-    var screen_pos = canvas_xform * monster.global_position
-    # Skip if on screen
-    if screen_pos.x >= 0 and screen_pos.x <= viewport_size.x and screen_pos.y >= 0 and screen_pos.y <= viewport_size.y:
-      continue
-
-    var dir = (screen_pos - screen_center).normalized()
-    var edge_pos = _get_arrow_edge_position(screen_center, dir, viewport_size)
-
-    var arrow = arrow_pool[arrow_idx]
-    arrow.position = edge_pos
-    arrow.rotation = dir.angle()
-    arrow.visible = true
-    arrow_idx += 1
-
-  for i in range(arrow_idx, MAX_ARROWS):
-    arrow_pool[i].visible = false
-
-func _get_arrow_edge_position(center: Vector2, dir: Vector2, vp_size: Vector2) -> Vector2:
-  var half_w = vp_size.x / 2.0 - ARROW_MARGIN
-  var half_h = vp_size.y / 2.0 - ARROW_MARGIN
-  var t_x = INF
-  var t_y = INF
-  if dir.x != 0:
-    t_x = abs(half_w / dir.x)
-  if dir.y != 0:
-    t_y = abs(half_h / dir.y)
-  var t = min(t_x, t_y)
-  return center + dir * t
 
 # ── 파워업 획득 알림 ──
 
