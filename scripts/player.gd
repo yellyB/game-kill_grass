@@ -248,15 +248,25 @@ func _has_targets_in_range(center: Vector2, radius: float) -> bool:
   # Check hittable objects via collision overlap
   if attack_area.get_overlapping_areas().size() > 0:
     return true
-  # Check grass (no collision shape, use distance)
+  # Check grass in nearby chunks only (not all loaded chunks)
   var local_center = center - grass_spawner.global_position
-  for grid_pos in grass_spawner.grass_data:
-    var data = grass_spawner.grass_data[grid_pos]
-    if data.cut:
-      continue
-    var world_pos = Vector2(grid_pos.x, grid_pos.y)
-    if local_center.distance_to(world_pos) <= radius:
-      return true
+  var min_chunk = grass_spawner.get_chunk_coord(local_center - Vector2(radius, radius))
+  var max_chunk = grass_spawner.get_chunk_coord(local_center + Vector2(radius, radius))
+  var radius_sq = radius * radius
+  for cx in range(min_chunk.x, max_chunk.x + 1):
+    for cy in range(min_chunk.y, max_chunk.y + 1):
+      var chunk_coord = Vector2i(cx, cy)
+      if not grass_spawner.loaded_chunks.has(chunk_coord):
+        continue
+      for grid_pos in grass_spawner.loaded_chunks[chunk_coord]:
+        if not grass_spawner.grass_data.has(grid_pos):
+          continue
+        var data = grass_spawner.grass_data[grid_pos]
+        if data.cut:
+          continue
+        var world_pos = Vector2(grid_pos.x, grid_pos.y)
+        if local_center.distance_squared_to(world_pos) <= radius_sq:
+          return true
   return false
 
 func swing_weapon(target_pos: Vector2) -> void:
