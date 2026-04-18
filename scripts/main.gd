@@ -403,35 +403,7 @@ func show_session_end_overlay(earnings: int) -> void:
   )
 
 func _create_gem_icon(icon_size: int) -> Control:
-  var container = Control.new()
-  container.custom_minimum_size = Vector2(icon_size, icon_size)
-  var cx = icon_size * 0.5
-  var cy = icon_size * 0.5
-  var sx = icon_size * 0.38
-  var sy = icon_size * 0.5
-  # 본체: 세로 길쭉 육각형
-  var body = Polygon2D.new()
-  body.color = Color(0.9, 0.2, 0.4)
-  body.polygon = PackedVector2Array([
-    Vector2(cx, cy - sy),
-    Vector2(cx + sx, cy - sy * 0.35),
-    Vector2(cx + sx, cy + sy * 0.35),
-    Vector2(cx, cy + sy),
-    Vector2(cx - sx, cy + sy * 0.35),
-    Vector2(cx - sx, cy - sy * 0.35),
-  ])
-  container.add_child(body)
-  # 하이라이트 (상단)
-  var hl = Polygon2D.new()
-  hl.color = Color(1.0, 0.5, 0.6, 0.5)
-  hl.polygon = PackedVector2Array([
-    Vector2(cx, cy - sy),
-    Vector2(cx + sx, cy - sy * 0.35),
-    Vector2(cx, cy),
-    Vector2(cx - sx, cy - sy * 0.35),
-  ])
-  container.add_child(hl)
-  return container
+  return GameManager._create_gem_display_icon(icon_size)
 
 func _create_key_icon(icon_size: int) -> Control:
   var container = Control.new()
