@@ -41,9 +41,6 @@ func _ready() -> void:
   GameManager.fury_changed.connect(_on_fury_changed)
   GameManager.fury_boss_requested.connect(_on_fury_boss_spawned)
 
-  # Connect player_hit signal (deferred to ensure player exists)
-  call_deferred("_connect_player_hit")
-
 func _process(delta: float) -> void:
   # Update timed buff countdowns
   _update_buff_timers()
@@ -78,13 +75,6 @@ func _on_powerup_acquired(type: String, level: int) -> void:
 
 const WORLD_NAMES: Array = ["슬라임 늪", "들판", "기사의 성벽", "마법의 숲", "수정 호수", "고대 유적", "용의 봉우리"]
 
-func _connect_player_hit() -> void:
-  var player = get_tree().get_first_node_in_group("player")
-  if player and player.has_signal("player_hit"):
-    player.player_hit.connect(_on_player_hit)
-
-func _on_player_hit() -> void:
-  pass
 
 
 var buff_container: VBoxContainer

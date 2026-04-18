@@ -95,7 +95,6 @@ func _ready() -> void:
   player_visual.visible = true
   weapon_pivot.visible = true
   _play_drop_animation()
-  GameManager.upgrade_purchased.connect(_on_upgrade_purchased)
   GameManager.powerup_acquired.connect(_on_powerup_acquired)
   GameManager.timed_buff_started.connect(_on_timed_buff_changed)
   GameManager.timed_buff_ended.connect(_on_timed_buff_ended)
@@ -377,9 +376,6 @@ func _play_drop_animation() -> void:
 
 func _on_attack_timer_timeout() -> void:
   can_attack = true
-
-func _on_upgrade_purchased(_upgrade_type: String, _level: int) -> void:
-  pass
 
 func _on_powerup_acquired(type: String, _level: int) -> void:
   if type == "attack_range":
