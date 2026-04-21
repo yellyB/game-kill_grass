@@ -25,6 +25,13 @@ const FRAME_DURATION: float = 0.18
 var frame_timer: float = 0.0
 var sequence_index: int = 0
 var anim_sequence: Array = [0, 1, 2, 3, 4]  # base → compress → tilt left → expand → tilt right
+var idle_frame_count: int = 5  # idle에 사용되는 프레임 수
+var hit_frame_start: int = -1  # 피격 프레임 시작 인덱스 (-1이면 없음)
+var hit_frame_count: int = 0
+var is_hit_animating: bool = false
+var hit_anim_index: int = 0
+var hit_anim_timer: float = 0.0
+const HIT_FRAME_DURATION: float = 0.12
 var wander_speed: float = 40.0
 
 # Health (placeholder)
@@ -58,6 +65,11 @@ func setup(config: Dictionary) -> void:
   collision_shape_path = config.get("collision_shape", "")
   collision_base_scale = config.get("collision_base_scale", 0.0)
   collision_rotation = config.get("collision_rotation", 0.0)
+  idle_frame_count = config.get("idle_frame_count", 5)
+  hit_frame_start = config.get("hit_frame_start", -1)
+  hit_frame_count = config.get("hit_frame_count", 0)
+  # idle 시퀀스: config에 지정되어 있으면 사용, 아니면 순차 재생
+  anim_sequence = config.get("anim_sequence", range(idle_frame_count))
   key_world_index = config.get("key_world_index", -1)
   boss_reward = config.get("boss_reward", 0)
   boss_gems = config.get("boss_gems", 0)
@@ -100,7 +112,8 @@ func _load_textures() -> void:
   if _texture_cache.has(sprite_path):
     textures = _texture_cache[sprite_path].duplicate()
     return
-  for i in range(1, 6):
+  var total = idle_frame_count + hit_frame_count
+  for i in range(1, total + 1):
     var path = "%s%d.png" % [sprite_path, i]
     var tex = _load_texture_from_file(path)
     if tex:
@@ -117,11 +130,26 @@ func _process(delta: float) -> void:
   if is_boss_entering:
     return
 
-  # Animation
-  frame_timer += delta
-  if frame_timer >= FRAME_DURATION:
-    frame_timer = 0.0
-    _advance_frame()
+  # Hit animation (overrides idle)
+  if is_hit_animating:
+    hit_anim_timer += delta
+    if hit_anim_timer >= HIT_FRAME_DURATION:
+      hit_anim_timer = 0.0
+      hit_anim_index += 1
+      if hit_anim_index >= hit_frame_count:
+        # 피격 애니메이션 종료, idle 복귀
+        is_hit_animating = false
+        hit_anim_index = 0
+      else:
+        var fi = hit_frame_start + hit_anim_index
+        if fi < textures.size():
+          sprite.texture = textures[fi]
+  else:
+    # Idle animation
+    frame_timer += delta
+    if frame_timer >= FRAME_DURATION:
+      frame_timer = 0.0
+      _advance_frame()
 
   # Knockback
   if knockback_velocity.length() > 1.0:
@@ -138,7 +166,7 @@ func _process(delta: float) -> void:
     var dir = (player_local - position).normalized()
     position += dir * wander_speed * delta
     if sprite:
-      sprite.flip_h = dir.x > 0
+      sprite.flip_h = dir.x < 0
 
 func _advance_frame() -> void:
   if textures.is_empty():
@@ -200,6 +228,12 @@ func take_damage(amount: int, from_global_pos: Variant = null) -> void:
   sprite.modulate = Color(1, 0.3, 0.3)
   var tween = create_tween()
   tween.tween_property(sprite, "modulate", Color.WHITE, 0.15)
+  # Hit sprite animation
+  if hit_frame_start >= 0 and hit_frame_start < textures.size():
+    is_hit_animating = true
+    hit_anim_index = 0
+    hit_anim_timer = 0.0
+    sprite.texture = textures[hit_frame_start]
   # Effect burst on hit
   if effect_node and effect_node.has_method("burst"):
     effect_node.burst(2)

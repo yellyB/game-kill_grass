@@ -80,18 +80,18 @@
 >
 > Character design: An oversized mutant boar. Muscular body with dark brown coarse fur. Patches of green moss and grass growing on its back and shoulders. Two large curved tusks protruding from the mouth. Red angry eyes. Exaggerated muscular build with legs splayed outward. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
 >
-> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
-> - Frame 1 (Neutral): Standing still, neutral pose. Legs splayed, body symmetrical.
-> - Frame 2 (Slight lean left): Body leans very slightly to the left, about 5 degrees only. Weight shifted subtly leftward. Almost the same as frame 1 but with a tiny leftward tilt.
-> - Frame 3 (Neutral): Same as frame 1. Back to center, perfectly symmetrical.
-> - Frame 4 (Slight lean right): Body leans very slightly to the right, about 5 degrees only. Mirror of frame 2. Weight shifted subtly rightward.
+> Row 1 (Frames 1-4): Stomping walk animation loop (1→2→3→4→1). The boar always faces the same direction (forward/front-facing) in all frames. Only the legs and body height change to create a heavy stomping walk:
+> - Frame 1 (Neutral): Standing still, front-facing. Legs splayed, body at normal height.
+> - Frame 2 (Left stomp): Left front leg raised slightly, right front leg planted. Body dips down very slightly on the right side (~5%). A heavy, lumbering step. Face still looking straight forward.
+> - Frame 3 (Neutral): Same as frame 1. Both legs planted, body level. Passing through neutral.
+> - Frame 4 (Right stomp): Right front leg raised slightly, left front leg planted. Body dips down very slightly on the left side (~5%). Mirror leg pose of frame 2. Face still looking straight forward.
 >
 > Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
-> - Frame 5 (Hit squash): Body crouches down violently — about 30% shorter and 25% wider. Eyes squeezed shut tight in pain, mouth open showing tusks. Pained expression. Legs buckled, flattened as if slammed from above.
-> - Frame 6 (Hit rebound): Body snaps back to roughly neutral height. Eyes still scrunched with a dazed/stunned look. Recovering from the hit.
+> - Frame 5 (Hit squash): Body crouches down violently — about 30% shorter and 25% wider. Eyes squeezed shut tight in pain, mouth open showing tusks. Pained expression. Legs buckled, flattened as if slammed from above. Still facing forward.
+> - Frame 6 (Hit rebound): Body snaps back to roughly neutral height. Eyes still scrunched with a dazed/stunned look. Still facing forward. Recovering from the hit.
 > - Frames 7-8: Leave completely empty (transparent).
 >
-> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical dark brown fur colors, moss patches, tusks, and art style. Frames 1-4 share the same angry face. Frames 5-6 have a pained face. No glow effects, no dust, no particles. Clean solid body only.
+> Important: The boar must face the SAME direction (front-facing) in ALL 6 frames. Never show the boar turning or looking left/right. All frames must have identical dark brown fur colors, moss patches, tusks, and art style. Frames 1-4 share the same angry face. Frames 5-6 have a pained face. No glow effects, no dust, no particles. Clean solid body only.
 
 ---
 
@@ -107,18 +107,18 @@
 >
 > Character design: A humanoid knight made of woven grass and plant fiber. Armor plates of compressed green leaves and bark. Small flowers and weeds sprouting from joints and gaps in the armor. Holds a sharpened grass blade sword in right hand. T-shaped helmet visor with dark empty interior (no face visible). Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
 >
-> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
-> - Frame 1 (Neutral): Standing upright, neutral pose. Sword held at side.
-> - Frame 2 (Slight lean left): Entire body leans very slightly to the left, about 5 degrees only. Sword tilts with the body. Almost the same as frame 1.
-> - Frame 3 (Neutral): Same as frame 1. Back to center, standing upright.
-> - Frame 4 (Slight lean right): Entire body leans very slightly to the right, about 5 degrees only. Mirror of frame 2.
+> Row 1 (Frames 1-4): Walking animation loop (1→2→3→4→1). The head and torso stay stable — only the arms and legs move to create a shuffling walk cycle:
+> - Frame 1 (Neutral): Standing upright, neutral pose. Both arms at sides, sword in right hand pointing down. Legs straight, feet together.
+> - Frame 2 (Left step): Left leg steps forward, right leg back. Left arm (free hand) swings slightly forward, right arm (sword) swings slightly back. Head and torso remain perfectly upright and unchanged.
+> - Frame 3 (Neutral): Same as frame 1. Both legs together, arms at sides. Passing through neutral.
+> - Frame 4 (Right step): Right leg steps forward, left leg back. Right arm (sword) swings slightly forward, left arm swings slightly back. Mirror of frame 2. Head and torso remain perfectly upright and unchanged.
 >
 > Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
-> - Frame 5 (Hit squash): Body crouches down — about 25% shorter, knees bent, wider stance. Helmet tilts forward, body recoils. Leaves scatter slightly from the armor edges. Damaged, staggered pose.
-> - Frame 6 (Hit rebound): Body snaps back upright. Slightly wobbling, recovering stance. Some leaves still displaced.
+> - Frame 5 (Hit stagger): Body crouches down — about 20% shorter, knees bent, wider stance. Helmet visor cracks slightly or dents inward, the dark T-shaped opening distorts a bit. Sword arm drops. Leaves scatter slightly from armor edges. Staggered, recoiling pose.
+> - Frame 6 (Hit recover): Body snaps back upright. Helmet visor still slightly bent/damaged looking. Sword raised back up but loosely. Recovering stance.
 > - Frames 7-8: Leave completely empty (transparent).
 >
-> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical green leaf armor, bark textures, flower details, and art style. No glow effects, no particles, no sword trails. Clean solid body only.
+> Important: In frames 1-4, the head, helmet, and torso must stay stable and upright — only limbs move. All frames must have identical green leaf armor, bark textures, flower details, and art style. No glow effects, no particles, no sword trails. Clean solid body only.
 
 ---
 
