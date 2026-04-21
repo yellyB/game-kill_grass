@@ -1,0 +1,229 @@
+# 이미지 생성 프롬프트 모음
+
+## 슬라임 스프라이트 시트
+
+### 설정
+- 그리드: 4x2 (4열 2행)
+- 프레임 크기: 256x256px
+- 총 이미지 크기: 1024x512px
+- 배경: 투명 (PNG with alpha)
+
+### 프레임 구성
+| # | 위치 | 용도 | 설명 |
+|---|------|------|------|
+| 1 | Row1-1 | idle 기본 | 둥근 기본 형태 |
+| 2 | Row1-2 | 왼쪽 기울임 | 5도 왼쪽 기울기 |
+| 3 | Row1-3 | idle 기본 | 1번과 동일 |
+| 4 | Row1-4 | 오른쪽 기울임 | 5도 오른쪽 기울기 |
+| 5 | Row2-1 | 피격 찌그러짐 | >< 눈, 입 벌림, 30% 납작 |
+| 6 | Row2-2 | 피격 반동 | 어질어질한 눈, 복귀 |
+| 7 | Row2-3 | (빈칸) | |
+| 8 | Row2-4 | (빈칸) | |
+
+### 애니메이션 시퀀스
+- idle/걷기: 1 → 2 → 1 → 4 → (반복)
+- 피격: 5 → 6 → idle 복귀
+
+### 프롬프트
+
+> Sprite sheet of a cute slime monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: A small, round jelly slime creature. Medium blue-purple translucent body — not too dark, not too pale. A balanced violet-blue tone that is semi-transparent and glossy, bright enough that black eyes are clearly visible against it. Glossy gel-like surface with a white highlight/reflection spot on top. Yellow jagged streak patterns across the body (lightning scars). Two small solid black round eyes with a dazed, sleepy expression. Tiny pink blush marks under each eye. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Default round dome shape at rest. Perfectly symmetrical, sitting on the ground.
+> - Frame 2 (Slight lean left): Body leans very slightly to the left, about 5 degrees only. The left side is just barely wider. A very subtle, gentle weight shift. Almost the same as frame 1 but with a tiny leftward tilt.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, perfectly round and symmetrical.
+> - Frame 4 (Slight lean right): Body leans very slightly to the right, about 5 degrees only. Mirror of frame 2. A very subtle, gentle weight shift. Almost the same as frame 1 but with a tiny rightward tilt.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body violently squashed — about 30% shorter and 25% wider than neutral. Eyes squeezed shut tight (><), mouth open in a small "o" shape. Pained, shocked expression. Flattened as if smacked from above.
+> - Frame 6 (Hit rebound): Body snaps back to roughly neutral height. Eyes still scrunched with a dazed/dizzy look. Slight wobble shape. Recovering from the hit.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle — the slime should look almost the same in all four idle frames, with only a barely noticeable gentle sway. All frames must have identical medium blue-purple colors, lightning scar patterns, and art style. Frames 1-4 share the same dazed/sleepy face. Frames 5-6 have a pained/shocked face. No VFX — no glow, no lightning bolts, no particles. Clean solid body only.
+
+---
+
+## 공통 스프라이트 시트 규칙
+
+모든 몬스터는 아래 동일한 형식을 따릅니다:
+
+- **그리드**: 4x2 (4열 2행), 총 8칸
+- **프레임 크기**: 256x256px / **총 이미지**: 1024x512px
+- **배경**: 투명 (PNG with alpha)
+- **패딩**: 모든 프레임 셀 내 30px 이상 여백, 잘림 없을 것
+- **중요**: 캐릭터는 반드시 각 셀 안에 완전히 들어가야 함. 인접 셀로 넘치면 안 됨
+- **Row 1 (1-4)**: idle 애니메이션 (기본 → 왼쪽 기울임 → 기본 → 오른쪽 기울임)
+- **Row 2 (5-6)**: 피격 애니메이션, **(7-8)**: 빈칸
+- **idle 기울기**: 5도 (미세한 흔들림)
+- **피격 Frame 5**: 30% 납작 + 25% 넓어짐, 고통스러운 표정 (><), 입 벌림
+- **피격 Frame 6**: 원래 높이로 복귀, 어질어질한 표정
+- **스타일**: 2D top-down 3/4 view, thick dark outline, flat cel-shaded colors, chibi proportions, mobile game art
+- **VFX 제외**: 발광, 파티클, 연기, 화염 등은 이미지에 넣지 않음
+
+---
+
+## 멧돼지 스프라이트 시트
+
+### 프롬프트
+
+> Sprite sheet of an oversized mutant boar monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: An oversized mutant boar. Muscular body with dark brown coarse fur. Patches of green moss and grass growing on its back and shoulders. Two large curved tusks protruding from the mouth. Red angry eyes. Exaggerated muscular build with legs splayed outward. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Standing still, neutral pose. Legs splayed, body symmetrical.
+> - Frame 2 (Slight lean left): Body leans very slightly to the left, about 5 degrees only. Weight shifted subtly leftward. Almost the same as frame 1 but with a tiny leftward tilt.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, perfectly symmetrical.
+> - Frame 4 (Slight lean right): Body leans very slightly to the right, about 5 degrees only. Mirror of frame 2. Weight shifted subtly rightward.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body crouches down violently — about 30% shorter and 25% wider. Eyes squeezed shut tight in pain, mouth open showing tusks. Pained expression. Legs buckled, flattened as if slammed from above.
+> - Frame 6 (Hit rebound): Body snaps back to roughly neutral height. Eyes still scrunched with a dazed/stunned look. Recovering from the hit.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical dark brown fur colors, moss patches, tusks, and art style. Frames 1-4 share the same angry face. Frames 5-6 have a pained face. No glow effects, no dust, no particles. Clean solid body only.
+
+---
+
+## 잔디 기사 스프라이트 시트
+
+### 프롬프트
+
+> Sprite sheet of a grass knight monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: A humanoid knight made of woven grass and plant fiber. Armor plates of compressed green leaves and bark. Small flowers and weeds sprouting from joints and gaps in the armor. Holds a sharpened grass blade sword in right hand. T-shaped helmet visor with dark empty interior (no face visible). Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Standing upright, neutral pose. Sword held at side.
+> - Frame 2 (Slight lean left): Entire body leans very slightly to the left, about 5 degrees only. Sword tilts with the body. Almost the same as frame 1.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, standing upright.
+> - Frame 4 (Slight lean right): Entire body leans very slightly to the right, about 5 degrees only. Mirror of frame 2.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body crouches down — about 25% shorter, knees bent, wider stance. Helmet tilts forward, body recoils. Leaves scatter slightly from the armor edges. Damaged, staggered pose.
+> - Frame 6 (Hit rebound): Body snaps back upright. Slightly wobbling, recovering stance. Some leaves still displaced.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical green leaf armor, bark textures, flower details, and art style. No glow effects, no particles, no sword trails. Clean solid body only.
+
+---
+
+## 마도사 스프라이트 시트
+
+### 프롬프트
+
+> Sprite sheet of a mushroom mage monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: A mushroom mage creature. Large spotted mushroom cap hat in purple and teal colors. Wispy body in tattered grass-fiber robes. Holds a twisted wooden staff with forked empty tip in left hand. Two small eyes visible under the dark underside of mushroom cap. Floating pose with robes hanging down. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling float animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Default floating pose, mushroom cap level, robes hanging straight down.
+> - Frame 2 (Slight lean left): Entire body and mushroom cap tilt very slightly to the left, about 5 degrees only. Staff tilts with the body. Almost the same as frame 1.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, level and symmetrical.
+> - Frame 4 (Slight lean right): Entire body and mushroom cap tilt very slightly to the right, about 5 degrees only. Mirror of frame 2.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body drops lower, mushroom cap flattens — about 30% shorter and wider. Eyes squeezed shut under the cap, robes crumpled. Pained, compressed pose as if pushed down from above.
+> - Frame 6 (Hit rebound): Body bounces back up to floating height. Eyes still scrunched, mushroom cap slightly wobbly. Recovering.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical purple-teal mushroom cap, robe texture, staff design, and art style. No glow, no particles, no orbs, no spores. Clean solid body only.
+
+---
+
+## 수정 사슴 스프라이트 시트
+
+### 프롬프트
+
+> Sprite sheet of a crystal deer monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: An elegant deer made of pale blue-white crystal. Faceted crystalline body with visible flat planes and edges. Jagged crystal shard antlers. White calm eyes. Slender legs with crystal hooves. Body has geometric facet patterns on the surface. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Standing still, neutral pose. Head level, legs straight.
+> - Frame 2 (Slight lean left): Entire body leans very slightly to the left, about 5 degrees only. Head and antlers tilt with the body. Almost the same as frame 1.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, perfectly symmetrical.
+> - Frame 4 (Slight lean right): Entire body leans very slightly to the right, about 5 degrees only. Mirror of frame 2.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body crouches down — about 25% shorter, legs bent, head dipped. Crystal facets on body appear slightly cracked. Eyes shut tight in pain. Recoiling from impact.
+> - Frame 6 (Hit rebound): Body springs back to neutral height. Eyes still partially shut, dazed expression. Slight wobble. Cracks no longer visible, recovering.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical pale blue-white crystal colors, facet patterns, antler shapes, and art style. No glow, no rainbow effects, no particles. Clean solid body with facet patterns only.
+
+---
+
+## 잔디 골렘 스프라이트 시트
+
+### 프롬프트
+
+> Sprite sheet of a grass golem monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: A massive golem made of compacted earth, rocks, and thick grass. Dense green grass covers the body like fur, with exposed stone and dirt patches. Dark purple circular core socket in the chest (no glow, just dark purple color). Heavy boulder fists wrapped in roots. Small deep-set eye sockets in a rocky face. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling walk animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Standing upright, neutral pose. Fists at sides.
+> - Frame 2 (Slight lean left): Entire body leans very slightly to the left, about 5 degrees only. Fists shift with the body. Almost the same as frame 1.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, standing upright.
+> - Frame 4 (Slight lean right): Entire body leans very slightly to the right, about 5 degrees only. Mirror of frame 2.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body hunches down — about 25% shorter, shoulders raised, fists closer to the ground. Small rock fragments visible near the body edges. Eyes narrowed in pain. Staggered, defensive pose.
+> - Frame 6 (Hit rebound): Body straightens back up. Eyes still squinting, slightly off-balance. Rock fragments gone, recovering.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical green grass coverage, stone patches, purple core, and art style. No glow, no particles, no debris flying. Clean solid body only.
+
+---
+
+## 드래곤 스프라이트 시트
+
+### 프롬프트
+
+> Sprite sheet of a smoke dragon monster for a 2D mobile idle game.
+>
+> The sprite sheet contains 8 frames arranged in a 4x2 grid (4 columns, 2 rows). Each frame is 256x256 pixels, so the total image size is 1024x512 pixels. Transparent background (PNG with alpha). Frames are evenly spaced with no gaps or overlap.
+>
+> CRITICAL — Centering and Separation: Every frame's character must be fully contained within its 256x256 cell with at least 30 pixels of padding on ALL sides (left, right, top, bottom). No part of the character should touch or extend beyond any cell edge. Characters must NOT bleed into adjacent cells. Each frame must be completely independent and isolated within its own cell. Draw each character small enough to fit comfortably inside the cell with clear empty space around it.
+>
+> Character design: A serpentine dragon with a dark gray-black body. Surface has orange-red crack patterns resembling lava veins. Sharp horns on the head. Small tattered wings. Orange fierce eyes. Ragged torn edges on the body silhouette (smoke-like shape but drawn as solid). Coiled body shape. Thick dark outline. Chibi proportions, flat cel-shaded colors, mobile game art style. 3/4 top-down view.
+>
+> Row 1 (Frames 1-4): Gentle wobbling idle animation loop (1→2→3→4→1):
+> - Frame 1 (Neutral): Coiled neutral pose. Wings folded, body relaxed.
+> - Frame 2 (Slight lean left): Entire body sways very slightly to the left, about 5 degrees only. Head and wings tilt with the body. Almost the same as frame 1.
+> - Frame 3 (Neutral): Same as frame 1. Back to center, coiled and symmetrical.
+> - Frame 4 (Slight lean right): Entire body sways very slightly to the right, about 5 degrees only. Mirror of frame 2.
+>
+> Row 2 (Frames 5-6: Hit reaction, Frames 7-8: empty):
+> - Frame 5 (Hit squash): Body coils tighter and compresses down — about 25% more compact. Wings crumple inward. Eyes shut tight, mouth open showing teeth. Orange cracks on body glow brighter (drawn as thicker/wider orange-red lines, not actual glow effect). Pained, defensive coil.
+> - Frame 6 (Hit rebound): Body uncoils slightly back to neutral size. Eyes still scrunched, dazed. Wings partially spread. Orange crack lines return to normal thickness. Recovering.
+> - Frames 7-8: Leave completely empty (transparent).
+>
+> Important: The wobble in frames 1-4 should be very subtle. All frames must have identical dark gray-black body, orange-red crack patterns, horn shapes, wing design, and art style. No smoke, no fire, no glow effects, no particles. Clean solid body with crack patterns only.
