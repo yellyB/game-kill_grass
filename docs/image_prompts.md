@@ -227,3 +227,59 @@
 > - Frames 7-8: Leave completely empty (transparent).
 >
 > Important: The wobble in frames 1-4 should be very subtle. All frames must have identical dark gray-black body, orange-red crack patterns, horn shapes, wing design, and art style. No smoke, no fire, no glow effects, no particles. Clean solid body with crack patterns only.
+
+---
+
+## 플레이어 캐릭터 스프라이트 시트
+
+### 설정
+- 그리드: 6x2 (6열 2행)
+- 프레임 크기: 128x128px
+- 총 이미지 크기: 768x256px
+- 배경: 투명 (PNG with alpha)
+
+### 프레임 구성
+| # | 위치 | 용도 | 설명 |
+|---|------|------|------|
+| 1 | Row1-1 | idle | 정면 기본 자세 |
+| 2 | Row1-2 | walk_a | 정면 걷기 A |
+| 3 | Row1-3 | walk_b | 정면 걷기 B |
+| 4 | Row1-4 | attack1 | 정면 공격1 (팔 옆으로) |
+| 5 | Row1-5 | attack2 | 정면 공격2 (팔 위로) |
+| 6 | Row1-6 | hit | 정면 피격 |
+| 7 | Row2-1 | idle_back | 뒷모습 기본 자세 |
+| 8 | Row2-2 | walk_a_back | 뒷모습 걷기 A |
+| 9 | Row2-3 | walk_b_back | 뒷모습 걷기 B |
+| 10 | Row2-4 | attack1_back | 뒷모습 공격1 |
+| 11 | Row2-5 | attack2_back | 뒷모습 공격2 |
+| 12 | Row2-6 | hit_back | 뒷모습 피격 |
+
+### 좌우반전
+- 각 프레임을 좌우반전하여 `_flip` 버전 생성 (총 24장)
+
+### 프롬프트
+
+> 2D top-down cartoon sprite sheet for a mobile idle game. Small simple character (128x128 pixels per frame). Clean illustration with thick black outlines and flat coloring. Minimal detail — the character will appear very small in-game.
+>
+> NOT pixel art. Smooth lines, simple flat colors, minimal shading.
+>
+> Character design: A very simple small boy seen from DIRECTLY ABOVE at a top-down perspective. Green cap (plain solid color, no details). White T-shirt (plain). Lower body is ALL ONE solid brown color — shorts and shoes are the same brown with no distinction. Simple round head, two small black dot eyes ONLY — NO mouth, NO nose, NO other facial features. Both hands EMPTY. Extremely minimal design.
+>
+> CRITICAL: ALL frames must face STRAIGHT at the camera (front) or STRAIGHT away (back). The character must NEVER turn to the side. No side profiles, no 3/4 angles.
+>
+> IMPORTANT PERSPECTIVE RULE FOR WALK FRAMES: Limbs moving FORWARD (toward camera) should appear LONGER and LARGER. Limbs moving BACKWARD (away from camera) should appear SHORTER and SMALLER — foreshortened to create depth.
+>
+> Arrange all frames on a transparent background. Each cell exactly 128x128 pixels.
+>
+> Row 1 — Front-facing, looking straight at camera (6 frames, left to right):
+> 1. Idle: Standing still facing camera, feet together, both arms resting at sides
+> 2. Walk A: Right foot forward (drawn LONGER/BIGGER) + left foot back (drawn SHORTER/SMALLER) + left arm forward (LONGER) + right arm back (SHORTER). Head and torso face straight at camera.
+> 3. Walk B: Left foot forward (drawn LONGER/BIGGER) + right foot back (drawn SHORTER/SMALLER) + right arm forward (LONGER) + left arm back (SHORTER). Exact opposite of Walk A.
+> 4. Attack 1: Character's RIGHT arm (viewer's right side) is extended straight out to the RIGHT side, horizontal, as if reaching out to the right. Left arm stays at side. Body faces camera.
+> 5. Attack 2: Character's RIGHT arm (viewer's right side) is raised DIAGONALLY UP to the upper-right, pointing to about 1-2 o'clock direction. Left arm stays at side. Body faces camera.
+> 6. Hit: Body and upper torso TILTED/LEANING to one side (viewer's left), as if knocked sideways by an impact. Eyes shut (two short lines). Feet stay planted but torso is clearly angled off-center.
+>
+> Row 2 — Back-facing, looking straight away from camera (6 frames, same order):
+> 1-6: Exact same poses as Row 1 but showing the character's back. Back of green cap, back of white shirt, brown lower half. NO face visible. All arm/leg positions match Row 1 from rear view.
+>
+> Total: 12 frames, 2 rows x 6 columns. Each cell 128x128 pixels. Transparent background. Thick black outline, flat colors, extremely minimal detail. Every single frame faces DIRECTLY forward or DIRECTLY backward.

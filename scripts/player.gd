@@ -27,12 +27,39 @@ var _hit_overlay_canvas: CanvasLayer = null
 # Weapon visual nodes (created dynamically)
 var blade: Node2D = null
 
-# Body parts for animation
-@onready var left_leg: Polygon2D = $PlayerVisual/LeftLeg
-@onready var right_leg: Polygon2D = $PlayerVisual/RightLeg
-@onready var left_arm: Polygon2D = $PlayerVisual/LeftArm
-@onready var right_arm: Polygon2D = $PlayerVisual/RightArm
-@onready var body: Polygon2D = $PlayerVisual/Body
+# Sprite animation
+const SPRITES = {
+  "idle": preload("res://resources/images/player/idle.png"),
+  "walk_a": preload("res://resources/images/player/walk_a.png"),
+  "walk_b": preload("res://resources/images/player/walk_b.png"),
+  "attack1": preload("res://resources/images/player/attack1.png"),
+  "attack2": preload("res://resources/images/player/attack2.png"),
+  "hit": preload("res://resources/images/player/hit.png"),
+  "idle_back": preload("res://resources/images/player/idle_back.png"),
+  "walk_a_back": preload("res://resources/images/player/walk_a_back.png"),
+  "walk_b_back": preload("res://resources/images/player/walk_b_back.png"),
+  "attack1_back": preload("res://resources/images/player/attack1_back.png"),
+  "attack2_back": preload("res://resources/images/player/attack2_back.png"),
+  "hit_back": preload("res://resources/images/player/hit_back.png"),
+  "idle_flip": preload("res://resources/images/player/idle_flip.png"),
+  "walk_a_flip": preload("res://resources/images/player/walk_a_flip.png"),
+  "walk_b_flip": preload("res://resources/images/player/walk_b_flip.png"),
+  "attack1_flip": preload("res://resources/images/player/attack1_flip.png"),
+  "attack2_flip": preload("res://resources/images/player/attack2_flip.png"),
+  "hit_flip": preload("res://resources/images/player/hit_flip.png"),
+  "idle_back_flip": preload("res://resources/images/player/idle_back_flip.png"),
+  "walk_a_back_flip": preload("res://resources/images/player/walk_a_back_flip.png"),
+  "walk_b_back_flip": preload("res://resources/images/player/walk_b_back_flip.png"),
+  "attack1_back_flip": preload("res://resources/images/player/attack1_back_flip.png"),
+  "attack2_back_flip": preload("res://resources/images/player/attack2_back_flip.png"),
+  "hit_back_flip": preload("res://resources/images/player/hit_back_flip.png"),
+}
+const WALK_FRAMES = ["idle", "walk_a", "idle", "walk_b"]
+const WALK_FRAME_DURATION = 0.15
+var sprite: Sprite2D = null
+var current_anim_state: String = "idle"
+var facing_back: bool = false
+var facing_left: bool = false
 
 var input_direction: Vector2 = Vector2.ZERO
 var can_attack: bool = true
@@ -64,6 +91,11 @@ func _ready() -> void:
   sfx_coin_player.stream = SFX_COIN
   sfx_coin_player.volume_db = -8.0
   add_child(sfx_coin_player)
+  # Create player sprite
+  sprite = Sprite2D.new()
+  sprite.texture = SPRITES["idle"]
+  sprite.scale = Vector2(0.36, 0.36)
+  player_visual.add_child(sprite)
   # Create attack area for collision-based hit detection
   attack_area = Area2D.new()
   attack_area.collision_layer = 0
@@ -160,37 +192,27 @@ func get_input_direction() -> Vector2:
 
 func update_sprite_direction() -> void:
   if input_direction.x < 0:
-    player_visual.scale.x = -1
+    facing_left = true
   elif input_direction.x > 0:
-    player_visual.scale.x = 1
+    facing_left = false
 
 func update_walk_animation(delta: float) -> void:
-  walk_time += delta * 12.0  # Speed of animation
+  if input_direction.y < 0:
+    facing_back = true
+  else:
+    facing_back = false
+  if current_anim_state == "attack" or current_anim_state == "hit":
+    return
+  walk_time += delta
+  var frame_index = int(walk_time / WALK_FRAME_DURATION) % 4
+  _set_sprite(WALK_FRAMES[frame_index])
 
-  var leg_swing = sin(walk_time) * 0.4
-  var arm_swing = sin(walk_time) * 0.3
-  var body_bob = abs(sin(walk_time * 2)) * 2.0
-
-  # Legs swing opposite to each other
-  left_leg.rotation = leg_swing
-  right_leg.rotation = -leg_swing
-
-  # Arms swing opposite to legs
-  left_arm.rotation = -arm_swing
-  right_arm.rotation = arm_swing
-
-  # Slight body bob
-  body.position.y = -body_bob
-
-func reset_walk_animation(delta: float) -> void:
-  # Smoothly return to idle pose
-  var lerp_speed = delta * 8.0
-
-  left_leg.rotation = lerp(left_leg.rotation, 0.0, lerp_speed)
-  right_leg.rotation = lerp(right_leg.rotation, 0.0, lerp_speed)
-  left_arm.rotation = lerp(left_arm.rotation, 0.0, lerp_speed)
-  right_arm.rotation = lerp(right_arm.rotation, 0.0, lerp_speed)
-  body.position.y = lerp(body.position.y, 0.0, lerp_speed)
+func reset_walk_animation(_delta: float) -> void:
+  facing_back = false
+  walk_time = 0.0
+  if current_anim_state == "attack" or current_anim_state == "hit":
+    return
+  _set_sprite("idle")
 
 func update_weapon_direction(delta: float) -> void:
   if is_swinging:
@@ -270,6 +292,20 @@ func _has_targets_in_range(center: Vector2, radius: float) -> bool:
 
 func swing_weapon(target_pos: Vector2) -> void:
   is_swinging = true
+
+  # Attack sprite animation
+  current_anim_state = "attack"
+  _set_sprite("attack2")
+  var sprite_tween = create_tween()
+  sprite_tween.tween_callback(func():
+    if current_anim_state == "attack":
+      _set_sprite("attack1")
+  ).set_delay(0.05)
+  sprite_tween.tween_callback(func():
+    if current_anim_state == "attack":
+      current_anim_state = "idle"
+      _set_sprite("idle")
+  ).set_delay(0.1)
 
   var direction_to_target = (target_pos - global_position).normalized()
   var target_angle = direction_to_target.angle() + PI / 2
@@ -464,6 +500,15 @@ func _on_monster_hit(monster: Node2D) -> void:
   invincible_timer = INVINCIBLE_DURATION
   GameManager.hit_penalty_active = true
   player_hit.emit()
+  # Hit sprite
+  current_anim_state = "hit"
+  _set_sprite("hit")
+  var hit_tween = create_tween()
+  hit_tween.tween_callback(func():
+    if current_anim_state == "hit":
+      current_anim_state = "idle"
+      _set_sprite("idle")
+  ).set_delay(0.3)
   # Red screen overlay for debuff duration
   _show_hit_overlay()
 
@@ -731,6 +776,19 @@ func _create_circle_polygon(radius: float, segments: int) -> Polygon2D:
     points.append(Vector2(cos(a), sin(a)) * radius)
   poly.polygon = points
   return poly
+
+func _get_sprite_key(base: String) -> String:
+  var key = base
+  if facing_back:
+    key += "_back"
+  if facing_left:
+    key += "_flip"
+  return key
+
+func _set_sprite(base: String) -> void:
+  var key = _get_sprite_key(base)
+  if SPRITES.has(key):
+    sprite.texture = SPRITES[key]
 
 func _draw() -> void:
   if not GameManager.debug_mode:
