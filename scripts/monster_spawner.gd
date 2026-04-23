@@ -19,9 +19,6 @@ const FURY_BOSS_TYPES: Dictionary = {
     "collision_shape": "res://resources/collision/slime.tres",
     "collision_base_scale": 0.24,
     "collision_rotation": PI / 2.0,
-    "idle_frame_count": 4,
-    "hit_frame_start": 4,
-    "hit_frame_count": 2,
   },
   1: {
     "type": "boar",
@@ -36,9 +33,6 @@ const FURY_BOSS_TYPES: Dictionary = {
     "collision_shape": "res://resources/collision/boar.tres",
     "collision_base_scale": 0.36,
     "collision_rotation": PI / 2.0,
-    "idle_frame_count": 4,
-    "hit_frame_start": 4,
-    "hit_frame_count": 2,
   },
   2: {
     "type": "knight",
@@ -52,9 +46,6 @@ const FURY_BOSS_TYPES: Dictionary = {
     "spawn_weight": 1,
     "collision_shape": "res://resources/collision/knight.tres",
     "collision_base_scale": 0.36,
-    "idle_frame_count": 4,
-    "hit_frame_start": 4,
-    "hit_frame_count": 2,
   },
   3: {
     "type": "mage",

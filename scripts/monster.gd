@@ -24,14 +24,13 @@ var effect_node: Node2D = null
 const FRAME_DURATION: float = 0.18
 var frame_timer: float = 0.0
 var sequence_index: int = 0
-var anim_sequence: Array = [0, 1, 2, 3, 4]  # base → compress → tilt left → expand → tilt right
-var idle_frame_count: int = 5  # idle에 사용되는 프레임 수
-var hit_frame_start: int = -1  # 피격 프레임 시작 인덱스 (-1이면 없음)
-var hit_frame_count: int = 0
+var anim_sequence: Array = [0, 1, 2, 3]
+var idle_frame_count: int = 4  # idle 프레임 수 (기본: 4)
+var hit_frame_start: int = 4  # 피격 프레임 시작 인덱스 (기본: 4)
+var hit_frame_count: int = 1  # 피격 프레임 수 (기본: 1, 고통 프레임만)
 var is_hit_animating: bool = false
-var hit_anim_index: int = 0
 var hit_anim_timer: float = 0.0
-const HIT_FRAME_DURATION: float = 0.12
+const HIT_FRAME_DURATION: float = 0.18  # 피격 표시 시간
 var wander_speed: float = 40.0
 
 # Health (placeholder)
@@ -65,9 +64,9 @@ func setup(config: Dictionary) -> void:
   collision_shape_path = config.get("collision_shape", "")
   collision_base_scale = config.get("collision_base_scale", 0.0)
   collision_rotation = config.get("collision_rotation", 0.0)
-  idle_frame_count = config.get("idle_frame_count", 5)
-  hit_frame_start = config.get("hit_frame_start", -1)
-  hit_frame_count = config.get("hit_frame_count", 0)
+  idle_frame_count = config.get("idle_frame_count", 4)
+  hit_frame_start = config.get("hit_frame_start", 4)
+  hit_frame_count = config.get("hit_frame_count", 1)
   # idle 시퀀스: config에 지정되어 있으면 사용, 아니면 순차 재생
   anim_sequence = config.get("anim_sequence", range(idle_frame_count))
   key_world_index = config.get("key_world_index", -1)
@@ -134,16 +133,12 @@ func _process(delta: float) -> void:
   if is_hit_animating:
     hit_anim_timer += delta
     if hit_anim_timer >= HIT_FRAME_DURATION:
+      # 피격 애니메이션 종료, idle 프레임 복귀
+      is_hit_animating = false
       hit_anim_timer = 0.0
-      hit_anim_index += 1
-      if hit_anim_index >= hit_frame_count:
-        # 피격 애니메이션 종료, idle 복귀
-        is_hit_animating = false
-        hit_anim_index = 0
-      else:
-        var fi = hit_frame_start + hit_anim_index
-        if fi < textures.size():
-          sprite.texture = textures[fi]
+      var idle_fi = anim_sequence[sequence_index]
+      if idle_fi < textures.size():
+        sprite.texture = textures[idle_fi]
   else:
     # Idle animation
     frame_timer += delta
@@ -165,8 +160,6 @@ func _process(delta: float) -> void:
     var player_local = get_parent().to_local(player.global_position)
     var dir = (player_local - position).normalized()
     position += dir * wander_speed * delta
-    if sprite:
-      sprite.flip_h = dir.x < 0
 
 func _advance_frame() -> void:
   if textures.is_empty():
@@ -228,10 +221,9 @@ func take_damage(amount: int, from_global_pos: Variant = null) -> void:
   sprite.modulate = Color(1, 0.3, 0.3)
   var tween = create_tween()
   tween.tween_property(sprite, "modulate", Color.WHITE, 0.15)
-  # Hit sprite animation
+  # Hit sprite animation — 피격(고통) 이미지 표시
   if hit_frame_start >= 0 and hit_frame_start < textures.size():
     is_hit_animating = true
-    hit_anim_index = 0
     hit_anim_timer = 0.0
     sprite.texture = textures[hit_frame_start]
   # Effect burst on hit
