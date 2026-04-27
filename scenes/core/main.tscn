@@ -28,6 +28,7 @@ offset_left = -3000.0
 offset_top = -3000.0
 offset_right = 3000.0
 offset_bottom = 3000.0
+mouse_filter = 2
 color = Color(0.18, 0.35, 0.18, 1)
 
 [node name="GrassSpawner" type="Node2D" parent="WorldRoot" groups=["grass_spawner"]]

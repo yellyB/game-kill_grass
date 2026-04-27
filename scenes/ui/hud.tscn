@@ -16,6 +16,7 @@ offset_left = 40.0
 offset_top = 60.0
 offset_right = -40.0
 offset_bottom = -60.0
+mouse_filter = 2
 
 [node name="MoneyDisplay" parent="PaddedArea" instance=ExtResource("2_money")]
 layout_mode = 1
