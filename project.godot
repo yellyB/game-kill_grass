@@ -8,13 +8,17 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="풀 좀 베겠습니다"
 run/main_scene="res://scenes/ui/main_menu.tscn"
-config/features=PackedStringArray("4.3", "Mobile")
-config/icon="res://resources/images/app_icon/icon_256.png"
 config/quit_on_go_back=false
+config/features=PackedStringArray("4.6", "Mobile")
+config/icon="res://resources/images/app_icon/icon_256.png"
 
 [autoload]
 
@@ -32,6 +36,10 @@ window/size/window_height_override=2000
 window/stretch/mode="viewport"
 window/stretch/aspect="keep_width"
 window/handheld/orientation=1
+
+[gui]
+
+theme/custom="res://resources/font/default_theme.tres"
 
 [input]
 
@@ -66,10 +74,6 @@ move_right={
 2d_physics/layer_2="grass"
 2d_physics/layer_3="items"
 2d_physics/layer_4="hittable"
-
-[gui]
-
-theme/custom="res://resources/font/default_theme.tres"
 
 [rendering]
 
