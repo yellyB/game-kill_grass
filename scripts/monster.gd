@@ -186,7 +186,7 @@ func play_boss_entrance() -> void:
   hit_area.set_deferred("monitorable", false)
 
   # 등장부터 착지 직후까지 진동 (0.6초 낙하 + 0.4초 여운)
-  Input.vibrate_handheld(1000)
+  GameManager.vibrate(1000)
 
   # 떨어지는 애니메이션
   var tween = create_tween()
@@ -212,7 +212,8 @@ func take_damage(amount: int, from_global_pos: Variant = null) -> void:
   if is_dead or is_boss_entering:
     return
   health -= amount
-  sfx_hit.play()
+  if GameManager.sfx_enabled:
+    sfx_hit.play()
   # Knockback away from attacker
   if from_global_pos is Vector2:
     var knock_dir = (global_position - from_global_pos).normalized()
@@ -241,12 +242,13 @@ func die() -> void:
   set_process(false)
 
   # Play death sound (on root so it persists after queue_free)
-  var sfx = AudioStreamPlayer.new()
-  sfx.stream = SFX_DEATH
-  sfx.volume_db = -3.0
-  get_tree().root.add_child(sfx)
-  sfx.play()
-  sfx.finished.connect(sfx.queue_free)
+  if GameManager.sfx_enabled:
+    var sfx = AudioStreamPlayer.new()
+    sfx.stream = SFX_DEATH
+    sfx.volume_db = -3.0
+    get_tree().root.add_child(sfx)
+    sfx.play()
+    sfx.finished.connect(sfx.queue_free)
 
   # Effect burst on death
   if effect_node and effect_node.has_method("burst"):

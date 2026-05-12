@@ -125,6 +125,8 @@ func update_timer_display() -> void:
     timer_progress.add_theme_stylebox_override("fill", fill_style)
 
 func _play_tick() -> void:
+  if not GameManager.sfx_enabled:
+    return
   if not _tick_sfx:
     _tick_sfx = AudioStreamPlayer.new()
     _tick_sfx.stream = preload("res://resources/sounds/effect/clock_tick_tock.wav")
@@ -142,7 +144,8 @@ func _start_bgm() -> void:
   bgm_player.finished.connect(bgm_player.play)
   add_child(bgm_player)
   await get_tree().create_timer(1.0).timeout
-  bgm_player.play()
+  if GameManager.bgm_enabled:
+    bgm_player.play()
 
 func end_session() -> void:
   session_ended = true
@@ -194,13 +197,14 @@ func animate_coins_disappear() -> void:
 
 func show_session_end_overlay(earnings: int) -> void:
   # Play fanfare
-  var sfx = AudioStreamPlayer.new()
-  sfx.stream = preload("res://resources/sounds/effect/end_session_fanfare.wav")
-  sfx.volume_db = -3.0
-  sfx.process_mode = Node.PROCESS_MODE_ALWAYS
-  add_child(sfx)
-  sfx.play()
-  sfx.finished.connect(sfx.queue_free)
+  if GameManager.sfx_enabled:
+    var sfx = AudioStreamPlayer.new()
+    sfx.stream = preload("res://resources/sounds/effect/end_session_fanfare.wav")
+    sfx.volume_db = -3.0
+    sfx.process_mode = Node.PROCESS_MODE_ALWAYS
+    add_child(sfx)
+    sfx.play()
+    sfx.finished.connect(sfx.queue_free)
 
   # Hide scene labels (replaced by dynamic container)
   session_earnings_label.visible = false

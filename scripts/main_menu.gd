@@ -15,6 +15,9 @@ var _ws_selected: int = -1  # Currently highlighted world index in panel
 var _ws_cards_container: VBoxContainer = null
 var _ws_action_btn: Button = null
 var _debug_container: HBoxContainer = null
+var _settings_btn: Button = null
+var _settings_overlay: Control = null
+var _confirm_dialog_mode: String = "quit"  # "quit" or "reset"
 var _debug_tap_count: int = 0
 var _debug_last_tap_time: float = 0.0
 var _upgrade_badge: Label = null
@@ -33,7 +36,7 @@ func _ready() -> void:
   play_btn.pressed.connect(_on_play_pressed)
   upgrade_btn.pressed.connect(_on_upgrade_pressed)
   quit_btn.pressed.connect(_on_quit_pressed)
-  quit_confirm_dialog.dialog_confirmed.connect(func(): get_tree().quit())
+  quit_confirm_dialog.dialog_confirmed.connect(_on_confirm_dialog_confirmed)
 
   # Hide the toggle buttons on panels (we use menu buttons instead)
   upgrade_panel.call_deferred("set_toggle_button_visible", false)
@@ -94,6 +97,19 @@ func _ready() -> void:
   GameManager.money_changed.connect(_on_money_changed_badge)
   GameManager.upgrade_purchased.connect(_on_upgrade_purchased_badge)
 
+  # 설정 버튼 (좌측 상단 톱니 아이콘)
+  _settings_btn = Button.new()
+  _settings_btn.text = ""
+  _settings_btn.icon = preload("res://resources/images/icon/settings.png")
+  _settings_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  _settings_btn.expand_icon = true
+  _settings_btn.flat = true
+  _settings_btn.custom_minimum_size = Vector2(80, 80)
+  _settings_btn.position = Vector2(GameManager.SCREEN_PADDING_H, GameManager.SCREEN_PADDING_V)
+  _settings_btn.pressed.connect(_on_settings_pressed)
+  _settings_btn.modulate = Color(0.7, 0.7, 0.7)
+  padded_area.add_child(_settings_btn)
+
   quit_btn.text = "종료"
   quit_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
   GameManager.style_button(quit_btn, "muted", Vector2(460, 112))
@@ -113,7 +129,8 @@ func _start_menu_bgm() -> void:
   _menu_bgm.volume_db = -10.0
   _menu_bgm.finished.connect(_menu_bgm.play)
   add_child(_menu_bgm)
-  _menu_bgm.play()
+  if GameManager.bgm_enabled:
+    _menu_bgm.play()
 
 
 func animate_title() -> void:
@@ -136,6 +153,8 @@ func _notification(what: int) -> void:
   if what == NOTIFICATION_WM_GO_BACK_REQUEST:
     if quit_confirm_dialog.visible:
       quit_confirm_dialog.hide_dialog()
+    elif _settings_overlay != null:
+      _close_settings()
     elif upgrade_panel.is_open:
       upgrade_panel._on_close_pressed()
     elif world_overlay != null:
@@ -147,17 +166,28 @@ func _on_upgrade_pressed() -> void:
 
 func _on_quit_pressed() -> void:
   GameManager.play_button_click()
+  _confirm_dialog_mode = "quit"
   quit_confirm_dialog.show_dialog("게임을 종료할까요?", "확인", "취소", true)
+
+func _on_confirm_dialog_confirmed() -> void:
+  if _confirm_dialog_mode == "reset":
+    _close_settings()
+    SaveManager.reset_all_data()
+    update_money_display()
+  else:
+    get_tree().quit()
 
 func _on_panel_opened() -> void:
   play_btn.disabled = true
   upgrade_btn.disabled = true
   quit_btn.disabled = true
+  if _settings_btn: _settings_btn.disabled = true
 
 func _on_panel_closed() -> void:
   play_btn.disabled = false
   upgrade_btn.disabled = false
   quit_btn.disabled = false
+  if _settings_btn: _settings_btn.disabled = false
   _update_upgrade_badge()
 
 func update_money_display() -> void:
@@ -786,6 +816,256 @@ func _close_world_select() -> void:
     world_overlay = null
   _ws_cards_container = null
   _ws_action_btn = null
+  _on_panel_closed()
+
+# ── Settings Popup ──
+
+func _on_settings_pressed() -> void:
+  GameManager.play_button_click()
+  _open_settings()
+
+var _bgm_toggle_btn: Button = null
+var _sfx_toggle_btn: Button = null
+var _vibration_toggle_btn: Button = null
+
+func _open_settings() -> void:
+  if _settings_overlay != null:
+    return
+  _on_panel_opened()
+
+  _settings_overlay = Control.new()
+  _settings_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+  _settings_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+  add_child(_settings_overlay)
+
+  # Dim background
+  var bg = ColorRect.new()
+  bg.color = Color(0.04, 0.07, 0.08, 0.8)
+  bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+  _settings_overlay.add_child(bg)
+
+  # Center container
+  var center = CenterContainer.new()
+  center.set_anchors_preset(Control.PRESET_FULL_RECT)
+  _settings_overlay.add_child(center)
+
+  # Panel
+  var panel = PanelContainer.new()
+  panel.custom_minimum_size = Vector2(640, 0)
+  var panel_style = StyleBoxFlat.new()
+  panel_style.bg_color = Color(0.09, 0.12, 0.12)
+  panel_style.corner_radius_top_left = 20
+  panel_style.corner_radius_top_right = 20
+  panel_style.corner_radius_bottom_left = 20
+  panel_style.corner_radius_bottom_right = 20
+  panel_style.border_width_top = 3
+  panel_style.border_width_bottom = 3
+  panel_style.border_width_left = 3
+  panel_style.border_width_right = 3
+  panel_style.border_color = Color(0.25, 0.47, 0.4)
+  panel_style.content_margin_left = 40
+  panel_style.content_margin_right = 40
+  panel_style.content_margin_top = 44
+  panel_style.content_margin_bottom = 40
+  panel.add_theme_stylebox_override("panel", panel_style)
+  center.add_child(panel)
+
+  var vbox = VBoxContainer.new()
+  vbox.add_theme_constant_override("separation", 14)
+  panel.add_child(vbox)
+
+  # Header
+  var header = Label.new()
+  header.text = "설정"
+  header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+  header.add_theme_font_size_override("font_size", 42)
+  header.add_theme_color_override("font_color", Color.WHITE)
+  header.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  header.add_theme_constant_override("outline_size", 3)
+  vbox.add_child(header)
+
+  # Separator
+  var sep1 = ColorRect.new()
+  sep1.color = Color(0.24, 0.24, 0.32)
+  sep1.custom_minimum_size = Vector2(0, 2)
+  vbox.add_child(sep1)
+
+  # BGM toggle row
+  var bgm_row = HBoxContainer.new()
+  bgm_row.add_theme_constant_override("separation", 20)
+  var bgm_label = Label.new()
+  bgm_label.text = "배경음"
+  bgm_label.add_theme_font_size_override("font_size", 36)
+  bgm_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+  bgm_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  bgm_row.add_child(bgm_label)
+  _bgm_toggle_btn = Button.new()
+  _bgm_toggle_btn.custom_minimum_size = Vector2(140, 70)
+  _bgm_toggle_btn.add_theme_font_size_override("font_size", 30)
+  _bgm_toggle_btn.pressed.connect(_on_bgm_toggled)
+  bgm_row.add_child(_bgm_toggle_btn)
+  _update_toggle_btn(_bgm_toggle_btn, GameManager.bgm_enabled)
+  vbox.add_child(bgm_row)
+
+  # SFX toggle row
+  var sfx_row = HBoxContainer.new()
+  sfx_row.add_theme_constant_override("separation", 20)
+  var sfx_label = Label.new()
+  sfx_label.text = "효과음"
+  sfx_label.add_theme_font_size_override("font_size", 36)
+  sfx_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+  sfx_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  sfx_row.add_child(sfx_label)
+  _sfx_toggle_btn = Button.new()
+  _sfx_toggle_btn.custom_minimum_size = Vector2(140, 70)
+  _sfx_toggle_btn.add_theme_font_size_override("font_size", 30)
+  _sfx_toggle_btn.pressed.connect(_on_sfx_toggled)
+  sfx_row.add_child(_sfx_toggle_btn)
+  _update_toggle_btn(_sfx_toggle_btn, GameManager.sfx_enabled)
+  vbox.add_child(sfx_row)
+
+  # Vibration toggle row
+  var vib_row = HBoxContainer.new()
+  vib_row.add_theme_constant_override("separation", 20)
+  var vib_label = Label.new()
+  vib_label.text = "진동"
+  vib_label.add_theme_font_size_override("font_size", 36)
+  vib_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+  vib_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  vib_row.add_child(vib_label)
+  _vibration_toggle_btn = Button.new()
+  _vibration_toggle_btn.custom_minimum_size = Vector2(140, 70)
+  _vibration_toggle_btn.add_theme_font_size_override("font_size", 30)
+  _vibration_toggle_btn.pressed.connect(_on_vibration_toggled)
+  vib_row.add_child(_vibration_toggle_btn)
+  _update_toggle_btn(_vibration_toggle_btn, GameManager.vibration_enabled)
+  vbox.add_child(vib_row)
+
+  # 설정 토글 ↔ 위험 섹션 간격
+  var gap_danger = Control.new()
+  gap_danger.custom_minimum_size = Vector2(0, 30)
+  vbox.add_child(gap_danger)
+
+  # ── 위험 섹션 (별도 배경 박스) ──
+  var danger_box = PanelContainer.new()
+  var danger_style = StyleBoxFlat.new()
+  danger_style.bg_color = Color(0.25, 0.08, 0.08)
+  danger_style.corner_radius_top_left = 12
+  danger_style.corner_radius_top_right = 12
+  danger_style.corner_radius_bottom_left = 12
+  danger_style.corner_radius_bottom_right = 12
+  danger_style.border_width_top = 1
+  danger_style.border_width_bottom = 1
+  danger_style.border_width_left = 1
+  danger_style.border_width_right = 1
+  danger_style.border_color = Color(0.5, 0.15, 0.15)
+  danger_style.content_margin_left = 24
+  danger_style.content_margin_right = 24
+  danger_style.content_margin_top = 18
+  danger_style.content_margin_bottom = 18
+  danger_box.add_theme_stylebox_override("panel", danger_style)
+  vbox.add_child(danger_box)
+
+  var danger_vbox = VBoxContainer.new()
+  danger_vbox.add_theme_constant_override("separation", 12)
+  danger_box.add_child(danger_vbox)
+
+  var danger_label = Label.new()
+  danger_label.text = "위험"
+  danger_label.add_theme_font_size_override("font_size", 26)
+  danger_label.add_theme_color_override("font_color", Color(0.8, 0.35, 0.35))
+  danger_vbox.add_child(danger_label)
+
+  var reset_btn = Button.new()
+  reset_btn.text = "게임 데이터 초기화"
+  reset_btn.custom_minimum_size = Vector2(0, 70)
+  reset_btn.add_theme_font_size_override("font_size", 30)
+  var reset_style = StyleBoxFlat.new()
+  reset_style.bg_color = Color(0.55, 0.12, 0.12)
+  reset_style.corner_radius_top_left = 10
+  reset_style.corner_radius_top_right = 10
+  reset_style.corner_radius_bottom_left = 10
+  reset_style.corner_radius_bottom_right = 10
+  reset_style.content_margin_left = 16
+  reset_style.content_margin_right = 16
+  reset_style.content_margin_top = 8
+  reset_style.content_margin_bottom = 8
+  reset_btn.add_theme_stylebox_override("normal", reset_style)
+  var reset_hover = reset_style.duplicate()
+  reset_hover.bg_color = Color(0.65, 0.18, 0.18)
+  reset_btn.add_theme_stylebox_override("hover", reset_hover)
+  var reset_pressed = reset_style.duplicate()
+  reset_pressed.bg_color = Color(0.45, 0.08, 0.08)
+  reset_btn.add_theme_stylebox_override("pressed", reset_pressed)
+  reset_btn.add_theme_color_override("font_color", Color(1.0, 0.7, 0.7))
+  reset_btn.pressed.connect(_on_settings_reset_pressed)
+  danger_vbox.add_child(reset_btn)
+
+  # Spacer
+  var spacer = Control.new()
+  spacer.custom_minimum_size = Vector2(0, 20)
+  vbox.add_child(spacer)
+
+  # Close button
+  var close_center = CenterContainer.new()
+  close_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  vbox.add_child(close_center)
+  var close_btn = Button.new()
+  close_btn.text = "닫기"
+  close_btn.custom_minimum_size = Vector2(420, 90)
+  close_btn.add_theme_font_size_override("font_size", 38)
+  close_btn.pressed.connect(_close_settings)
+  GameManager.style_button(close_btn, "muted")
+  close_center.add_child(close_btn)
+
+func _update_toggle_btn(btn: Button, enabled: bool) -> void:
+  if enabled:
+    btn.text = "켬"
+    GameManager.style_button(btn, "main")
+  else:
+    btn.text = "끔"
+    GameManager.style_button(btn, "muted")
+
+func _on_bgm_toggled() -> void:
+  GameManager.bgm_enabled = not GameManager.bgm_enabled
+  _update_toggle_btn(_bgm_toggle_btn, GameManager.bgm_enabled)
+  # BGM 즉시 반영
+  if _menu_bgm:
+    if GameManager.bgm_enabled:
+      if not _menu_bgm.playing:
+        _menu_bgm.play()
+    else:
+      _menu_bgm.stop()
+  GameManager.play_button_click()
+  SaveManager.save_game()
+
+func _on_sfx_toggled() -> void:
+  GameManager.sfx_enabled = not GameManager.sfx_enabled
+  _update_toggle_btn(_sfx_toggle_btn, GameManager.sfx_enabled)
+  GameManager.play_button_click()
+  SaveManager.save_game()
+
+func _on_vibration_toggled() -> void:
+  GameManager.vibration_enabled = not GameManager.vibration_enabled
+  _update_toggle_btn(_vibration_toggle_btn, GameManager.vibration_enabled)
+  GameManager.play_button_click()
+  SaveManager.save_game()
+
+func _on_settings_reset_pressed() -> void:
+  GameManager.play_button_click()
+  _confirm_dialog_mode = "reset"
+  # 설정 팝업보다 앞에 표시되도록 맨 앞으로 이동
+  move_child(quit_confirm_dialog, get_child_count() - 1)
+  quit_confirm_dialog.show_dialog("코인, 스킬, 무기, 월드 진행 등\n모든 게임 데이터가 삭제됩니다.", "초기화", "취소", true)
+
+func _close_settings() -> void:
+  GameManager.play_button_click()
+  if _settings_overlay != null:
+    _settings_overlay.queue_free()
+    _settings_overlay = null
+  _bgm_toggle_btn = null
+  _sfx_toggle_btn = null
+  _vibration_toggle_btn = null
   _on_panel_closed()
 
 # ── Debug Buttons ──

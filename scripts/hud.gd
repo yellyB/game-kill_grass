@@ -194,7 +194,7 @@ func _on_fury_boss_spawned() -> void:
 
   # Vibrate on mobile
   if OS.has_feature("mobile"):
-    Input.vibrate_handheld(200)
+    GameManager.vibrate(200)
 
   # Fade out fury bar (no shake)
   var fade_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)

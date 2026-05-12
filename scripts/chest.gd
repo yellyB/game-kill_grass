@@ -25,12 +25,13 @@ func die() -> void:
 	set_process(false)
 
 	# Play break sound (on root so it persists after queue_free)
-	var sfx = AudioStreamPlayer.new()
-	sfx.stream = SFX_BREAK
-	sfx.volume_db = -3.0
-	get_tree().root.add_child(sfx)
-	sfx.play()
-	sfx.finished.connect(sfx.queue_free)
+	if GameManager.sfx_enabled:
+		var sfx = AudioStreamPlayer.new()
+		sfx.stream = SFX_BREAK
+		sfx.volume_db = -3.0
+		get_tree().root.add_child(sfx)
+		sfx.play()
+		sfx.finished.connect(sfx.queue_free)
 
 	# Open animation: expand + shake + fade
 	var tween = create_tween()

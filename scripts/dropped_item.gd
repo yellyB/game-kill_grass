@@ -197,12 +197,13 @@ func _build_key_visual() -> void:
 
 func _collect() -> void:
 	# Play pickup sound (on root so it persists after queue_free)
-	var sfx = AudioStreamPlayer.new()
-	sfx.stream = SFX_PICK_KEY if is_key else SFX_PICK_ITEM
-	sfx.volume_db = -3.0
-	get_tree().root.add_child(sfx)
-	sfx.play()
-	sfx.finished.connect(sfx.queue_free)
+	if GameManager.sfx_enabled:
+		var sfx = AudioStreamPlayer.new()
+		sfx.stream = SFX_PICK_KEY if is_key else SFX_PICK_ITEM
+		sfx.volume_db = -3.0
+		get_tree().root.add_child(sfx)
+		sfx.play()
+		sfx.finished.connect(sfx.queue_free)
 
 	if is_key:
 		GameManager.add_key(key_world_index)

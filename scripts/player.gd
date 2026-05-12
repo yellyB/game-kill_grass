@@ -251,7 +251,7 @@ func try_attack() -> void:
     GameManager.add_fury(result.fury)
 
   # Play sound when weapon hits grass
-  if result.hit:
+  if result.hit and GameManager.sfx_enabled:
     sfx_grass_player.play()
 
   # Critical hit visual feedback
@@ -457,7 +457,8 @@ func _unhandled_input(event: InputEvent) -> void:
         touch_direction = Vector2.ZERO
 
 func accumulate_coin_text(value: int) -> void:
-  sfx_coin_player.play()
+  if GameManager.sfx_enabled:
+    sfx_coin_player.play()
   if batch_active and is_instance_valid(batch_floating_text):
     # Add to existing batch
     batch_total += value

@@ -7,6 +7,11 @@ const SCREEN_PADDING_V: float = 60.0
 # Debug mode (toggled by tapping coin display 5 times on main menu)
 var debug_mode: bool = false
 
+# Settings
+var bgm_enabled: bool = true
+var sfx_enabled: bool = true
+var vibration_enabled: bool = true
+
 # Game state
 var money: int = 0
 var session_money: int = 0
@@ -295,19 +300,28 @@ func _on_golden_grass_cut() -> void:
       return
 
 func play_skill_click() -> void:
+  if not sfx_enabled: return
   _sfx_skill_click.play()
 
 func play_button_click() -> void:
+  if not sfx_enabled: return
   _sfx_click.play()
 
 func play_confirm_click() -> void:
+  if not sfx_enabled: return
   _sfx_confirm.play()
 
 func play_skill_upgrade_sound() -> void:
+  if not sfx_enabled: return
   _sfx_skill_upgrade.play()
 
 func play_unlock_sound() -> void:
+  if not sfx_enabled: return
   _sfx_unlock.play()
+
+func vibrate(duration_ms: int) -> void:
+  if vibration_enabled:
+    Input.vibrate_handheld(duration_ms)
 
 # ── Shared Button Style ──
 
@@ -1300,6 +1314,9 @@ func get_save_data() -> Dictionary:
     "world_strength_levels": world_strength_levels.duplicate(),
     "collected_gem_levels": collected_gem_levels.duplicate(),
     "has_ever_transcended": has_ever_transcended,
+    "bgm_enabled": bgm_enabled,
+    "sfx_enabled": sfx_enabled,
+    "vibration_enabled": vibration_enabled,
   }
 
 func load_save_data(data: Dictionary) -> void:
@@ -1350,6 +1367,9 @@ func load_save_data(data: Dictionary) -> void:
     for v in saved_gem_levels[k]:
       levels_arr.append(int(v))
     collected_gem_levels[int(k)] = levels_arr
+  bgm_enabled = data.get("bgm_enabled", data.get("sound_enabled", true))
+  sfx_enabled = data.get("sfx_enabled", data.get("sound_enabled", true))
+  vibration_enabled = data.get("vibration_enabled", true)
   money_changed.emit(money)
   # weapon 스킬 레벨에서 WeaponManager 동기화
   WeaponManager.current_weapon_level = upgrade_levels.get("attack_power", 0)
