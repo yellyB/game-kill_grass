@@ -15,6 +15,9 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="풀 좀 베겠습니다"
+config/name_localized={
+"en": "Excuse Me, Mowing Through"
+}
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.6", "Mobile")
@@ -31,8 +34,8 @@ WeaponManager="*res://autoload/weapon_manager.gd"
 
 window/size/viewport_width=1080
 window/size/viewport_height=1920
-window/size/window_width_override=1200
-window/size/window_height_override=2000
+window/size/window_width_override=390
+window/size/window_height_override=692
 window/stretch/mode="viewport"
 window/stretch/aspect="keep_width"
 window/handheld/orientation=1

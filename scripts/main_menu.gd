@@ -105,7 +105,7 @@ func _ready() -> void:
   _settings_btn.expand_icon = true
   _settings_btn.flat = true
   _settings_btn.custom_minimum_size = Vector2(80, 80)
-  _settings_btn.position = Vector2(GameManager.SCREEN_PADDING_H, GameManager.SCREEN_PADDING_V)
+  _settings_btn.position = Vector2(0, 0)
   _settings_btn.pressed.connect(_on_settings_pressed)
   _settings_btn.modulate = Color(0.7, 0.7, 0.7)
   padded_area.add_child(_settings_btn)
@@ -824,9 +824,9 @@ func _on_settings_pressed() -> void:
   GameManager.play_button_click()
   _open_settings()
 
-var _bgm_toggle_btn: Button = null
-var _sfx_toggle_btn: Button = null
-var _vibration_toggle_btn: Button = null
+var _bgm_toggle_btn: CheckButton = null
+var _sfx_toggle_btn: CheckButton = null
+var _vibration_toggle_btn: CheckButton = null
 
 func _open_settings() -> void:
   if _settings_overlay != null:
@@ -899,12 +899,8 @@ func _open_settings() -> void:
   bgm_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
   bgm_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   bgm_row.add_child(bgm_label)
-  _bgm_toggle_btn = Button.new()
-  _bgm_toggle_btn.custom_minimum_size = Vector2(140, 70)
-  _bgm_toggle_btn.add_theme_font_size_override("font_size", 30)
-  _bgm_toggle_btn.pressed.connect(_on_bgm_toggled)
-  bgm_row.add_child(_bgm_toggle_btn)
-  _update_toggle_btn(_bgm_toggle_btn, GameManager.bgm_enabled)
+  _bgm_toggle_btn = _create_toggle(GameManager.bgm_enabled, _on_bgm_toggled)
+  bgm_row.add_child(_bgm_toggle_btn.get_parent())
   vbox.add_child(bgm_row)
 
   # SFX toggle row
@@ -916,12 +912,8 @@ func _open_settings() -> void:
   sfx_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
   sfx_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   sfx_row.add_child(sfx_label)
-  _sfx_toggle_btn = Button.new()
-  _sfx_toggle_btn.custom_minimum_size = Vector2(140, 70)
-  _sfx_toggle_btn.add_theme_font_size_override("font_size", 30)
-  _sfx_toggle_btn.pressed.connect(_on_sfx_toggled)
-  sfx_row.add_child(_sfx_toggle_btn)
-  _update_toggle_btn(_sfx_toggle_btn, GameManager.sfx_enabled)
+  _sfx_toggle_btn = _create_toggle(GameManager.sfx_enabled, _on_sfx_toggled)
+  sfx_row.add_child(_sfx_toggle_btn.get_parent())
   vbox.add_child(sfx_row)
 
   # Vibration toggle row
@@ -933,17 +925,12 @@ func _open_settings() -> void:
   vib_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
   vib_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
   vib_row.add_child(vib_label)
-  _vibration_toggle_btn = Button.new()
-  _vibration_toggle_btn.custom_minimum_size = Vector2(140, 70)
-  _vibration_toggle_btn.add_theme_font_size_override("font_size", 30)
-  _vibration_toggle_btn.pressed.connect(_on_vibration_toggled)
-  vib_row.add_child(_vibration_toggle_btn)
-  _update_toggle_btn(_vibration_toggle_btn, GameManager.vibration_enabled)
+  _vibration_toggle_btn = _create_toggle(GameManager.vibration_enabled, _on_vibration_toggled)
+  vib_row.add_child(_vibration_toggle_btn.get_parent())
   vbox.add_child(vib_row)
 
-  # 설정 토글 ↔ 위험 섹션 간격
   var gap_danger = Control.new()
-  gap_danger.custom_minimum_size = Vector2(0, 30)
+  gap_danger.custom_minimum_size = Vector2(0, 20)
   vbox.add_child(gap_danger)
 
   # ── 위험 섹션 (별도 배경 박스) ──
@@ -967,18 +954,32 @@ func _open_settings() -> void:
   vbox.add_child(danger_box)
 
   var danger_vbox = VBoxContainer.new()
-  danger_vbox.add_theme_constant_override("separation", 12)
+  danger_vbox.add_theme_constant_override("separation", 24)
+  danger_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
   danger_box.add_child(danger_vbox)
 
   var danger_label = Label.new()
-  danger_label.text = "위험"
+  danger_label.text = "▼ 위험"
+  danger_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
   danger_label.add_theme_font_size_override("font_size", 26)
   danger_label.add_theme_color_override("font_color", Color(0.8, 0.35, 0.35))
+  danger_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
   danger_vbox.add_child(danger_label)
 
+  var reset_center = CenterContainer.new()
+  reset_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+  reset_center.visible = false
+  danger_vbox.add_child(reset_center)
+
+  danger_box.gui_input.connect(func(event: InputEvent):
+    if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+      reset_center.visible = not reset_center.visible
+      danger_label.text = "▲ 위험" if reset_center.visible else "▼ 위험"
+      GameManager.play_button_click()
+  )
   var reset_btn = Button.new()
   reset_btn.text = "게임 데이터 초기화"
-  reset_btn.custom_minimum_size = Vector2(0, 70)
+  reset_btn.custom_minimum_size = Vector2(420, 70)
   reset_btn.add_theme_font_size_override("font_size", 30)
   var reset_style = StyleBoxFlat.new()
   reset_style.bg_color = Color(0.55, 0.12, 0.12)
@@ -999,7 +1000,7 @@ func _open_settings() -> void:
   reset_btn.add_theme_stylebox_override("pressed", reset_pressed)
   reset_btn.add_theme_color_override("font_color", Color(1.0, 0.7, 0.7))
   reset_btn.pressed.connect(_on_settings_reset_pressed)
-  danger_vbox.add_child(reset_btn)
+  reset_center.add_child(reset_btn)
 
   # Spacer
   var spacer = Control.new()
@@ -1018,20 +1019,21 @@ func _open_settings() -> void:
   GameManager.style_button(close_btn, "muted")
   close_center.add_child(close_btn)
 
-func _update_toggle_btn(btn: Button, enabled: bool) -> void:
-  if enabled:
-    btn.text = "켬"
-    GameManager.style_button(btn, "main")
-  else:
-    btn.text = "끔"
-    GameManager.style_button(btn, "muted")
+func _create_toggle(initial: bool, callback: Callable) -> CheckButton:
+  var wrapper = Control.new()
+  wrapper.custom_minimum_size = Vector2(140, 70)
+  var btn = CheckButton.new()
+  btn.button_pressed = initial
+  btn.scale = Vector2(2.5, 2.5)
+  btn.position = Vector2(25, 10)
+  btn.toggled.connect(callback)
+  wrapper.add_child(btn)
+  return btn
 
-func _on_bgm_toggled() -> void:
-  GameManager.bgm_enabled = not GameManager.bgm_enabled
-  _update_toggle_btn(_bgm_toggle_btn, GameManager.bgm_enabled)
-  # BGM 즉시 반영
+func _on_bgm_toggled(enabled: bool) -> void:
+  GameManager.bgm_enabled = enabled
   if _menu_bgm:
-    if GameManager.bgm_enabled:
+    if enabled:
       if not _menu_bgm.playing:
         _menu_bgm.play()
     else:
@@ -1039,15 +1041,13 @@ func _on_bgm_toggled() -> void:
   GameManager.play_button_click()
   SaveManager.save_game()
 
-func _on_sfx_toggled() -> void:
-  GameManager.sfx_enabled = not GameManager.sfx_enabled
-  _update_toggle_btn(_sfx_toggle_btn, GameManager.sfx_enabled)
+func _on_sfx_toggled(enabled: bool) -> void:
+  GameManager.sfx_enabled = enabled
   GameManager.play_button_click()
   SaveManager.save_game()
 
-func _on_vibration_toggled() -> void:
-  GameManager.vibration_enabled = not GameManager.vibration_enabled
-  _update_toggle_btn(_vibration_toggle_btn, GameManager.vibration_enabled)
+func _on_vibration_toggled(enabled: bool) -> void:
+  GameManager.vibration_enabled = enabled
   GameManager.play_button_click()
   SaveManager.save_game()
 
