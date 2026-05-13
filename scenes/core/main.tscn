@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cmain123"]
+[gd_scene load_steps=12 format=3 uid="uid://cmain123"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/world_root.gd" id="2_world"]
@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://scripts/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" uid="uid://chud123" path="res://scenes/ui/hud.tscn" id="7_hud"]
 [ext_resource type="PackedScene" uid="uid://cupgrade123" path="res://scenes/ui/upgrade_panel.tscn" id="8_upgrade"]
-[ext_resource type="PackedScene" uid="uid://cweaponshop" path="res://scenes/ui/weapon_shop.tscn" id="11_weaponshop"]
 [ext_resource type="PackedScene" path="res://scenes/ui/confirm_dialog.tscn" id="12_confirm"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
@@ -65,8 +64,6 @@ script = ExtResource("6_camera")
 [node name="HUD" parent="." instance=ExtResource("7_hud")]
 
 [node name="UpgradePanel" parent="." instance=ExtResource("8_upgrade")]
-
-[node name="WeaponShop" parent="." instance=ExtResource("11_weaponshop")]
 
 [node name="BackToMenuUI" type="CanvasLayer" parent="."]
 

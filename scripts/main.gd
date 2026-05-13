@@ -16,7 +16,6 @@ const BGM_PATHS: Array = [
 @onready var player: CharacterBody2D = $Player
 @onready var camera: Camera2D = $Player/GameCamera
 @onready var upgrade_panel: Control = $UpgradePanel/Control
-@onready var weapon_shop: Control = $WeaponShop/Control
 @onready var back_to_menu_btn: Button = $BackToMenuUI/BackToMenuBtn
 @onready var confirm_dialog: Control = $BackToMenuUI/ConfirmDialog
 @onready var session_end_overlay: Control = $BackToMenuUI/SessionEndOverlay
@@ -41,7 +40,6 @@ func _ready() -> void:
 
   # Hide the toggle buttons on panels (moved to main menu)
   upgrade_panel.set_toggle_button_visible(false)
-  weapon_shop.set_toggle_button_visible(false)
 
   # Setup back to menu button and dialog
   back_to_menu_btn.pressed.connect(_on_back_to_menu_pressed)

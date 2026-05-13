@@ -167,7 +167,7 @@ func _on_upgrade_pressed() -> void:
 func _on_quit_pressed() -> void:
   GameManager.play_button_click()
   _confirm_dialog_mode = "quit"
-  quit_confirm_dialog.show_dialog("게임을 종료할까요?", "확인", "취소", true)
+  quit_confirm_dialog.show_dialog("게임을 종료할까요?", "종료", "취소", true)
 
 func _on_confirm_dialog_confirmed() -> void:
   if _confirm_dialog_mode == "reset":
@@ -1024,7 +1024,7 @@ func _create_toggle(initial: bool, callback: Callable) -> CheckButton:
   wrapper.custom_minimum_size = Vector2(140, 70)
   var btn = CheckButton.new()
   btn.button_pressed = initial
-  btn.scale = Vector2(2.5, 2.5)
+  btn.scale = Vector2(3.25, 3.25)
   btn.position = Vector2(25, 10)
   btn.toggled.connect(callback)
   wrapper.add_child(btn)
