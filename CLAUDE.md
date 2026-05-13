@@ -221,6 +221,15 @@ docs/
   image-prompts.md     - 스프라이트 시트 이미지 생성 프롬프트
 ```
 
+## Git 브랜치 & 릴리즈 규칙
+
+- **dev**: 개발 브랜치. 모든 기능 개발과 커밋은 반드시 여기서만 수행
+- **main**: 프로덕션 브랜치. dev를 머지하는 것만 허용, 직접 커밋 금지
+- 머지 시 annotated 태그 추가: `git tag -a "v{버전코드}-{버전이름}" -m "{버전코드} ({버전이름})"`
+  - 예: `git tag -a "v12-1.0.1" -m "12 (1.0.1)"`
+  - 버전코드: Google Play Console의 versionCode (정수)
+  - 버전이름: Google Play Console의 versionName (x.y.z)
+
 ## 좌표계 주의사항
 
 WorldRoot가 이동하므로 좌표 변환 필요:
