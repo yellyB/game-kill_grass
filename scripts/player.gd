@@ -531,7 +531,8 @@ func _remove_hit_overlay() -> void:
 
 # ── Critical Hit Effect ──────────────────────────────────────────
 func _spawn_crit_effect(dir: Vector2) -> void:
-  var fx_offset = dir * (attack_radius * 0.5)
+  var effective_dir = dir if dir != Vector2.ZERO else Vector2.from_angle(weapon_pivot.rotation - PI / 2)
+  var fx_offset = effective_dir * (attack_radius * 0.5)
 
   # Gold expanding rings (2 rings, staggered)
   for i in 2:
@@ -582,17 +583,18 @@ func _spawn_crit_effect(dir: Vector2) -> void:
 
 func _spawn_weapon_effect(dir: Vector2) -> void:
   var level = WeaponManager.current_weapon_level
-  var fx_offset = dir * (attack_radius * 0.5)
+  var effective_dir = dir if dir != Vector2.ZERO else Vector2.from_angle(weapon_pivot.rotation - PI / 2)
+  var fx_offset = effective_dir * (attack_radius * 0.5)
   match level:
     0: pass
-    1: _fx_slash_arc(fx_offset, dir)
+    1: _fx_slash_arc(fx_offset, effective_dir)
     2: _fx_spin_circle(fx_offset)
     3: _fx_electric_flash(fx_offset)
     4: _fx_heat_glow(fx_offset)
-    5: _fx_scratch_lines(fx_offset, dir)
-    6: _fx_chainsaw_blur(fx_offset, dir)
-    7: _fx_magic_orb(fx_offset, dir)
-    8: _fx_wind_beam(fx_offset, dir)
+    5: _fx_scratch_lines(fx_offset, effective_dir)
+    6: _fx_chainsaw_blur(fx_offset, effective_dir)
+    7: _fx_magic_orb(fx_offset, effective_dir)
+    8: _fx_wind_beam(fx_offset, effective_dir)
     9: _fx_satellite_laser(fx_offset)
 
 # Lv1 녹슨 식칼 — white slash arc
@@ -754,19 +756,23 @@ func _fx_wind_beam(pos: Vector2, dir: Vector2) -> void:
   tw.tween_callback(beam.queue_free)
   tw.tween_callback(glow.queue_free)
 
-# Lv9 위성 레이저 제초기 — red beam
+# Lv9 위성 레이저 제초기 — red beam with round impact
 func _fx_satellite_laser(pos: Vector2) -> void:
-  # Red vertical beam
   var beam = Line2D.new()
   beam.position = pos
-  beam.width = 8.0
-  beam.default_color = Color(1.0, 0.15, 0.1, 0.9)
+  beam.width = attack_radius * 2.0
+  beam.end_cap_mode = Line2D.LINE_CAP_ROUND
   beam.add_point(Vector2(0, -500))
-  beam.add_point(Vector2(0, 500))
+  beam.add_point(Vector2.ZERO)
+  var grad = Gradient.new()
+  grad.set_color(0, Color(1.0, 0.15, 0.1, 0.0))   # top: transparent
+  grad.set_color(1, Color(1.0, 0.15, 0.1, 0.35))   # bottom: visible
+  beam.gradient = grad
   add_child(beam)
-  var tw_beam = create_tween()
-  tw_beam.tween_property(beam, "modulate:a", 0.0, 0.2)
-  tw_beam.tween_callback(beam.queue_free)
+
+  var tw = create_tween()
+  tw.tween_property(beam, "modulate:a", 0.0, 0.2)
+  tw.tween_callback(beam.queue_free)
 
 # Helper: create a circle Polygon2D
 func _create_circle_polygon(radius: float, segments: int) -> Polygon2D:
