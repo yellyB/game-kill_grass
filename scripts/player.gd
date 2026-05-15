@@ -351,7 +351,7 @@ func create_weapon_sprite() -> Sprite2D:
     push_warning("Weapon texture not loaded!")
     return sprite
   sprite.texture = texture
-  # Scale weapon to match attack range (tip reaches attack_radius from pivot)
+  # Scale weapon to match attack range, bigger for higher level weapons
   var target_size = attack_radius
   var max_dimension = max(texture.get_width(), texture.get_height())
   var scale_factor = target_size / max_dimension
@@ -734,27 +734,20 @@ func _fx_magic_orb(pos: Vector2, dir: Vector2) -> void:
 
 # Lv8 날개달린 선풍기 — yellow beam with glow
 func _fx_wind_beam(pos: Vector2, dir: Vector2) -> void:
-  # Glow (wider, behind)
-  var glow = Line2D.new()
-  glow.position = pos
-  glow.width = 16.0
-  glow.default_color = Color(1.0, 0.95, 0.3, 0.3)
-  glow.add_point(Vector2.ZERO)
-  glow.add_point(dir * 200.0)
-  add_child(glow)
-  # Main beam
+  # Wide cyan beam from player toward attack direction
   var beam = Line2D.new()
-  beam.position = pos
-  beam.width = 6.0
-  beam.default_color = Color(1.0, 0.95, 0.3, 0.9)
+  beam.width = attack_radius * 2.0
+  beam.end_cap_mode = Line2D.LINE_CAP_ROUND
   beam.add_point(Vector2.ZERO)
-  beam.add_point(dir * 200.0)
+  beam.add_point(pos + dir * attack_radius)
+  var grad = Gradient.new()
+  grad.set_color(0, Color(0.4, 0.9, 1.0, 0.35))    # player: visible
+  grad.set_color(1, Color(0.4, 0.9, 1.0, 0.0))     # end: fade out
+  beam.gradient = grad
   add_child(beam)
   var tw = create_tween()
-  tw.tween_property(beam, "modulate:a", 0.0, 0.15)
-  tw.parallel().tween_property(glow, "modulate:a", 0.0, 0.15)
+  tw.tween_property(beam, "modulate:a", 0.0, 0.2)
   tw.tween_callback(beam.queue_free)
-  tw.tween_callback(glow.queue_free)
 
 # Lv9 위성 레이저 제초기 — red beam with round impact
 func _fx_satellite_laser(pos: Vector2) -> void:
