@@ -11,8 +11,7 @@
 .godot-mcp/
 .mcp.json
 
-# Claude Code
-.claude/
+# Claude Code - CLAUDE.md와 .claude/ 디렉토리는 레포에 포함
 
 # OS generated files
 .DS_Store

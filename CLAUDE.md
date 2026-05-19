@@ -229,6 +229,11 @@ docs/
   - 예: `git tag -a "v12-1.0.1" -m "12 (1.0.1)"`
   - 버전코드: Google Play Console의 versionCode (정수)
   - 버전이름: Google Play Console의 versionName (x.y.z)
+- **머지 요청 시 절차**:
+  1. 최신 태그(이전 버전)를 찾아 알려주기
+  2. 이전 태그 이후 변경된 커밋 목록을 확인하고, 유저 대상 릴리즈 노트를 구체적으로 정리하여 보여주기
+  3. 버전코드/버전이름을 질문한 뒤 머지 + 태그 + 푸시 수행
+  4. `export_presets.cfg`의 `version/code`와 `version/name`도 함께 업데이트
 
 ## 커밋 메시지 규칙
 
