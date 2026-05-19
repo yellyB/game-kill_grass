@@ -1543,23 +1543,74 @@ func update_confirm_button() -> void:
   confirm_btn.disabled = not affordable
   confirm_btn.text = "강화하기"
 
+func _play_upgrade_effect(skill_type: String, level_complete: bool) -> void:
+  # 스킬 노드 버튼 찾기
+  var target_btn: Button = null
+  for child in skill_tree_container.get_children():
+    if child is Button and child.has_meta("skill_type") and child.get_meta("skill_type") == skill_type:
+      target_btn = child
+      break
+
+  if target_btn:
+    # 스케일 팝 애니메이션
+    target_btn.pivot_offset = target_btn.size / 2.0
+    target_btn.scale = Vector2(1.3, 1.3)
+    var scale_tween = create_tween()
+    scale_tween.tween_property(target_btn, "scale", Vector2(1.0, 1.0), 0.3) \
+      .set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+    # 흰색 플래시 오버레이 (노드 위에)
+    var flash = ColorRect.new()
+    flash.color = Color(1, 1, 1, 0.5) if not level_complete else Color(1, 0.9, 0.3, 0.6)
+    flash.anchors_preset = Control.PRESET_FULL_RECT
+    flash.anchor_right = 1.0
+    flash.anchor_bottom = 1.0
+    flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    target_btn.add_child(flash)
+    var flash_tween = create_tween()
+    flash_tween.tween_property(flash, "color:a", 0.0, 0.35)
+    flash_tween.tween_callback(flash.queue_free)
+
+  # 레벨 완료 시 전체 화면에 골드 플래시
+  if level_complete:
+    var screen_flash = ColorRect.new()
+    screen_flash.color = Color(1, 0.85, 0.2, 0.18)
+    screen_flash.anchors_preset = Control.PRESET_FULL_RECT
+    screen_flash.anchor_right = 1.0
+    screen_flash.anchor_bottom = 1.0
+    screen_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    screen_flash.z_index = 50
+    panel.add_child(screen_flash)
+    var screen_tween = create_tween()
+    screen_tween.tween_property(screen_flash, "color:a", 0.0, 0.5)
+    screen_tween.tween_callback(screen_flash.queue_free)
+
 func _on_confirm_pressed() -> void:
   GameManager.play_confirm_click()
   if selected_type.is_empty():
     return
+
+  var upgraded_type = selected_type
 
   # 보석 해금 처리
   var node_state = _get_node_state(selected_type)
   if node_state == "gem_locked":
     var current_level = _get_current_level(selected_type)
     var next_level = current_level + 1
+    var gem_cost = GameManager.get_skill_gem_cost(selected_type, next_level)
     if GameManager.unlock_gem_skill(selected_type, next_level):
       GameManager.play_skill_upgrade_sound()
       GameManager.vibrate(50)
       build_skill_tree()
       clear_selection()
       update_money_display()
+      _play_upgrade_effect(upgraded_type, true)
+      money_display.show_gem_cost_floating(gem_cost)
     return
+
+  # 비용 미리 계산 (purchase_upgrade 내부에서 차감되므로)
+  var current_level = _get_current_level(selected_type)
+  var cost = GameManager.get_upgrade_cost(current_level, selected_type)
 
   var prev_sub = GameManager.get_upgrade_sub_level(selected_type)
   if GameManager.purchase_upgrade(selected_type):
@@ -1573,6 +1624,8 @@ func _on_confirm_pressed() -> void:
       build_skill_tree()
       clear_selection()
       update_money_display()
+      _play_upgrade_effect(upgraded_type, true)
+      money_display.show_cost_floating(cost)
       return
 
     build_skill_tree()
@@ -1580,6 +1633,8 @@ func _on_confirm_pressed() -> void:
     update_money_display()
     update_description()
     update_confirm_button()
+    _play_upgrade_effect(upgraded_type, false)
+    money_display.show_cost_floating(cost)
 
 func _on_money_changed(_amount: int) -> void:
   update_money_display()

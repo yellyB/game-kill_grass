@@ -99,3 +99,49 @@ func _sync_panel_widths() -> void:
   var max_w = maxf(coin_w, gem_w)
   coin_panel.custom_minimum_size.x = max_w
   gem_panel.custom_minimum_size.x = max_w
+
+func show_cost_floating(amount: int) -> void:
+  var lbl = Label.new()
+  lbl.text = "-%s" % GameManager.format_number(amount)
+  lbl.add_theme_font_size_override("font_size", 34)
+  lbl.add_theme_color_override("font_color", Color(1, 0.35, 0.3))
+  lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  lbl.add_theme_constant_override("outline_size", 4)
+  lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  # 코인 패널 아래에 배치
+  lbl.position = Vector2(0, coin_panel.size.y)
+  lbl.size = Vector2(coin_panel.size.x, 40)
+  coin_panel.add_child(lbl)
+  # 팝 + 위로 떠오르며 페이드아웃
+  lbl.scale = Vector2(0.5, 0.5)
+  lbl.pivot_offset = Vector2(lbl.size.x, lbl.size.y / 2.0)
+  var tween = create_tween()
+  tween.set_parallel(true)
+  tween.tween_property(lbl, "scale", Vector2(1.0, 1.0), 0.1).set_ease(Tween.EASE_OUT)
+  tween.tween_property(lbl, "position:y", coin_panel.size.y + 30, 0.8).set_ease(Tween.EASE_OUT)
+  tween.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.4)
+  tween.chain().tween_callback(lbl.queue_free)
+
+func show_gem_cost_floating(amount: int) -> void:
+  if not gem_panel or not is_instance_valid(gem_panel):
+    return
+  var lbl = Label.new()
+  lbl.text = "-%s" % GameManager.format_number(amount)
+  lbl.add_theme_font_size_override("font_size", 34)
+  lbl.add_theme_color_override("font_color", Color(0.95, 0.3, 0.5))
+  lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+  lbl.add_theme_constant_override("outline_size", 4)
+  lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+  lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+  lbl.position = Vector2(0, gem_panel.size.y)
+  lbl.size = Vector2(gem_panel.size.x, 40)
+  gem_panel.add_child(lbl)
+  lbl.scale = Vector2(0.5, 0.5)
+  lbl.pivot_offset = Vector2(lbl.size.x, lbl.size.y / 2.0)
+  var tween = create_tween()
+  tween.set_parallel(true)
+  tween.tween_property(lbl, "scale", Vector2(1.0, 1.0), 0.1).set_ease(Tween.EASE_OUT)
+  tween.tween_property(lbl, "position:y", gem_panel.size.y + 30, 0.8).set_ease(Tween.EASE_OUT)
+  tween.tween_property(lbl, "modulate:a", 0.0, 0.5).set_delay(0.4)
+  tween.chain().tween_callback(lbl.queue_free)
