@@ -28,11 +28,11 @@ void vertex() {
 
 void fragment() {
 	// Alpha 마커로 상태 판별 (instance color alpha)
-	// 0.15 = 즉사 플래시, 0.25 = 피격 플래시, 0.5 = 황금풀, 1.0 = 일반
+	// 0.05 = 크리티컬 플래시, 0.25 = 피격 플래시, 0.5 = 황금풀, 1.0 = 일반
 
-	if (COLOR.a < 0.2) {
-		// 즉사 플래시: 빨간색
-		COLOR.rgb = vec3(1.0, 0.15, 0.1);
+	if (COLOR.a < 0.1) {
+		// 크리티컬: 밝은 노란색
+		COLOR.rgb = vec3(1.0, 0.9, 0.2);
 	} else if (COLOR.a < 0.35) {
 		// 피격 플래시: 밝은 흰색
 		COLOR.rgb = vec3(1.0, 1.0, 1.0);
