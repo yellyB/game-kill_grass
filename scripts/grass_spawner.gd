@@ -313,6 +313,10 @@ func process_regen(delta: float) -> void:
       data.hit_timer -= delta
       still_active = true
       _mark_chunk_dirty(grid_pos)
+    if data.has("instant_kill_timer") and data.instant_kill_timer > 0:
+      data.instant_kill_timer -= delta
+      still_active = true
+      _mark_chunk_dirty(grid_pos)
     if data.has("hp_bar_timer") and data.hp_bar_timer > 0:
       data.hp_bar_timer -= delta
       _has_active_hp_bars = true
@@ -377,13 +381,20 @@ func update_multimesh() -> void:
   for grid_pos in grass_data:
     var data = grass_data[grid_pos]
     if data.cut:
+      # 즉사 플래시: alpha 0.15 마커 → 셰이더에서 보라색 처리
+      if data.get("instant_kill_timer", 0.0) > 0:
+        var world_pos = Vector2(grid_pos.x, grid_pos.y)
+        visible_grass.append(world_pos)
+        colors_list.append(Color(1.0, 1.0, 1.0, 0.15))
       continue
 
     var world_pos = Vector2(grid_pos.x, grid_pos.y)
     visible_grass.append(world_pos)
 
     if data.has("hit_timer") and data.hit_timer > 0:
-      var flash_alpha = 0.5 if data.type == 5 else 1.0
+      # 피격 플래시: alpha 0.25 마커 → 셰이더에서 흰색 강제
+      # 황금풀은 alpha 0.5 유지 (셰이더 황금색 경로)
+      var flash_alpha = 0.5 if data.type == 5 else 0.25
       colors_list.append(Color(1.0, 1.0, 1.0, flash_alpha))
     else:
       colors_list.append(_get_grass_color(data.type))
@@ -478,6 +489,7 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
     var grid_pos = locked_targets[i]
     var data = grass_data[grid_pos]
     hit_count += 1
+    var hp_before = data.health
     data.health -= damage
     data.hit_timer = 0.1
     _add_active_timer(grid_pos)
@@ -485,6 +497,10 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
       data.hp_bar_timer = 1.5
       _add_active_timer(grid_pos)
     if data.health <= 0:
+      var is_instant_kill = (hp_before == data.max_health)
+      if is_instant_kill:
+        data.instant_kill_timer = 0.15
+        _add_active_timer(grid_pos)
       data.cut = true
       data.regen_timer = 0.0
       _mark_grass_cut(grid_pos)
@@ -551,6 +567,8 @@ func _crit_kill_percent(center: Vector2, radius: float, percent: float, exclude:
   for i in mini(kill_count, candidates.size()):
     var grid_pos = candidates[i]
     var data = grass_data[grid_pos]
+    data.instant_kill_timer = 0.15
+    _add_active_timer(grid_pos)
     data.cut = true
     data.regen_timer = 0.0
     _mark_grass_cut(grid_pos)

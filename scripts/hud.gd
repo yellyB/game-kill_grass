@@ -36,6 +36,10 @@ func _ready() -> void:
   # 초월 레벨 표시 (보유 코인 아래)
   _setup_strength_label()
 
+  # 인게임 디버그 버튼 (debug build only)
+  if OS.is_debug_build():
+    _build_debug_buttons()
+
   # 몬스터 분노 bar styling
   _setup_fury_bar()
   GameManager.fury_changed.connect(_on_fury_changed)
@@ -345,3 +349,26 @@ func _show_powerup_notification(type: String, level: int) -> void:
   )
   tween.tween_property(hbox, "custom_minimum_size:y", 0.0, 0.2)
   tween.tween_callback(hbox.queue_free)
+
+# ── 인게임 디버그 버튼 ──
+
+func _build_debug_buttons() -> void:
+  var btn = Button.new()
+  btn.text = "파워업"
+  btn.add_theme_font_size_override("font_size", 18)
+  GameManager.style_button(btn, "sub")
+  btn.pressed.connect(_on_debug_powerup)
+  btn.anchors_preset = Control.PRESET_BOTTOM_LEFT
+  btn.anchor_left = 0.0
+  btn.anchor_top = 1.0
+  btn.anchor_right = 0.0
+  btn.anchor_bottom = 1.0
+  btn.offset_left = 16.0
+  btn.offset_top = -56.0
+  btn.offset_right = 100.0
+  btn.offset_bottom = -8.0
+  padded_area.add_child(btn)
+
+func _on_debug_powerup() -> void:
+  var selection = preload("res://scenes/ui/powerup_selection.tscn").instantiate()
+  get_tree().root.add_child(selection)
