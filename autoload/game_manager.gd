@@ -162,7 +162,7 @@ var session_buff_attack_range: int = 0
 var session_buff_magnet_range: int = 0
 var session_buff_move_speed: int = 0
 var session_buff_critical_surge: bool = false
-var session_buff_critical_reaper: int = 0
+var session_buff_critical_reaper: bool = false
 var session_buff_golden_luck: bool = false
 
 # Timed buffs: { "gold_rush": remaining_seconds, ... }
@@ -738,7 +738,7 @@ func get_session_attack_range_mult() -> float:
 func get_session_move_speed_mult() -> float:
   var mult = 1.0 + session_buff_move_speed * 0.5
   if timed_buffs.has("overdrive"):
-    mult *= 0.5  # -50%
+    mult *= 0.7  # -30%
   if timed_buffs.has("harvest_madness"):
     mult *= 2.0
   if hit_penalty_active:
@@ -774,8 +774,8 @@ func apply_powerup(type: String) -> void:
       session_buff_critical_surge = true
       powerup_acquired.emit(type, 1)
     "critical_reaper":
-      session_buff_critical_reaper += 3
-      powerup_acquired.emit(type, session_buff_critical_reaper)
+      session_buff_critical_reaper = true
+      powerup_acquired.emit(type, 1)
     "golden_luck":
       session_buff_golden_luck = true
       powerup_acquired.emit(type, 1)
@@ -794,10 +794,10 @@ func apply_powerup(type: String) -> void:
     "double_or_dust":
       _apply_double_or_dust()
     "monster_fury":
-      add_fury(get_fury_max() * 0.2 / get_fury_rate_mult())
+      add_fury(get_fury_max() * 0.35 / get_fury_rate_mult())
       powerup_acquired.emit(type, 0)
     "harvest_madness":
-      _start_timed_buff("harvest_madness", 5.0)
+      _start_timed_buff("harvest_madness", 8.0)
       powerup_acquired.emit(type, 0)
     "field_clear":
       field_clear_requested.emit()
@@ -817,8 +817,8 @@ func _apply_double_or_dust() -> void:
     add_money(bonus)
     powerup_acquired.emit("double_or_dust", 1)  # 1 = success
   else:
-    # Dust!
-    var lost = session_money
+    # Dust! 세션 수입의 30%만 잃음
+    var lost = int(session_money * 0.3)
     add_money(-lost)
     powerup_acquired.emit("double_or_dust", 0)  # 0 = fail
 
@@ -1402,7 +1402,7 @@ func reset_session_data() -> void:
   session_buff_magnet_range = 0
   session_buff_move_speed = 0
   session_buff_critical_surge = false
-  session_buff_critical_reaper = 0
+  session_buff_critical_reaper = false
   session_buff_golden_luck = false
   timed_buffs.clear()
   hit_penalty_active = false

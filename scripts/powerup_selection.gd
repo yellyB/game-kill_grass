@@ -60,10 +60,10 @@ const POWERUP_DATA = [
   {
     "type": "critical_reaper",
     "name": "크리티컬 리퍼",
-    "desc": "치명타 발동 시 주변 풀 3개 즉시 제거",
+    "desc": "치명타 시 범위 내 풀 30% 즉사",
     "color": Color(0.6, 0.1, 0.3),
     "image": "크리티컬리퍼.png",
-    "stackable": true,
+    "stackable": false,
     "weight": 10,
   },
   {
@@ -95,8 +95,8 @@ const POWERUP_DATA = [
   },
   {
     "type": "double_or_dust",
-    "name": "더블 오어 더스트",
-    "desc": "50% 코인 2배 or 50% 전부 증발",
+    "name": "더블 오어 낫싱",
+    "desc": "50% 코인 2배 or 50% 코인 30% 손실",
     "color": Color(0.8, 0.2, 0.8),
     "image": "더블오어더스트.png",
     "stackable": false,
@@ -105,7 +105,7 @@ const POWERUP_DATA = [
   {
     "type": "monster_fury",
     "name": "몬스터 퓨리",
-    "desc": "분노 게이지 20% 충전",
+    "desc": "분노 게이지 35% 충전",
     "color": Color(0.9, 0.2, 0.2),
     "image": "몬스터퓨리.png",
     "stackable": false,
@@ -114,7 +114,7 @@ const POWERUP_DATA = [
   {
     "type": "overdrive",
     "name": "오버드라이브",
-    "desc": "10초간 공속 2배, 이속 -50%",
+    "desc": "10초간 공속 2배, 이속 -30%",
     "color": Color(1.0, 0.3, 0.5),
     "image": "오버드라이브.png",
     "stackable": false,
@@ -123,7 +123,7 @@ const POWERUP_DATA = [
   {
     "type": "harvest_madness",
     "name": "하베스트 매드니스",
-    "desc": "5초간 모든 스탯 대폭 증가",
+    "desc": "8초간 모든 스탯 대폭 증가",
     "color": Color(1.0, 0.5, 1.0),
     "image": "하베스트매드니스.png",
     "stackable": false,
@@ -170,6 +170,12 @@ func _pick_random_powerups(count: int) -> Array:
   for data in POWERUP_DATA:
     if not data.stackable:
       if data.type == "overdrive" and GameManager.timed_buffs.has("overdrive"):
+        continue
+      if data.type == "critical_reaper" and GameManager.session_buff_critical_reaper:
+        continue
+      if data.type == "critical_surge" and GameManager.session_buff_critical_surge:
+        continue
+      if data.type == "golden_luck" and GameManager.session_buff_golden_luck:
         continue
     pool.append(data)
 

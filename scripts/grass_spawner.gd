@@ -494,9 +494,9 @@ func attack_grass_in_area(center: Vector2, radius: float) -> Dictionary:
       if data.type == 5 and GameManager.session_buff_golden_luck:
         GameManager.golden_grass_cut.emit()
 
-  # Critical hit + 크리티컬 리퍼 파워업: 주변 풀 3개 즉사
-  if is_crit and hit_count > 0 and GameManager.session_buff_critical_reaper > 0:
-    var crit_kills = _crit_kill_nearby(center, radius * 2.0, GameManager.session_buff_critical_reaper, locked_targets)
+  # Critical hit + 크리티컬 리퍼 파워업: 범위 내 풀 30% 즉사
+  if is_crit and hit_count > 0 and GameManager.session_buff_critical_reaper:
+    var crit_kills = _crit_kill_percent(center, radius, 0.3, locked_targets)
     for ck in crit_kills:
       total_value += ck.value
       total_max_health += GameManager.grass_data_list[ck.type].max_health
@@ -525,7 +525,7 @@ func spawn_coin(pos: Vector2, value: int) -> void:
   get_parent().add_child(coin)
 
 
-func _crit_kill_nearby(center: Vector2, radius: float, count: int, exclude: Array) -> Array:
+func _crit_kill_percent(center: Vector2, radius: float, percent: float, exclude: Array) -> Array:
   var candidates: Array = []
   var min_chunk = get_chunk_coord(center - Vector2(radius, radius))
   var max_chunk = get_chunk_coord(center + Vector2(radius, radius))
@@ -545,9 +545,10 @@ func _crit_kill_nearby(center: Vector2, radius: float, count: int, exclude: Arra
         var world_pos = Vector2(grid_pos.x, grid_pos.y)
         if center.distance_to(world_pos) <= radius:
           candidates.append(grid_pos)
+  var kill_count = maxi(1, int(candidates.size() * percent))
   candidates.shuffle()
   var results: Array = []
-  for i in mini(count, candidates.size()):
+  for i in mini(kill_count, candidates.size()):
     var grid_pos = candidates[i]
     var data = grass_data[grid_pos]
     data.cut = true

@@ -294,7 +294,7 @@ func _show_powerup_notification(type: String, level: int) -> void:
     if level == 1:
       text = "더블! 코인 x2"
     else:
-      text = "더스트! 코인 증발"
+      text = "낫싱! 코인 -30%"
 
   var hbox = HBoxContainer.new()
   hbox.alignment = BoxContainer.ALIGNMENT_CENTER
