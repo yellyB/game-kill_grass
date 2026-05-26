@@ -1106,19 +1106,12 @@ func _build_debug_buttons() -> void:
   GameManager.style_button(money_btn, "sub")
   _debug_container.add_child(money_btn)
 
-  var gem_btn = Button.new()
-  gem_btn.text = "+보석10"
-  gem_btn.add_theme_font_size_override("font_size", 18)
-  gem_btn.pressed.connect(_on_debug_add_gems)
-  GameManager.style_button(gem_btn, "sub")
-  _debug_container.add_child(gem_btn)
-
-  var reset_money_btn = Button.new()
-  reset_money_btn.text = "코인초기화"
-  reset_money_btn.add_theme_font_size_override("font_size", 18)
-  reset_money_btn.pressed.connect(_on_debug_reset_money)
-  GameManager.style_button(reset_money_btn, "sub")
-  _debug_container.add_child(reset_money_btn)
+  var maxskill_btn = Button.new()
+  maxskill_btn.text = "스킬MAX"
+  maxskill_btn.add_theme_font_size_override("font_size", 18)
+  maxskill_btn.pressed.connect(_on_debug_max_skills)
+  GameManager.style_button(maxskill_btn, "sub")
+  _debug_container.add_child(maxskill_btn)
 
   var unlock_btn = Button.new()
   unlock_btn.text = "월드 전체해금"
@@ -1136,14 +1129,12 @@ func _on_debug_add_money() -> void:
   GameManager.money_changed.emit(GameManager.money)
   SaveManager.save_game()
 
-func _on_debug_add_gems() -> void:
-  GameManager.owned_gems += 10
-  SaveManager.save_game()
-  update_money_display()
-
-func _on_debug_reset_money() -> void:
-  GameManager.money = 0
-  GameManager.money_changed.emit(GameManager.money)
+func _on_debug_max_skills() -> void:
+  for def in GameManager.SKILL_DEFS:
+    GameManager.upgrade_levels[def.type] = def.max_level
+    GameManager.upgrade_sub_levels[def.type] = 0
+  WeaponManager.current_weapon_level = GameManager.upgrade_levels.get("attack_power", 0)
+  GameManager.owned_gems = 99
   SaveManager.save_game()
   update_money_display()
 
