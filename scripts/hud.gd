@@ -44,6 +44,7 @@ func _ready() -> void:
   _setup_fury_bar()
   GameManager.fury_changed.connect(_on_fury_changed)
   GameManager.fury_boss_requested.connect(_on_fury_boss_spawned)
+  GameManager.fury_feed_requested.connect(_on_fury_feed_requested)
 
 func _process(delta: float) -> void:
   # Update timed buff countdowns
@@ -240,6 +241,66 @@ func _on_fury_boss_spawned() -> void:
     icon.queue_free()
     GameManager.fury_gauge_dismissed.emit()
   )
+
+# ── 분노 파티클 (풀 → 게이지) ──
+
+func _on_fury_feed_requested(amount: float, from_pos: Vector2) -> void:
+  if fury_hidden:
+    return
+  _spawn_fury_particles(amount, from_pos)
+
+func _spawn_fury_particles(amount: float, from_pos: Vector2) -> void:
+  var target_pos = fury_progress.global_position + fury_progress.size * 0.5
+
+  # 소형: 50당 1개, 최대 3개 / 대형: 150당 1개 (소형 3개 초과분), 최대 3개
+  var small_count = clampi(ceili(amount / 50.0), 1, 3)
+  var large_count = clampi(ceili((amount - 150.0) / 150.0), 0, 3)
+  var total = small_count + large_count
+  var per_particle = amount / float(total)
+
+  var idx = 0
+  for i in small_count:
+    _launch_fury_dot(from_pos, target_pos, 14.0, per_particle, idx)
+    idx += 1
+  for i in large_count:
+    _launch_fury_dot(from_pos, target_pos, 26.0, per_particle, idx)
+    idx += 1
+
+func _launch_fury_dot(from_pos: Vector2, target_pos: Vector2, radius: float, fury_val: float, idx: int) -> void:
+  var dot = Polygon2D.new()
+  var points: PackedVector2Array = []
+  for j in 8:
+    var a = TAU / 8.0 * j
+    points.append(Vector2(cos(a), sin(a)) * radius)
+  dot.polygon = points
+  dot.color = Color(1.0, 0.3, 0.15, 0.9)
+
+  var spread = Vector2(randf_range(-40, 40), randf_range(-30, 30))
+  dot.position = from_pos + spread
+  add_child(dot)
+
+  var delay = idx * 0.03
+  var duration = randf_range(0.3, 0.5)
+
+  var tween = create_tween()
+  tween.tween_property(dot, "position", target_pos, duration) \
+    .set_delay(delay) \
+    .set_ease(Tween.EASE_IN) \
+    .set_trans(Tween.TRANS_QUAD)
+  tween.parallel().tween_property(dot, "scale", Vector2(0.5, 0.5), duration) \
+    .set_delay(delay)
+  tween.tween_callback(func():
+    GameManager.add_fury(fury_val)
+    _flash_fury_bar()
+    dot.queue_free()
+  )
+
+func _flash_fury_bar() -> void:
+  if fury_hidden:
+    return
+  fury_progress.modulate = Color(1.5, 1.2, 1.0)
+  var tween = create_tween()
+  tween.tween_property(fury_progress, "modulate", Color.WHITE, 0.15)
 
 # ── 초월 레벨 표시 ──
 
