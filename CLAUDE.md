@@ -221,6 +221,18 @@ docs/
   image-prompts.md     - 스프라이트 시트 이미지 생성 프롬프트
 ```
 
+## 버전 코드 규칙
+
+- **source of truth**: `export_presets.cfg`의 `version/code`(정수, Google Play versionCode)와 `version/name`(x.y.z)
+- **최근 빌드**: versionCode **16** (2026-10-29 기준). 다음 빌드는 17.
+- **빌드 요청 시 자동 증가**: "테스트 빌드" 등 특별한 주문이 없으면, 빌드 전에 `export_presets.cfg`의 `version/code`를 **다음 번호로 +1** 올린 뒤 빌드한다. `export_path` 파일명의 번호(`..._{code}.aab`)도 함께 맞춘다.
+  - 예외: 유저가 "테스트로 빌드", "코드 올리지 말고" 등을 명시하면 올리지 않는다.
+- **릴리즈 빌드(AAB)**: 업로드 키스토어로 서명해야 하며, 키·비밀번호는 비공개 레포 [`yellyB/keystores`](https://github.com/yellyB/keystores)의 `kill-grass/credentials.md`에 있다. CLI 빌드 시 환경변수로 전달:
+  - `GODOT_ANDROID_KEYSTORE_RELEASE_PATH` / `_USER` / `_PASSWORD`
+  - 명령: `godot4 --headless --export-release "Android"` (gradle 빌드)
+  - Godot이 최종 복사를 누락하는 경우가 있어, 산출물 `android/build/build/outputs/bundle/standardRelease/build-standard-release.aab`를 `export_path`로 직접 복사해 확인한다.
+- **git 태그 = 릴리즈 기록**: 실제 스토어 출시분은 머지 시 `v{code}-{name}` 태그로 남긴다. 단, versionCode의 "현재값"은 태그가 아니라 `export_presets.cfg`가 기준(태그가 없는 빌드/건너뛴 코드가 있을 수 있음 — 예: v15는 태그 누락).
+
 ## Git 브랜치 & 릴리즈 규칙
 
 - **dev**: 개발 브랜치. 모든 기능 개발과 커밋은 반드시 여기서만 수행
