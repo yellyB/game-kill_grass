@@ -45,7 +45,10 @@ func _process(delta: float) -> void:
     is_being_collected = true
     # Move towards player
     var direction = (player_local_pos - position).normalized()
-    var speed = magnet_speed * (1.0 + (magnet_range - min(distance_to_player, magnet_range)) / magnet_range)
+    var dist_speed = magnet_speed * (1.0 + (magnet_range - min(distance_to_player, magnet_range)) / magnet_range)
+    # 이속이 자석 속도보다 빠르면 코인이 영영 못 따라오므로, 현재 이동 속도 + 여유분을 바닥값으로 보장
+    var world_speed = GameManager.get_base_move_speed() * GameManager.get_session_move_speed_mult() + 300.0
+    var speed = max(dist_speed, world_speed)
     position += direction * speed * delta
 
     # Pickup when close enough
