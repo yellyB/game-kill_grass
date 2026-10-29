@@ -224,7 +224,8 @@ docs/
 ## 버전 코드 규칙
 
 - **source of truth**: `export_presets.cfg`의 `version/code`(정수, Google Play versionCode)와 `version/name`(x.y.z)
-- **최근 빌드**: versionCode **16** (2026-10-29 기준). 다음 빌드는 17.
+- **최근 빌드**: versionCode **17** (2026-10-29 기준). 다음 빌드는 18.
+  - 프로덕션에 16까지 출시됨. 17은 targetSdk 36 대응 빌드(내부 테스트 업로드 후 승격 예정).
 - **빌드 요청 시 자동 증가**: "테스트 빌드" 등 특별한 주문이 없으면, 빌드 전에 `export_presets.cfg`의 `version/code`를 **다음 번호로 +1** 올린 뒤 빌드한다. `export_path` 파일명의 번호(`..._{code}.aab`)도 함께 맞춘다.
   - 예외: 유저가 "테스트로 빌드", "코드 올리지 말고" 등을 명시하면 올리지 않는다.
 - **릴리즈 빌드(AAB)**: 업로드 키스토어로 서명해야 하며, 키·비밀번호는 비공개 레포 [`yellyB/keystores`](https://github.com/yellyB/keystores)의 `kill-grass/credentials.md`에 있다. CLI 빌드 시 환경변수로 전달:
